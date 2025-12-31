@@ -31,16 +31,16 @@ Set up flashcore/cli/ as a package with modular architecture.
 
 Create directory: mkdir -p flashcore/cli. Copy modular structure: cp HPE_ARCHIVE/flashcore/cli/main.py flashcore/cli/main.py (entry point); cp HPE_ARCHIVE/flashcore/cli/review_ui.py flashcore/cli/review_ui.py (UI layer); cp HPE_ARCHIVE/flashcore/cli/__init__.py flashcore/cli/__init__.py. This preserves separation of concerns - main.py handles CLI routing, separate modules handle business logic. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'.
 
-### 6.2. Port Ingest Logic Module with Deduplication
+### 6.2. Extract and Refactor Ingestion Logic with Authoritative Deduplication
 
 **Status:** pending  
 **Dependencies:** 6.1  
 
-Copy ingest/vet logic module maintaining modular structure.
+Extract ingestion and upsert logic from legacy main.py and implement DB-based deduplication.
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/flashcore/cli/_vet_logic.py flashcore/cli/_vet_logic.py (222 lines - ingest/validation logic). Update imports to 'flashcore'. CRITICAL DEDUPLICATION LOGIC (from Task 5.3): (1) Call db.get_all_card_fronts_and_uuids() to get authoritative list of existing cards. (2) Process YAML files with YAMLProcessor (stateless). (3) Filter output cards against existing_fronts set. (4) Only insert cards not in existing_fronts. Wire this module to main.py ingest command.
+CRITICAL SOURCE CORRECTION: Ingestion logic is in HPE_ARCHIVE/flashcore/cli/main.py lines 65-161 (_load_cards_from_source, _filter_new_cards, _execute_ingestion, _perform_ingestion_logic). Create flashcore/cli/ingest.py module extracting these functions. REFACTOR DEDUPLICATION (from Task 5.3): Replace _filter_new_cards logic to call db.get_all_card_fronts_and_uuids() BEFORE YAMLProcessor, filter output against existing_fronts set, then upsert only new cards. NOTE: _vet_logic.py (222 lines) is for 'vet' command (validation/formatting), NOT ingestion - copy separately if vet command needed.
 
 ### 6.3. Port Review Logic Modules
 
@@ -53,16 +53,16 @@ Copy review logic modules maintaining separation between orchestration and UI.
 
 Execute: cp HPE_ARCHIVE/flashcore/cli/_review_logic.py flashcore/cli/_review_logic.py (28 lines - session orchestration); cp HPE_ARCHIVE/flashcore/cli/_review_all_logic.py flashcore/cli/_review_all_logic.py (172 lines - multi-deck logic). Update imports to 'flashcore'. Wire up: FlashcardDatabase(db_path=args.db), FSRS_Scheduler, ReviewSessionManager. Pass all paths explicitly - no config.settings references. Connect to review_ui.py for presentation layer.
 
-### 6.4. Port Export Logic and Stats Functionality
+### 6.4. Port Export, Vet, and Stats Functionality
 
 **Status:** pending  
 **Dependencies:** 6.1  
 
-Copy remaining CLI modules for export and stats commands.
+Copy remaining CLI modules for export, vet, and stats commands.
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/flashcore/cli/_export_logic.py flashcore/cli/_export_logic.py (63 lines - export functionality). Add stats command logic to main.py (query database for card counts, review stats, due cards). Display with rich tables. Update all imports to 'flashcore'.
+Execute: cp HPE_ARCHIVE/flashcore/cli/_export_logic.py flashcore/cli/_export_logic.py (63 lines - export functionality); cp HPE_ARCHIVE/flashcore/cli/_vet_logic.py flashcore/cli/_vet_logic.py (222 lines - YAML validation/formatting for 'vet' command, NOT ingestion). Add stats command logic to main.py (query database for card counts, review stats, due cards). Display with rich tables. Update all imports to 'flashcore'.
 
 ### 6.5. Add CLI to __main__.py Entry Point
 
