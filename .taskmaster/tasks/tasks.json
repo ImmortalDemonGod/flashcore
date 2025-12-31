@@ -3,9 +3,9 @@
     "tasks": [
       {
         "id": 1,
-        "title": "Initialize flashcore-lib Repository",
-        "description": "Set up the new flashcore-lib repository with the necessary project structure and dependencies.",
-        "details": "Create a new directory for flashcore-lib. Initialize the repository with a standard Python package structure. Set up pyproject.toml with specified dependencies and configurations.",
+        "title": "Spoke Initialization & Structural Alignment",
+        "description": "Align the existing boilerplate structure with setup.py requirements and define strict dependency constraints.",
+        "details": "The directory 'flashcore-lib' already exists but must be renamed to 'flashcore' to match setup.py expectations (line 34: version=read('flashcore', 'VERSION')). Update requirements.txt to exclude torch/fsrs-optimizer and include only lightweight runtime dependencies: fsrs>=3.0.0, duckdb>=1.0.0, pydantic>=2.7.0, typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0. This enforces the 'Nuclear Reactor' fix from PRD Section 2.A.",
         "testStrategy": "Verify the repository structure and ensure all dependencies are correctly listed in pyproject.toml.",
         "priority": "medium",
         "dependencies": [],
@@ -13,56 +13,56 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Create flashcore-lib Directory",
-            "description": "Create a new directory for the flashcore-lib project.",
+            "title": "Rename Package Directory",
+            "description": "Rename 'flashcore-lib' to 'flashcore' to match setup.py package name.",
             "dependencies": [],
-            "details": "Set up a new directory named flashcore-lib in the desired location.",
+            "details": "Execute: mv flashcore-lib flashcore. This fixes the mismatch where setup.py expects 'flashcore' (line 34) but the directory is named 'flashcore-lib'.",
             "status": "pending",
-            "testStrategy": "Check if the directory is created successfully."
+            "testStrategy": "Verify directory exists at ./flashcore/ and setup.py can read VERSION file."
           },
           {
             "id": 2,
-            "title": "Initialize Git Repository",
-            "description": "Initialize a new Git repository in the flashcore-lib directory.",
+            "title": "Enforce Dependency Constraints (Nuclear Reactor Fix)",
+            "description": "Update requirements.txt to exclude heavy ML dependencies and include only lightweight runtime deps.",
             "dependencies": [
               1
             ],
-            "details": "Run 'git init' inside the flashcore-lib directory to start version control.",
+            "details": "Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A.",
             "status": "pending",
-            "testStrategy": "Verify the presence of a .git folder."
+            "testStrategy": "Run 'pip install -r requirements.txt' and verify no torch/transformers in dependency tree via 'pip list | grep torch'."
           },
           {
             "id": 3,
-            "title": "Set Up Python Package Structure",
-            "description": "Create a standard Python package structure within the repository.",
+            "title": "Create pyproject.toml with Strict Dependencies",
+            "description": "Create pyproject.toml defining the package metadata and dependency constraints.",
             "dependencies": [
               2
             ],
-            "details": "Add __init__.py and other necessary files to establish a package structure.",
+            "details": "Create pyproject.toml with [project] name='flashcore', version from VERSION file, requires-python='>=3.10', and dependencies matching requirements.txt. Add [build-system] using setuptools.",
             "status": "pending",
-            "testStrategy": "Ensure the package structure follows Python standards."
+            "testStrategy": "Validate with 'python -m build --sdist' and inspect generated metadata."
           },
           {
             "id": 4,
-            "title": "Configure pyproject.toml",
-            "description": "Set up pyproject.toml with necessary dependencies and configurations.",
+            "title": "Verify No Heavy Dependencies in Tree",
+            "description": "Audit the full dependency tree to ensure no transitive heavy dependencies.",
             "dependencies": [
               3
             ],
-            "details": "Create a pyproject.toml file and list all required dependencies and configurations.",
+            "details": "Run 'pip install -e .' then 'pip list' and verify total install size <50MB. Use 'pipdeptree' to check for torch/transformers in transitive deps.",
             "status": "pending",
-            "testStrategy": "Check if all dependencies are correctly listed."
+            "testStrategy": "PRD Section 5 Checklist Item 1: 'uv tree shows NO torch, transformers, or fsrs-optimizer'."
           },
           {
             "id": 5,
-            "title": "Verify Initial Setup",
-            "description": "Verify the initial repository setup and configurations.",
+            "title": "Create .gitignore for Python Package",
+            "description": "Add .gitignore to exclude build artifacts and virtual environments.",
             "dependencies": [
               4
             ],
-            "details": "Review the directory structure and pyproject.toml for correctness.",
+            "details": "Create .gitignore with: __pycache__/, *.pyc, *.pyo, *.egg-info/, dist/, build/, .venv/, .pytest_cache/, .coverage.",
             "status": "pending",
-            "testStrategy": "Ensure the repository structure and configurations meet project requirements."
+            "testStrategy": "Verify build artifacts are not tracked by git status."
           }
         ]
       },
