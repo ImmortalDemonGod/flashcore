@@ -12,7 +12,7 @@
 
 **Details:**
 
-Copy HPE_ARCHIVE/flashcore/database.py, connection.py, schema_manager.py, db_utils.py to flashcore/db.py (consolidate into single module). CRITICAL REFACTOR (PRD Section 2.B): FlashcardDatabase.__init__ currently accepts Optional[db_path] and defaults to config.settings (line 44). Change signature to REQUIRE db_path: 'def __init__(self, db_path: Union[str, Path], read_only: bool = False)'. Remove all references to config.settings. This enforces the 'Hardcoded Life' fix.
+Port the database subsystem from HPE_ARCHIVE into a flashcore/db/ package (NOT a single db.py). CRITICAL REFACTOR (PRD Section 2.B): FlashcardDatabase.__init__ currently accepts Optional[db_path] and defaults to config.settings (line 44). Change signature to REQUIRE db_path: 'def __init__(self, db_path: Union[str, Path], read_only: bool = False)'. Remove all references to config.settings. This enforces the 'Hardcoded Life' fix.
 
 **Test Strategy:**
 
@@ -29,7 +29,7 @@ Port database subsystem to flashcore/db/ package maintaining separation of conce
 
 **Details:**
 
-Create directory: mkdir -p flashcore/db. Copy modules: cp HPE_ARCHIVE/flashcore/database.py flashcore/db/database.py; cp HPE_ARCHIVE/flashcore/connection.py flashcore/db/connection.py; cp HPE_ARCHIVE/flashcore/schema_manager.py flashcore/db/schema_manager.py; cp HPE_ARCHIVE/flashcore/db_utils.py flashcore/db/db_utils.py; cp HPE_ARCHIVE/flashcore/schema.py flashcore/db/schema.py. Create flashcore/db/__init__.py that exports: 'from .database import FlashcardDatabase'. This maintains architectural separation (4 focused modules totaling 1089 lines) rather than creating a monolithic 1000+ line file.
+Create directory: mkdir -p flashcore/db. Copy modules: cp HPE_ARCHIVE/flashcore/database.py flashcore/db/database.py; cp HPE_ARCHIVE/flashcore/connection.py flashcore/db/connection.py; cp HPE_ARCHIVE/flashcore/schema_manager.py flashcore/db/schema_manager.py; cp HPE_ARCHIVE/flashcore/db_utils.py flashcore/db/db_utils.py; cp HPE_ARCHIVE/flashcore/schema.py flashcore/db/schema.py. Also copy shared exceptions: cp HPE_ARCHIVE/flashcore/exceptions.py flashcore/exceptions.py (required by DB + CLI). Create flashcore/db/__init__.py that exports: 'from .database import FlashcardDatabase'. This maintains architectural separation (focused modules) rather than creating a monolithic 1000+ line file.
 
 ### 3.2. Remove config.settings Dependency
 
@@ -75,10 +75,21 @@ Expose FlashcardDatabase from db package in flashcore/__init__.py.
 
 Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. The db/__init__.py already exports FlashcardDatabase from .database, so this import works cleanly. This allows 'from flashcore import FlashcardDatabase'.
 
-### 3.6. Migrate Database Tests with DI Fixtures (Incremental Verification)
+### 3.6. Remove pandas Dependency from Database Layer
 
 **Status:** pending  
 **Dependencies:** 3.5  
+
+Refactor DB queries to avoid pandas (keep dependency footprint small).
+
+**Details:**
+
+HPE_ARCHIVE database layer uses DuckDB's fetch_df() which requires pandas. Refactor flashcore/db/database.py and flashcore/db/db_utils.py to avoid pandas entirely: replace fetch_df() calls with fetchall()/fetchone() and construct row dicts using cursor.description for column names. Remove any pandas imports/usages (e.g., pd.isna) and update marshalling accordingly.
+
+### 3.7. Migrate Database Tests with DI Fixtures (Incremental Verification)
+
+**Status:** pending  
+**Dependencies:** 3.6  
 
 Copy and adapt test_database.py to verify DI refactoring works correctly.
 
