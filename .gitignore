@@ -157,3 +157,6 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+docs/AIV_ENFORCEMENT_PLAN.md
+.gitignore
+docs/AIV_ENFORCEMENT_AUDIT.md
