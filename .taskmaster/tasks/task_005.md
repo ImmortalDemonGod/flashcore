@@ -29,29 +29,29 @@ Transfer the YAML processing module from HPE_ARCHIVE.
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/flashcore/yaml_processing/yaml_processor.py flashcore/parser.py. Also copy the dependent files: HPE_ARCHIVE/flashcore/yaml_processing/yaml_models.py -> flashcore/yaml_models.py and HPE_ARCHIVE/flashcore/yaml_processing/yaml_validators.py -> flashcore/yaml_validators.py. Update imports inside these modules from cultivation.scripts.flashcore.* to flashcore.* (e.g., CardState and regex constants from models).
+Execute: cp HPE_ARCHIVE/flashcore/yaml_processing/yaml_processor.py flashcore/parser.py. Also copy the dependent files: HPE_ARCHIVE/flashcore/yaml_processing/yaml_models.py -> flashcore/yaml_models.py and HPE_ARCHIVE/flashcore/yaml_processing/yaml_validators.py -> flashcore/yaml_validators.py. Update imports inside these modules from `cultivation.scripts.flashcore.*` to `flashcore.*` (e.g., CardState and regex constants from models).
 
 ### 5.2. Remove self.seen_questions State Variable
 
 **Status:** pending  
 **Dependencies:** 5.1  
 
-Delete the stateful seen_questions dictionary from YAMLProcessor.__init__.
+Delete the stateful seen_questions dictionary from YAMLProcessor.`__init__`.
 
 **Details:**
 
 In parser.py line 40, delete 'self.seen_questions: Dict[str, Path] = {}'. Also remove all references to self.seen_questions in _handle_processed_card method (lines 99-110). The parser should not track duplicates.
 
-### 5.3. Add parser.py to __init__.py Exports
+### 5.3. Add parser.py to `__init__.py` Exports
 
 **Status:** pending  
 **Dependencies:** 5.2  
 
-Expose YAMLProcessor in flashcore/__init__.py.
+Expose YAMLProcessor in `flashcore/__init__.py`.
 
 **Details:**
 
-Add to flashcore/__init__.py: 'from .parser import YAMLProcessor, YAMLProcessorConfig'. This allows 'from flashcore import YAMLProcessor'.
+Add to `flashcore/__init__.py`: 'from .parser import YAMLProcessor, YAMLProcessorConfig'. This allows 'from flashcore import YAMLProcessor'.
 
 ### 5.4. Migrate Parser Tests with Statelessness Verification (Incremental Verification)
 
