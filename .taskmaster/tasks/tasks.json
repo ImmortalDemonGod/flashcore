@@ -401,14 +401,14 @@
           },
           {
             "id": 2,
-            "title": "Port Ingest Logic Module with Deduplication",
-            "description": "Copy ingest/vet logic module maintaining modular structure.",
+            "title": "Extract and Refactor Ingestion Logic with Authoritative Deduplication",
+            "description": "Extract ingestion and upsert logic from legacy main.py and implement DB-based deduplication.",
             "dependencies": [
               1
             ],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_vet_logic.py flashcore/cli/_vet_logic.py (222 lines - ingest/validation logic). Update imports to 'flashcore'. CRITICAL DEDUPLICATION LOGIC (from Task 5.3): (1) Call db.get_all_card_fronts_and_uuids() to get authoritative list of existing cards. (2) Process YAML files with YAMLProcessor (stateless). (3) Filter output cards against existing_fronts set. (4) Only insert cards not in existing_fronts. Wire this module to main.py ingest command.",
+            "details": "CRITICAL SOURCE CORRECTION: Ingestion logic is in HPE_ARCHIVE/flashcore/cli/main.py lines 65-161 (_load_cards_from_source, _filter_new_cards, _execute_ingestion, _perform_ingestion_logic). Create flashcore/cli/ingest.py module extracting these functions. REFACTOR DEDUPLICATION (from Task 5.3): Replace _filter_new_cards logic to call db.get_all_card_fronts_and_uuids() BEFORE YAMLProcessor, filter output against existing_fronts set, then upsert only new cards. NOTE: _vet_logic.py (222 lines) is for 'vet' command (validation/formatting), NOT ingestion - copy separately if vet command needed.",
             "status": "pending",
-            "testStrategy": "Ingest same deck twice - second run should detect all cards as duplicates and insert 0 new cards."
+            "testStrategy": "Ingest same deck twice - second run should detect all cards as duplicates and insert 0 new cards. Verify db.get_all_card_fronts_and_uuids() called before processing."
           },
           {
             "id": 3,
@@ -423,14 +423,14 @@
           },
           {
             "id": 4,
-            "title": "Port Export Logic and Stats Functionality",
-            "description": "Copy remaining CLI modules for export and stats commands.",
+            "title": "Port Export, Vet, and Stats Functionality",
+            "description": "Copy remaining CLI modules for export, vet, and stats commands.",
             "dependencies": [
               1
             ],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_export_logic.py flashcore/cli/_export_logic.py (63 lines - export functionality). Add stats command logic to main.py (query database for card counts, review stats, due cards). Display with rich tables. Update all imports to 'flashcore'.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_export_logic.py flashcore/cli/_export_logic.py (63 lines - export functionality); cp HPE_ARCHIVE/flashcore/cli/_vet_logic.py flashcore/cli/_vet_logic.py (222 lines - YAML validation/formatting for 'vet' command, NOT ingestion). Add stats command logic to main.py (query database for card counts, review stats, due cards). Display with rich tables. Update all imports to 'flashcore'.",
             "status": "pending",
-            "testStrategy": "Run 'flashcore stats --db=/tmp/test.db' - should display deck statistics."
+            "testStrategy": "Run 'flashcore stats --db=/tmp/test.db' - should display deck statistics. Run 'flashcore vet' - should validate YAML files."
           },
           {
             "id": 5,
