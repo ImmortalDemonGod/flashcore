@@ -42,10 +42,21 @@ Modify method to accept Card object instead of history list.
 
 In scheduler.py line 147, change 'def compute_next_state(self, history: List[Review], new_rating: int, review_ts: datetime.datetime)' to 'def compute_next_state(self, card: Card, new_rating: int, review_ts: datetime.datetime)'. Update BaseScheduler abstract method signature too (line 53).
 
-### 4.3. Remove History Replay Loop (O(N) -> O(1))
+### 4.3. Copy review_processor.py to flashcore/services.py
 
 **Status:** pending  
 **Dependencies:** 4.2  
+
+Transfer the ReviewProcessor service module from HPE_ARCHIVE.
+
+**Details:**
+
+Execute: cp HPE_ARCHIVE/flashcore/review_processor.py flashcore/services.py. This contains ReviewProcessor class that orchestrates scheduler and database for review operations. Also copy review_manager.py and session_manager.py if needed for service layer.
+
+### 4.4. Remove History Replay Loop (O(N) -> O(1))
+
+**Status:** pending  
+**Dependencies:** 4.3  
 
 Delete the for loop that replays entire review history.
 
@@ -53,10 +64,10 @@ Delete the for loop that replays entire review history.
 
 Delete lines 154-160 in scheduler.py: 'fsrs_card = FSRSCard()' followed by 'for review in history: ...' loop. This is the performance bottleneck.
 
-### 4.4. Initialize FSRSCard from Cached Card State
+### 4.5. Initialize FSRSCard from Cached Card State
 
 **Status:** pending  
-**Dependencies:** 4.3  
+**Dependencies:** 4.4  
 
 Use card.stability, card.difficulty, card.state instead of replaying history.
 
@@ -64,13 +75,13 @@ Use card.stability, card.difficulty, card.state instead of replaying history.
 
 Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)).
 
-### 4.5. Update review_processor.py to Pass Card Object
+### 4.6. Update services.py to Pass Card Object
 
 **Status:** pending  
-**Dependencies:** 4.4  
+**Dependencies:** 4.5  
 
 Modify callers of compute_next_state to pass card instead of history.
 
 **Details:**
 
-In review_processor.py line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.
+In services.py (review_processor.py) line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.
