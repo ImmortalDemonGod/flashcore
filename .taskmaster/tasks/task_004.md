@@ -85,3 +85,14 @@ Modify callers of compute_next_state to pass card instead of history.
 **Details:**
 
 In services.py (review_processor.py) line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.
+
+### 4.7. Migrate Scheduler Tests with O(1) Benchmark (Incremental Verification)
+
+**Status:** pending  
+**Dependencies:** 4.6  
+
+Copy and adapt test_scheduler.py to verify O(1) optimization works correctly.
+
+**Details:**
+
+Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Assert that time difference between 1 and 500 reviews is <50ms (proving O(1) not O(N)). This verifies the performance fix works.
