@@ -7,7 +7,7 @@
         "description": "Align the existing boilerplate structure with setup.py requirements and define strict dependency constraints.",
         "details": "The directory 'flashcore-lib' already exists but must be renamed to 'flashcore' to match setup.py expectations (line 34: version=read('flashcore', 'VERSION')). Update requirements.txt to exclude torch/fsrs-optimizer and include only lightweight runtime dependencies: fsrs>=3.0.0, duckdb>=1.0.0, pydantic>=2.7.0, typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0. This enforces the 'Nuclear Reactor' fix from PRD Section 2.A.",
         "testStrategy": "Verify the repository structure and ensure all dependencies are correctly listed in pyproject.toml.",
-        "priority": "medium",
+        "priority": "high",
         "dependencies": [],
         "status": "pending",
         "subtasks": [
@@ -27,7 +27,7 @@
             "dependencies": [
               1
             ],
-            "details": "Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py).",
+            "details": "Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0, tomli>=2.0.1; python_version<'3.11'. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py). tomli enables reading a lightweight config.toml on Python 3.10.",
             "status": "pending",
             "testStrategy": "Run 'pip install -r requirements.txt' and verify no torch/transformers in dependency tree via 'pip list | grep torch'."
           },
@@ -38,7 +38,7 @@
             "dependencies": [
               2
             ],
-            "details": "Create pyproject.toml with [project] name='flashcore', version from VERSION file, requires-python='>=3.10', and dependencies matching requirements.txt. Add [build-system] using setuptools. CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion. Modern Python packaging (PEP 517/518) uses pyproject.toml as the single source of truth. Having both files creates ambiguity about which defines dependencies and metadata.",
+            "details": "Create pyproject.toml with [project] name='flashcore' and requires-python='>=3.10'. CRITICAL: Preserve VERSION-file semantics from setup.py (setup.py currently reads flashcore/VERSION). In pyproject.toml use setuptools dynamic version, e.g. [project] dynamic = ['version'] and [tool.setuptools.dynamic] version = {file = 'flashcore/VERSION'}. Define console entrypoint under [project.scripts] (e.g., flashcore = 'flashcore.__main__:main'). CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion.",
             "status": "pending",
             "testStrategy": "Validate with 'python -m build --sdist' and inspect generated metadata. Verify setup.py does not exist or is renamed to .bak."
           },
@@ -330,6 +330,17 @@
             "details": "Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Assert that time difference between 1 and 500 reviews is <50ms (proving O(1) not O(N)). This verifies the performance fix works.",
             "status": "pending",
             "testStrategy": "Run 'pytest tests/test_scheduler.py -v' - all tests pass. Run benchmark test - verify O(1) performance (constant time regardless of history length)."
+          },
+          {
+            "id": 8,
+            "title": "Preserve FSRS Parameter Override Support",
+            "description": "Ensure FSRS_Scheduler can accept custom weight vectors at runtime (no forever-defaults trap).",
+            "dependencies": [
+              1
+            ],
+            "details": "HPE_ARCHIVE FSRS_Scheduler already supports injection via FSRSSchedulerConfig(parameters=..., desired_retention=...). When porting/optimizing, ensure this remains supported and is surfaced to the CLI (Task 6) so users can supply externally-optimized weights without fsrs-optimizer.",
+            "status": "pending",
+            "testStrategy": "Instantiate scheduler with custom weights and verify PyFSRSScheduler is built with w=custom tuple."
           }
         ]
       },
@@ -539,8 +550,8 @@
         "id": 8,
         "title": "Implement Data Safety Strategy",
         "description": "Develop a strategy for safely migrating data from the old system to the new library.",
-        "details": "PRD Section 4 Phase 3: Do NOT copy .db file directly (binary compatibility risk). Instead: (1) Create export script HPE_ARCHIVE/dump_history.py (in legacy environment) that runs against the old DB and exports cards -> cards.json, reviews -> reviews.json. (2) Create flashcore/scripts/migrate.py (in new library utility folder, NOT core package) with import_from_json(cards_path, reviews_path, db_path) that recreates schema and inserts data. (3) Validation: Compare row counts between old and new DBs. CRITICAL SEPARATION: dump_history.py lives in HPE_ARCHIVE (legacy), migrate.py lives in flashcore/scripts/ (new utility). Do not put migration scripts in core flashcore package logic to avoid polluting the library.",
-        "testStrategy": "Export from old DB using HPE_ARCHIVE/dump_history.py, import to new DB using flashcore/scripts/migrate.py, verify: SELECT COUNT(*) FROM cards matches, SELECT COUNT(*) FROM reviews matches. Spot-check card UUIDs exist in both DBs.",
+        "details": "PRD Section 4 Phase 3: Do NOT copy .db file directly (binary compatibility risk). Keep HPE_ARCHIVE as read-only reference. Instead: (1) Create export script flashcore/scripts/dump_history.py that connects directly to the OLD DB path (duckdb) and exports cards -> cards.json, reviews -> reviews.json (no imports from HPE_ARCHIVE required). (2) Create flashcore/scripts/migrate.py (utility folder, NOT core package) with import_from_json(cards_path, reviews_path, db_path) that recreates schema and inserts data. (3) Validation: Compare row counts between old and new DBs.",
+        "testStrategy": "Export from old DB using flashcore/scripts/dump_history.py, import to new DB using flashcore/scripts/migrate.py, verify: SELECT COUNT(*) FROM cards matches, SELECT COUNT(*) FROM reviews matches. Spot-check card UUIDs exist in both DBs.",
         "priority": "medium",
         "dependencies": [
           7
