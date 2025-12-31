@@ -12,7 +12,7 @@
 
 **Details:**
 
-CRITICAL PERFORMANCE FIX (PRD Section 2 Finding 2): HPE_ARCHIVE/flashcore/scheduler.py lines 154-160 contain 'for review in history: fsrs_card, _ = self.fsrs_scheduler.review_card(...)' - this replays ENTIRE history on every review (O(N) complexity). For a card with 500 reviews, this loops 500 times. SOLUTION: Change compute_next_state signature from 'compute_next_state(history: List[Review], ...)' to 'compute_next_state(card: Card, new_rating: int, ...)'. Initialize FSRSCard from card.stability, card.difficulty, card.state (cached values) instead of replaying history. This makes scheduling O(1).
+CRITICAL PERFORMANCE FIX (PRD Section 2 Finding 2): HPE_ARCHIVE/flashcore/scheduler.py lines 154-160 contain `for review in history: fsrs_card, _ = self.fsrs_scheduler.review_card(...)` - this replays ENTIRE history on every review (O(N) complexity). For a card with 500 reviews, this loops 500 times. SOLUTION: Change compute_next_state signature from 'compute_next_state(history: List[Review], ...)' to 'compute_next_state(card: Card, new_rating: int, ...)'. Initialize FSRSCard from card.stability, card.difficulty, card.state (cached values) instead of replaying history. This makes scheduling O(1).
 
 **Test Strategy:**
 
@@ -29,7 +29,7 @@ Transfer the scheduler module from HPE_ARCHIVE and update imports to use constan
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from 'from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION' to 'from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION'. This reflects the config.py → constants.py rename for clarity.
+Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py → constants.py rename for clarity.
 
 ### 4.2. Change compute_next_state Signature
 
@@ -45,7 +45,7 @@ In scheduler.py line 147, change 'def compute_next_state(self, history: List[Rev
 ### 4.3. Copy review_processor.py to flashcore/review_processor.py
 
 **Status:** pending  
-**Dependencies:** 4.2  
+**Dependencies:** 4.1  
 
 Transfer the ReviewProcessor service module from HPE_ARCHIVE.
 
@@ -62,7 +62,7 @@ Delete the for loop that replays entire review history.
 
 **Details:**
 
-Delete lines 154-160 in scheduler.py: 'fsrs_card = FSRSCard()' followed by 'for review in history: ...' loop. This is the performance bottleneck.
+Delete the history replay logic in compute_next_state: the 'for review in history: ...' loop is the performance bottleneck. Ensure `fsrs_card = FSRSCard()` still exists exactly once in the O(1) implementation (either preserved outside the deleted block or re-added explicitly).
 
 ### 4.5. Initialize FSRSCard from Cached Card State
 
@@ -73,7 +73,7 @@ Use card.stability, card.difficulty, card.state instead of replaying history.
 
 **Details:**
 
-Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)).
+Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)). Validate that CardState values map correctly to FSRSState values; if they diverge, introduce an explicit CardState->FSRSState mapping function and add a test that covers all CardState variants.
 
 ### 4.6. Update review_processor.py to Pass Card Object
 
@@ -95,7 +95,7 @@ Copy and adapt test_scheduler.py to verify O(1) optimization works correctly.
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Assert that time difference between 1 and 500 reviews is <50ms (proving O(1) not O(N)). This verifies the performance fix works.
+Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Prefer a relative assertion to avoid hardware dependence: assert time(500) < 2x time(1) (or similar constant-factor bound). This verifies the O(1) property without relying on absolute millisecond thresholds.
 
 ### 4.8. Preserve FSRS Parameter Override Support
 
