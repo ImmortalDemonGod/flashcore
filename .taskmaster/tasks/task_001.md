@@ -29,7 +29,7 @@ Rename 'flashcore-lib' to 'flashcore' to match setup.py package name.
 
 **Details:**
 
-Execute: mv flashcore-lib flashcore. This fixes the mismatch where setup.py expects 'flashcore' (line 34) but the directory is named 'flashcore-lib'.
+Execute: mv flashcore-lib flashcore. This fixes the mismatch where setup.py expects 'flashcore' (line 34) but the directory is named 'flashcore-lib'. CRITICAL: The template contains flashcore/cli.py, but the migrated implementation will use a flashcore/cli/ package. Remove or rename flashcore/cli.py after the move to avoid Python import collisions (module vs package).
 
 ### 1.2. Enforce Dependency Constraints (Nuclear Reactor Fix)
 
@@ -40,7 +40,7 @@ Update requirements.txt to exclude heavy ML dependencies and include only lightw
 
 **Details:**
 
-Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A.
+Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py).
 
 ### 1.3. Establish Modern Build System and Deprecate Legacy Setup
 
