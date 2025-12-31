@@ -33,14 +33,14 @@
           },
           {
             "id": 3,
-            "title": "Create pyproject.toml with Strict Dependencies",
-            "description": "Create pyproject.toml defining the package metadata and dependency constraints.",
+            "title": "Establish Modern Build System and Deprecate Legacy Setup",
+            "description": "Create pyproject.toml as single source of truth and deprecate setup.py.",
             "dependencies": [
               2
             ],
-            "details": "Create pyproject.toml with [project] name='flashcore', version from VERSION file, requires-python='>=3.10', and dependencies matching requirements.txt. Add [build-system] using setuptools.",
+            "details": "Create pyproject.toml with [project] name='flashcore', version from VERSION file, requires-python='>=3.10', and dependencies matching requirements.txt. Add [build-system] using setuptools. CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion. Modern Python packaging (PEP 517/518) uses pyproject.toml as the single source of truth. Having both files creates ambiguity about which defines dependencies and metadata.",
             "status": "pending",
-            "testStrategy": "Validate with 'python -m build --sdist' and inspect generated metadata."
+            "testStrategy": "Validate with 'python -m build --sdist' and inspect generated metadata. Verify setup.py does not exist or is renamed to .bak."
           },
           {
             "id": 4,
@@ -127,9 +127,9 @@
             "dependencies": [
               4
             ],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. This prevents confusion about configuration vs constants.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. PURITY CONSTRAINT: Ensure constants.py does NOT import pydantic, pydantic_settings, os, or pathlib. It must be a pure Python file containing only native types (Tuple, float) to prevent circular imports during the O(1) scheduler refactor. Remove lines 4-8 (Path, uuid, pydantic_settings imports). Only keep 'from typing import Tuple' if needed.",
             "status": "pending",
-            "testStrategy": "Verify flashcore/constants.py exists and contains only DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION. Run 'grep -n Settings flashcore/constants.py' should return no results. Verify no flashcore/config.py exists."
+            "testStrategy": "Verify flashcore/constants.py exists and contains only DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION. Run 'grep -n Settings flashcore/constants.py' should return no results. Run 'grep -n import flashcore/constants.py' should show only 'from typing import Tuple' or no imports."
           },
           {
             "id": 6,
@@ -516,8 +516,8 @@
         "id": 8,
         "title": "Implement Data Safety Strategy",
         "description": "Develop a strategy for safely migrating data from the old system to the new library.",
-        "details": "PRD Section 4 Phase 3: Do NOT copy .db file directly (binary compatibility risk). Instead: (1) Create export script in HPE_ARCHIVE: dump_history.py that exports cards -> cards.json, reviews -> reviews.json. (2) Create flashcore/migrate.py with import_from_json(cards_path, reviews_path, db_path) that recreates schema and inserts data. (3) Validation: Compare row counts between old and new DBs. This ensures schema compatibility and data integrity.",
-        "testStrategy": "Export from old DB, import to new DB, verify: SELECT COUNT(*) FROM cards matches, SELECT COUNT(*) FROM reviews matches. Spot-check card UUIDs exist in both DBs.",
+        "details": "PRD Section 4 Phase 3: Do NOT copy .db file directly (binary compatibility risk). Instead: (1) Create export script HPE_ARCHIVE/dump_history.py (in legacy environment) that runs against the old DB and exports cards -> cards.json, reviews -> reviews.json. (2) Create flashcore/scripts/migrate.py (in new library utility folder, NOT core package) with import_from_json(cards_path, reviews_path, db_path) that recreates schema and inserts data. (3) Validation: Compare row counts between old and new DBs. CRITICAL SEPARATION: dump_history.py lives in HPE_ARCHIVE (legacy), migrate.py lives in flashcore/scripts/ (new utility). Do not put migration scripts in core flashcore package logic to avoid polluting the library.",
+        "testStrategy": "Export from old DB using HPE_ARCHIVE/dump_history.py, import to new DB using flashcore/scripts/migrate.py, verify: SELECT COUNT(*) FROM cards matches, SELECT COUNT(*) FROM reviews matches. Spot-check card UUIDs exist in both DBs.",
         "priority": "medium",
         "dependencies": [
           7
