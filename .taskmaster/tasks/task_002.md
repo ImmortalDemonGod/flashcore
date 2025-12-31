@@ -73,7 +73,7 @@ Transfer FSRS algorithm constants from HPE_ARCHIVE config.py.
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. This prevents confusion about configuration vs constants.
+Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. PURITY CONSTRAINT: Ensure constants.py does NOT import pydantic, pydantic_settings, os, or pathlib. It must be a pure Python file containing only native types (Tuple, float) to prevent circular imports during the O(1) scheduler refactor. Remove lines 4-8 (Path, uuid, pydantic_settings imports). Only keep 'from typing import Tuple' if needed.
 
 ### 2.6. Create __init__.py Exports
 
