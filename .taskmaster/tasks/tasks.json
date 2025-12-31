@@ -122,14 +122,14 @@
           },
           {
             "id": 5,
-            "title": "Copy config.py for FSRS Constants",
-            "description": "Transfer FSRS configuration constants from HPE_ARCHIVE.",
+            "title": "Extract FSRS Constants to constants.py",
+            "description": "Transfer FSRS algorithm constants from HPE_ARCHIVE config.py.",
             "dependencies": [
               4
             ],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/config.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). These FSRS constants are imported by scheduler.py line 16-19. The library must not contain hardcoded paths.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. This prevents confusion about configuration vs constants.",
             "status": "pending",
-            "testStrategy": "Verify config.py contains only DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION. Run 'grep -n Settings flashcore/config.py' should return no results."
+            "testStrategy": "Verify flashcore/constants.py exists and contains only DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION. Run 'grep -n Settings flashcore/constants.py' should return no results. Verify no flashcore/config.py exists."
           },
           {
             "id": 6,
@@ -169,12 +169,12 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Consolidate Database Modules into db.py",
-            "description": "Merge database.py, connection.py, schema_manager.py, db_utils.py into single flashcore/db.py.",
+            "title": "Create Database Package Structure",
+            "description": "Port database subsystem to flashcore/db/ package maintaining separation of concerns.",
             "dependencies": [],
-            "details": "Copy HPE_ARCHIVE/flashcore/database.py as base. Inline ConnectionHandler, SchemaManager classes from their respective files. Keep as internal helpers. This simplifies the library structure per PRD Section 3.1.",
+            "details": "Create directory: mkdir -p flashcore/db. Copy modules: cp HPE_ARCHIVE/flashcore/database.py flashcore/db/database.py; cp HPE_ARCHIVE/flashcore/connection.py flashcore/db/connection.py; cp HPE_ARCHIVE/flashcore/schema_manager.py flashcore/db/schema_manager.py; cp HPE_ARCHIVE/flashcore/db_utils.py flashcore/db/db_utils.py; cp HPE_ARCHIVE/flashcore/schema.py flashcore/db/schema.py. Create flashcore/db/__init__.py that exports: 'from .database import FlashcardDatabase'. This maintains architectural separation (4 focused modules totaling 1089 lines) rather than creating a monolithic 1000+ line file.",
             "status": "pending",
-            "testStrategy": "Verify flashcore/db.py contains FlashcardDatabase, ConnectionHandler, SchemaManager classes."
+            "testStrategy": "Verify flashcore/db/ directory exists with 5 modules. Verify flashcore/db/__init__.py exports FlashcardDatabase."
           },
           {
             "id": 2,
