@@ -74,3 +74,14 @@ Expose FlashcardDatabase in flashcore/__init__.py.
 **Details:**
 
 Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. This allows 'from flashcore import FlashcardDatabase'.
+
+### 3.6. Migrate Database Tests with DI Fixtures (Incremental Verification)
+
+**Status:** pending  
+**Dependencies:** 3.5  
+
+Copy and adapt test_database.py to verify DI refactoring works correctly.
+
+**Details:**
+
+Execute: cp HPE_ARCHIVE/tests/test_database.py tests/test_db.py. CRITICAL FIXTURE UPDATE: Replace all fixtures that use 'FlashcardDatabase()' with 'FlashcardDatabase(db_path=tmp_path / "test.db")'. Update conftest.py to provide tmp_path fixture. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. This verifies Dependency Injection works and provides safety net for DB refactoring. Also copy test_database_errors.py for error handling tests.
