@@ -52,3 +52,14 @@ Expose YAMLProcessor in flashcore/__init__.py.
 **Details:**
 
 Add to flashcore/__init__.py: 'from .parser import YAMLProcessor, YAMLProcessorConfig'. This allows 'from flashcore import YAMLProcessor'.
+
+### 5.4. Migrate Parser Tests with Statelessness Verification (Incremental Verification)
+
+**Status:** pending  
+**Dependencies:** 5.3  
+
+Copy and adapt test_yaml_processor.py to verify parser is truly stateless.
+
+**Details:**
+
+Execute: cp HPE_ARCHIVE/tests/test_yaml_processor.py tests/test_parser.py. Update imports from 'cultivation.scripts.flashcore.yaml_processing' to 'flashcore.parser'. CRITICAL: Add new test 'test_parser_is_stateless' that instantiates YAMLProcessor, processes a file twice, and verifies identical output (no state carried between calls). Also test that processing file with duplicate fronts returns all cards (no internal filtering). This verifies stateless refactor works.
