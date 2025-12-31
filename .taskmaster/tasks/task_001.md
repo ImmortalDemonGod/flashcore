@@ -42,16 +42,16 @@ Update requirements.txt to exclude heavy ML dependencies and include only lightw
 
 Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A.
 
-### 1.3. Create pyproject.toml with Strict Dependencies
+### 1.3. Establish Modern Build System and Deprecate Legacy Setup
 
 **Status:** pending  
 **Dependencies:** 1.2  
 
-Create pyproject.toml defining the package metadata and dependency constraints.
+Create pyproject.toml as single source of truth and deprecate setup.py.
 
 **Details:**
 
-Create pyproject.toml with [project] name='flashcore', version from VERSION file, requires-python='>=3.10', and dependencies matching requirements.txt. Add [build-system] using setuptools.
+Create pyproject.toml with [project] name='flashcore', version from VERSION file, requires-python='>=3.10', and dependencies matching requirements.txt. Add [build-system] using setuptools. CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion. Modern Python packaging (PEP 517/518) uses pyproject.toml as the single source of truth. Having both files creates ambiguity about which defines dependencies and metadata.
 
 ### 1.4. Verify No Heavy Dependencies in Tree
 
