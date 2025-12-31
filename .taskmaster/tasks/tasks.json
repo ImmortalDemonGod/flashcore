@@ -27,7 +27,7 @@
             "dependencies": [
               1
             ],
-            "details": "Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0, tomli>=2.0.1; python_version<'3.11'. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py). tomli enables reading a lightweight config.toml on Python 3.10.",
+            "details": "Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0, tomli>=2.0.1; python_version<'3.11'. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py). Prefer to move the tomli environment marker into pyproject.toml dependencies once Task 1.3 establishes pyproject.toml as the single source of truth.",
             "status": "pending",
             "testStrategy": "Run 'pip install -r requirements.txt' and verify no torch/transformers in dependency tree via 'pip list | grep torch'."
           },
@@ -38,7 +38,7 @@
             "dependencies": [
               2
             ],
-            "details": "Create pyproject.toml with [project] name='flashcore' and requires-python='>=3.10'. CRITICAL: Preserve VERSION-file semantics from setup.py (setup.py currently reads flashcore/VERSION). In pyproject.toml use setuptools dynamic version, e.g. [project] dynamic = ['version'] and [tool.setuptools.dynamic] version = {file = 'flashcore/VERSION'}. Define console entrypoint under [project.scripts] (e.g., flashcore = 'flashcore.__main__:main'). CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion.",
+            "details": "Create pyproject.toml with [project] name='flashcore' and requires-python='>=3.10'. CRITICAL: Preserve VERSION-file semantics from setup.py (setup.py currently reads flashcore/VERSION). In pyproject.toml use setuptools dynamic version, e.g. [project] dynamic = ['version'] and [tool.setuptools.dynamic] version = {file = 'flashcore/VERSION'}. Define console entrypoint under [project.scripts] (e.g., flashcore = `flashcore.__main__:main`). CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion.",
             "status": "pending",
             "testStrategy": "Validate with 'python -m build --sdist' and inspect generated metadata. Verify setup.py does not exist or is renamed to .bak."
           },
@@ -60,7 +60,7 @@
             "dependencies": [
               4
             ],
-            "details": "Create .gitignore with: __pycache__/, *.pyc, *.pyo, *.egg-info/, dist/, build/, .venv/, .pytest_cache/, .coverage.",
+            "details": "Create .gitignore with: `__pycache__/`, `*.pyc`, `*.pyo`, `*.egg-info/`, `dist/`, `build/`, `.venv/`, `.pytest_cache/`, `.coverage`.",
             "status": "pending",
             "testStrategy": "Verify build artifacts are not tracked by git status."
           }
@@ -70,7 +70,7 @@
         "id": 2,
         "title": "Migrate Core Data Models",
         "description": "Transfer and refactor core data models from HPE_ARCHIVE to the new library structure.",
-        "details": "Copy HPE_ARCHIVE/flashcore/card.py to flashcore/models.py. This file contains Card, Review, Session, and CardState models using Pydantic v2. Remove all imports referencing 'cultivation.scripts.flashcore' and replace with relative imports (e.g., 'from .db import ...'). Ensure Pydantic v2 syntax is maintained (Field, model_validate, model_dump). PRD Phase 2 Step 1.",
+        "details": "Copy HPE_ARCHIVE/flashcore/card.py to flashcore/models.py. This file contains Card, Review, Session, and CardState models using Pydantic v2. Remove all imports referencing `cultivation.scripts.flashcore` and replace with relative imports (e.g., 'from .db import ...'). Ensure Pydantic v2 syntax is maintained (Field, model_validate, model_dump). PRD Phase 2 Step 1.",
         "testStrategy": "Import models.py and instantiate Card/Review objects. Run 'python -c \"from flashcore.models import Card, Review, Session, CardState\"' to verify no import errors.",
         "priority": "medium",
         "dependencies": [
@@ -94,7 +94,7 @@
             "dependencies": [
               1
             ],
-            "details": "Search for 'from cultivation.scripts.flashcore' in models.py and replace with relative imports. Example: 'from cultivation.scripts.flashcore.config import X' becomes 'from .config import X' or remove if not needed.",
+            "details": "Search for `from cultivation.scripts.flashcore` in models.py and replace with relative imports. Example: `from cultivation.scripts.flashcore.config import X` becomes `from .config import X` or remove if not needed.",
             "status": "pending",
             "testStrategy": "Run 'grep -n cultivation flashcore/models.py' should return no results."
           },
@@ -127,18 +127,18 @@
             "dependencies": [
               4
             ],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. PURITY CONSTRAINT: Ensure constants.py does NOT import pydantic, pydantic_settings, os, or pathlib. It must be a pure Python file containing only native types (Tuple, float) to prevent circular imports during the O(1) scheduler refactor. Remove lines 4-8 (Path, uuid, pydantic_settings imports). Only keep 'from typing import Tuple' if needed.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. PURITY CONSTRAINT: Ensure constants.py does NOT import pydantic, pydantic_settings, os, or pathlib. It must be a pure Python file containing only native types (Tuple, float) to prevent circular imports during the O(1) scheduler refactor. Remove lines 4-8 (Path, uuid, pydantic_settings imports). Allowed imports: keep only `from typing import Tuple` (for DEFAULT_PARAMETERS signature) if used; remove all other imports.",
             "status": "pending",
             "testStrategy": "Verify flashcore/constants.py exists and contains only DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION. Run 'grep -n Settings flashcore/constants.py' should return no results. Run 'grep -n import flashcore/constants.py' should show only 'from typing import Tuple' or no imports."
           },
           {
             "id": 6,
-            "title": "Create __init__.py Exports",
-            "description": "Expose models in flashcore/__init__.py for clean imports.",
+            "title": "Create `__init__.py` Exports",
+            "description": "Expose models in `flashcore/__init__.py` for clean imports.",
             "dependencies": [
               5
             ],
-            "details": "Add to flashcore/__init__.py: 'from .models import Card, Review, Session, CardState, ReviewRating'. This allows 'from flashcore import Card'.",
+            "details": "Add to `flashcore/__init__.py`: 'from .models import Card, Review, Session, CardState, ReviewRating'. This allows 'from flashcore import Card'.",
             "status": "pending",
             "testStrategy": "Test import: 'python -c \"from flashcore import Card, Review\"'."
           },
@@ -149,7 +149,7 @@
             "dependencies": [
               6
             ],
-            "details": "Execute: cp HPE_ARCHIVE/tests/test_card.py tests/test_models.py. Update imports from 'cultivation.scripts.flashcore.card' to 'flashcore.models'. Verify Pydantic v2 validation works (model_validate, model_dump). Run 'pytest tests/test_models.py -v' - all tests should pass. This provides immediate safety net for model refactoring.",
+            "details": "Execute: cp HPE_ARCHIVE/tests/test_card.py tests/test_models.py. Update imports from `cultivation.scripts.flashcore.card` to `flashcore.models`. Verify Pydantic v2 validation works (model_validate, model_dump). Run 'pytest tests/test_models.py -v' - all tests should pass. This provides immediate safety net for model refactoring.",
             "status": "pending",
             "testStrategy": "Run 'pytest tests/test_models.py -v' - all model tests pass. Verify Card, Review, Session instantiation and validation."
           }
@@ -159,7 +159,7 @@
         "id": 3,
         "title": "Refactor Database Layer for Dependency Injection",
         "description": "Modify the database layer to eliminate hardcoded paths and enforce dependency injection.",
-        "details": "Port the database subsystem from HPE_ARCHIVE into a flashcore/db/ package (NOT a single db.py). CRITICAL REFACTOR (PRD Section 2.B): FlashcardDatabase.__init__ currently accepts Optional[db_path] and defaults to config.settings (line 44). Change signature to REQUIRE db_path: 'def __init__(self, db_path: Union[str, Path], read_only: bool = False)'. Remove all references to config.settings. This enforces the 'Hardcoded Life' fix.",
+        "details": "Port the database subsystem from HPE_ARCHIVE into a flashcore/db/ package (NOT a single db.py). CRITICAL REFACTOR (PRD Section 2.B): FlashcardDatabase.`__init__` currently accepts Optional[db_path] and defaults to config.settings (line 44). Change signature to REQUIRE db_path: `def __init__(self, db_path: Union[str, Path], read_only: bool = False)`. Remove all references to config.settings. This enforces the 'Hardcoded Life' fix.",
         "testStrategy": "Instantiate FlashcardDatabase without db_path argument - should raise TypeError. Instantiate with explicit path - should succeed. Run: 'python -c \"from flashcore.db import FlashcardDatabase; FlashcardDatabase()\"' should fail.",
         "priority": "high",
         "dependencies": [
@@ -172,9 +172,9 @@
             "title": "Create Database Package Structure",
             "description": "Port database subsystem to flashcore/db/ package maintaining separation of concerns.",
             "dependencies": [],
-            "details": "Create directory: mkdir -p flashcore/db. Copy modules: cp HPE_ARCHIVE/flashcore/database.py flashcore/db/database.py; cp HPE_ARCHIVE/flashcore/connection.py flashcore/db/connection.py; cp HPE_ARCHIVE/flashcore/schema_manager.py flashcore/db/schema_manager.py; cp HPE_ARCHIVE/flashcore/db_utils.py flashcore/db/db_utils.py; cp HPE_ARCHIVE/flashcore/schema.py flashcore/db/schema.py. Also copy shared exceptions: cp HPE_ARCHIVE/flashcore/exceptions.py flashcore/exceptions.py (required by DB + CLI). Create flashcore/db/__init__.py that exports: 'from .database import FlashcardDatabase'. This maintains architectural separation (focused modules) rather than creating a monolithic 1000+ line file.",
+            "details": "Create directory: mkdir -p flashcore/db. Copy modules: cp HPE_ARCHIVE/flashcore/database.py flashcore/db/database.py; cp HPE_ARCHIVE/flashcore/connection.py flashcore/db/connection.py; cp HPE_ARCHIVE/flashcore/schema_manager.py flashcore/db/schema_manager.py; cp HPE_ARCHIVE/flashcore/db_utils.py flashcore/db/db_utils.py; cp HPE_ARCHIVE/flashcore/schema.py flashcore/db/schema.py. Also copy shared exceptions: cp HPE_ARCHIVE/flashcore/exceptions.py flashcore/exceptions.py (required by DB + CLI). Create `flashcore/db/__init__.py` that exports ONLY: 'from .database import FlashcardDatabase' (keep other modules internal). This maintains architectural separation (focused modules) rather than creating a monolithic 1000+ line file.",
             "status": "pending",
-            "testStrategy": "Verify flashcore/db/ directory exists with 5 modules. Verify flashcore/db/__init__.py exports FlashcardDatabase."
+            "testStrategy": "Verify flashcore/db/ directory exists with 5 modules. Verify `flashcore/db/__init__.py` exports FlashcardDatabase (and does not re-export internal modules)."
           },
           {
             "id": 2,
@@ -183,18 +183,18 @@
             "dependencies": [
               1
             ],
-            "details": "In flashcore/db/database.py line 44, __init__ has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. In flashcore/db/connection.py line 6, remove 'from .config import settings' import and line 16 'self.db_path_resolved = settings.db_path'. The library must not know about config files.",
+            "details": "In flashcore/db/database.py line 44, `__init__` has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. In flashcore/db/connection.py line 6, remove 'from .config import settings' import and line 16 'self.db_path_resolved = settings.db_path'. The library must not know about config files.",
             "status": "pending",
             "testStrategy": "Run 'grep -rn config flashcore/db/' should return no results."
           },
           {
             "id": 3,
             "title": "Make db_path Required Argument",
-            "description": "Change FlashcardDatabase.__init__ signature to require db_path.",
+            "description": "Change FlashcardDatabase.`__init__` signature to require db_path.",
             "dependencies": [
               2
             ],
-            "details": "Change signature from 'def __init__(self, db_path: Optional[Union[str, Path]] = None, ...)' to 'def __init__(self, db_path: Union[str, Path], read_only: bool = False)'. Update docstring to reflect this is now required.",
+            "details": "Change signature from `def __init__(self, db_path: Optional[Union[str, Path]] = None, ...)` to `def __init__(self, db_path: Union[str, Path], read_only: bool = False)`. Update docstring to reflect: db_path is required (no default), accepted types are Union[str, Path], path resolution expectations (cwd vs absolute), and that the path must be writable unless read_only=True.",
             "status": "pending",
             "testStrategy": "Attempt to instantiate without argument: 'FlashcardDatabase()' should raise TypeError: missing required positional argument 'db_path'."
           },
@@ -205,20 +205,20 @@
             "dependencies": [
               3
             ],
-            "details": "Review ConnectionHandler.__init__ in connection.py. If it also has Optional db_path with config default, apply same refactor. Ensure it receives db_path from FlashcardDatabase.",
+            "details": "Review ConnectionHandler.`__init__` in connection.py. If it also has Optional db_path with config default, apply same refactor. Ensure it receives db_path from FlashcardDatabase.",
             "status": "pending",
             "testStrategy": "Trace db_path flow: FlashcardDatabase -> ConnectionHandler -> duckdb.connect(). No config lookups in chain."
           },
           {
             "id": 5,
-            "title": "Add db Package to __init__.py Exports",
-            "description": "Expose FlashcardDatabase from db package in flashcore/__init__.py.",
+            "title": "Add db Package to `__init__.py` Exports",
+            "description": "Expose FlashcardDatabase from db package in `flashcore/__init__.py`.",
             "dependencies": [
               4
             ],
-            "details": "Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. The db/__init__.py already exports FlashcardDatabase from .database, so this import works cleanly. This allows 'from flashcore import FlashcardDatabase'.",
+            "details": "Add to `flashcore/__init__.py`: 'from .db import FlashcardDatabase'. The `db/__init__.py` already exports FlashcardDatabase from .database, so this import works cleanly. This allows 'from flashcore import FlashcardDatabase'.",
             "status": "pending",
-            "testStrategy": "Test import and instantiation: 'python -c \"from flashcore import FlashcardDatabase; db = FlashcardDatabase(\"/tmp/test.db\")\"'."
+            "testStrategy": "Test import and instantiation: 'python -c \"from flashcore import FlashcardDatabase; db = FlashcardDatabase(\\\"/tmp/test.db\\\")\"'."
           },
           {
             "id": 6,
@@ -238,7 +238,7 @@
             "dependencies": [
               6
             ],
-            "details": "Execute: cp HPE_ARCHIVE/tests/test_database.py tests/test_db.py. CRITICAL FIXTURE UPDATE: Replace all fixtures that use 'FlashcardDatabase()' with 'FlashcardDatabase(db_path=tmp_path / \"test.db\")'. Update conftest.py to provide tmp_path fixture. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. This verifies Dependency Injection works and provides safety net for DB refactoring. Also copy test_database_errors.py for error handling tests.",
+            "details": "Execute: cp HPE_ARCHIVE/tests/test_database.py tests/test_db.py. CRITICAL FIXTURE UPDATE: Replace all fixtures that use 'FlashcardDatabase()' with 'FlashcardDatabase(db_path=tmp_path / \"test.db\")'. Update conftest.py to provide tmp_path fixture. Update imports from `cultivation.scripts.flashcore` to `flashcore`. This verifies Dependency Injection works and provides safety net for DB refactoring. Also copy test_database_errors.py for error handling tests.",
             "status": "pending",
             "testStrategy": "Run 'pytest tests/test_db.py -v' - all database tests pass with explicit db_path. Verify FlashcardDatabase() without args raises TypeError."
           }
@@ -248,7 +248,7 @@
         "id": 4,
         "title": "Optimize Scheduler Logic (O(1) Performance Fix)",
         "description": "Eliminate the O(N) history replay bottleneck by using cached card state.",
-        "details": "CRITICAL PERFORMANCE FIX (PRD Section 2 Finding 2): HPE_ARCHIVE/flashcore/scheduler.py lines 154-160 contain 'for review in history: fsrs_card, _ = self.fsrs_scheduler.review_card(...)' - this replays ENTIRE history on every review (O(N) complexity). For a card with 500 reviews, this loops 500 times. SOLUTION: Change compute_next_state signature from 'compute_next_state(history: List[Review], ...)' to 'compute_next_state(card: Card, new_rating: int, ...)'. Initialize FSRSCard from card.stability, card.difficulty, card.state (cached values) instead of replaying history. This makes scheduling O(1).",
+        "details": "CRITICAL PERFORMANCE FIX (PRD Section 2 Finding 2): HPE_ARCHIVE/flashcore/scheduler.py lines 154-160 contain `for review in history: fsrs_card, _ = self.fsrs_scheduler.review_card(...)` - this replays ENTIRE history on every review (O(N) complexity). For a card with 500 reviews, this loops 500 times. SOLUTION: Change compute_next_state signature from 'compute_next_state(history: List[Review], ...)' to 'compute_next_state(card: Card, new_rating: int, ...)'. Initialize FSRSCard from card.stability, card.difficulty, card.state (cached values) instead of replaying history. This makes scheduling O(1).",
         "testStrategy": "Create card with 100 reviews. Time compute_next_state - should be <10ms regardless of history length. Compare before/after: old implementation time should scale with history length, new should be constant.",
         "priority": "critical",
         "dependencies": [
@@ -261,7 +261,7 @@
             "title": "Copy scheduler.py and Update Imports",
             "description": "Transfer the scheduler module from HPE_ARCHIVE and update imports to use constants.py.",
             "dependencies": [],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from 'from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION' to 'from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION'. This reflects the config.py → constants.py rename for clarity.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py → constants.py rename for clarity.",
             "status": "pending",
             "testStrategy": "Verify file exists at flashcore/scheduler.py. Run 'grep -n \"from.*constants import\" flashcore/scheduler.py' - should find import on line ~16."
           },
@@ -281,7 +281,7 @@
             "title": "Copy review_processor.py to flashcore/review_processor.py",
             "description": "Transfer the ReviewProcessor service module from HPE_ARCHIVE.",
             "dependencies": [
-              2
+              1
             ],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/review_processor.py flashcore/review_processor.py. Also port the dependent review/session services used by the CLI: cp HPE_ARCHIVE/flashcore/review_manager.py flashcore/review_manager.py; cp HPE_ARCHIVE/flashcore/session_manager.py flashcore/session_manager.py. CRITICAL: session_manager.py uses DuckDB fetch_df() (requires pandas). When porting, refactor session_manager.py to avoid fetch_df() and pandas usage, mirroring the DB-layer 'no pandas' constraint.",
             "status": "pending",
@@ -294,7 +294,7 @@
             "dependencies": [
               3
             ],
-            "details": "Delete lines 154-160 in scheduler.py: 'fsrs_card = FSRSCard()' followed by 'for review in history: ...' loop. This is the performance bottleneck.",
+            "details": "Delete the history replay logic in compute_next_state: the 'for review in history: ...' loop is the performance bottleneck. Ensure `fsrs_card = FSRSCard()` still exists exactly once in the O(1) implementation (either preserved outside the deleted block or re-added explicitly).",
             "status": "pending",
             "testStrategy": "Verify no 'for review in history' loop exists in compute_next_state method."
           },
@@ -305,7 +305,7 @@
             "dependencies": [
               4
             ],
-            "details": "Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)).",
+            "details": "Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)). Validate that CardState values map correctly to FSRSState values; if they diverge, introduce an explicit CardState->FSRSState mapping function and add a test that covers all CardState variants.",
             "status": "pending",
             "testStrategy": "Verify fsrs_card is initialized from card attributes, not history loop."
           },
@@ -327,7 +327,7 @@
             "dependencies": [
               6
             ],
-            "details": "Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Assert that time difference between 1 and 500 reviews is <50ms (proving O(1) not O(N)). This verifies the performance fix works.",
+            "details": "Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Prefer a relative assertion to avoid hardware dependence: assert time(500) < 2x time(1) (or similar constant-factor bound). This verifies the O(1) property without relying on absolute millisecond thresholds.",
             "status": "pending",
             "testStrategy": "Run 'pytest tests/test_scheduler.py -v' - all tests pass. Run benchmark test - verify O(1) performance (constant time regardless of history length)."
           },
@@ -361,14 +361,14 @@
             "title": "Copy yaml_processor.py to flashcore/parser.py",
             "description": "Transfer the YAML processing module from HPE_ARCHIVE.",
             "dependencies": [],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/yaml_processing/yaml_processor.py flashcore/parser.py. Also copy the dependent files: HPE_ARCHIVE/flashcore/yaml_processing/yaml_models.py -> flashcore/yaml_models.py and HPE_ARCHIVE/flashcore/yaml_processing/yaml_validators.py -> flashcore/yaml_validators.py. Update imports inside these modules from cultivation.scripts.flashcore.* to flashcore.* (e.g., CardState and regex constants from models).",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/yaml_processing/yaml_processor.py flashcore/parser.py. Also copy the dependent files: HPE_ARCHIVE/flashcore/yaml_processing/yaml_models.py -> flashcore/yaml_models.py and HPE_ARCHIVE/flashcore/yaml_processing/yaml_validators.py -> flashcore/yaml_validators.py. Update imports inside these modules from `cultivation.scripts.flashcore.*` to `flashcore.*` (e.g., CardState and regex constants from models).",
             "status": "pending",
             "testStrategy": "Verify file exists at flashcore/parser.py."
           },
           {
             "id": 2,
             "title": "Remove self.seen_questions State Variable",
-            "description": "Delete the stateful seen_questions dictionary from YAMLProcessor.__init__.",
+            "description": "Delete the stateful seen_questions dictionary from YAMLProcessor.`__init__`.",
             "dependencies": [
               1
             ],
@@ -378,12 +378,12 @@
           },
           {
             "id": 3,
-            "title": "Add parser.py to __init__.py Exports",
-            "description": "Expose YAMLProcessor in flashcore/__init__.py.",
+            "title": "Add parser.py to `__init__.py` Exports",
+            "description": "Expose YAMLProcessor in `flashcore/__init__.py`.",
             "dependencies": [
               2
             ],
-            "details": "Add to flashcore/__init__.py: 'from .parser import YAMLProcessor, YAMLProcessorConfig'. This allows 'from flashcore import YAMLProcessor'.",
+            "details": "Add to `flashcore/__init__.py`: 'from .parser import YAMLProcessor, YAMLProcessorConfig'. This allows 'from flashcore import YAMLProcessor'.",
             "status": "pending",
             "testStrategy": "Test import: 'python -c \"from flashcore import YAMLProcessor\"'."
           },
@@ -415,7 +415,7 @@
         "id": 6,
         "title": "Develop CLI Package for flashcore",
         "description": "Reconstruct the CLI as a modular package maintaining separation of concerns.",
-        "details": "Port HPE_ARCHIVE/flashcore/cli/ as flashcore/cli/ PACKAGE (not single file). HPE_ARCHIVE has 6 modules totaling 960 lines: main.py (382 lines - entry point), review_ui.py (93 lines - UI), _review_logic.py (28 lines), _review_all_logic.py (172 lines), _vet_logic.py (222 lines - YAML vet/formatting), _export_logic.py (63 lines). Preserve this modular structure to avoid creating a 'God Object'. CRITICAL (PRD Section 3.3): CLI must accept --db flag for database path (no defaults). The CLI is responsible for dependency injection - it receives paths from user and passes to library classes.",
+        "details": "Port HPE_ARCHIVE/flashcore/cli/ as flashcore/cli/ PACKAGE (not single file). HPE_ARCHIVE has 6 modules totaling 960 lines: main.py (382 lines - entry point), review_ui.py (93 lines - UI), `_review_logic.py` (28 lines), `_review_all_logic.py` (172 lines - multi-deck logic), `_vet_logic.py` (222 lines - YAML vet/formatting), `_export_logic.py` (63 lines). Preserve this modular structure to avoid creating a 'God Object'. CRITICAL (PRD Section 3.3): CLI must accept --db flag for database path (no defaults). The CLI is responsible for dependency injection - it receives paths from user and passes to library classes.",
         "testStrategy": "Run 'flashcore review --db=/tmp/test.db --deck=test' - should work. Run 'flashcore review' without --db - should show error requiring db path.",
         "priority": "medium",
         "dependencies": [
@@ -429,9 +429,9 @@
             "title": "Create CLI Package Structure",
             "description": "Set up flashcore/cli/ as a package with modular architecture.",
             "dependencies": [],
-            "details": "Create directory: mkdir -p flashcore/cli. Copy modular structure: cp HPE_ARCHIVE/flashcore/cli/main.py flashcore/cli/main.py (entry point); cp HPE_ARCHIVE/flashcore/cli/review_ui.py flashcore/cli/review_ui.py (UI layer); cp HPE_ARCHIVE/flashcore/cli/__init__.py flashcore/cli/__init__.py. This preserves separation of concerns - main.py handles CLI routing, separate modules handle business logic. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'.",
+            "details": "Create directory: mkdir -p flashcore/cli. Copy modular structure: cp HPE_ARCHIVE/flashcore/cli/main.py flashcore/cli/main.py (entry point); cp HPE_ARCHIVE/flashcore/cli/review_ui.py flashcore/cli/review_ui.py (UI layer); cp `HPE_ARCHIVE/flashcore/cli/__init__.py` `flashcore/cli/__init__.py`. This preserves separation of concerns - main.py handles CLI routing, separate modules handle business logic. Update imports from `cultivation.scripts.flashcore` to `flashcore`.",
             "status": "pending",
-            "testStrategy": "Verify flashcore/cli/ directory exists with main.py and __init__.py. Run 'python -m flashcore.cli.main --help' - should show commands."
+            "testStrategy": "Verify flashcore/cli/ directory exists with main.py and `__init__.py`. Run 'python -m flashcore.cli.main --help' - should show commands."
           },
           {
             "id": 2,
@@ -440,7 +440,7 @@
             "dependencies": [
               1
             ],
-            "details": "CRITICAL SOURCE CORRECTION: Ingestion logic is in HPE_ARCHIVE/flashcore/cli/main.py lines 65-161 (_load_cards_from_source, _filter_new_cards, _execute_ingestion, _perform_ingestion_logic). Create flashcore/cli/ingest.py module extracting these functions. REFACTOR DEDUPLICATION (from Task 5.3): Replace _filter_new_cards logic to call db.get_all_card_fronts_and_uuids() BEFORE YAMLProcessor, filter output against existing_fronts set, then upsert only new cards. NOTE: _vet_logic.py (222 lines) is for 'vet' command (validation/formatting), NOT ingestion - copy separately if vet command needed.",
+            "details": "CRITICAL SOURCE CORRECTION: Ingestion logic is in HPE_ARCHIVE/flashcore/cli/main.py lines 65-161 (`_load_cards_from_source`, `_filter_new_cards`, `_execute_ingestion`, `_perform_ingestion_logic`). Create flashcore/cli/ingest.py module extracting these functions. REFACTOR DEDUPLICATION (from Task 5.3): Replace `_filter_new_cards` logic to call db.get_all_card_fronts_and_uuids() BEFORE YAMLProcessor, filter output against existing_fronts set, then upsert only new cards. NOTE: `_vet_logic.py` (222 lines) is for 'vet' command (validation/formatting), NOT ingestion - copy separately if vet command needed.",
             "status": "pending",
             "testStrategy": "Ingest same deck twice - second run should detect all cards as duplicates and insert 0 new cards. Verify db.get_all_card_fronts_and_uuids() called before processing."
           },
@@ -451,7 +451,7 @@
             "dependencies": [
               1
             ],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_review_logic.py flashcore/cli/_review_logic.py (28 lines - session orchestration); cp HPE_ARCHIVE/flashcore/cli/_review_all_logic.py flashcore/cli/_review_all_logic.py (172 lines - multi-deck logic). Update imports to 'flashcore'. Wire up: FlashcardDatabase(db_path=args.db), FSRS_Scheduler, ReviewSessionManager. Pass all paths explicitly - no config.settings references. Connect to review_ui.py for presentation layer.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_review_logic.py flashcore/cli/_review_logic.py (28 lines - session orchestration); cp HPE_ARCHIVE/flashcore/cli/_review_all_logic.py flashcore/cli/_review_all_logic.py (172 lines - multi-deck logic). Update imports to `flashcore`. Wire up: FlashcardDatabase(db_path=args.db), FSRS_Scheduler, ReviewSessionManager. Pass all paths explicitly - no config.settings references. Connect to review_ui.py for presentation layer.",
             "status": "pending",
             "testStrategy": "Run 'flashcore review --db=/tmp/test.db --deck=test' - should start review session."
           },
@@ -462,20 +462,20 @@
             "dependencies": [
               1
             ],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_export_logic.py flashcore/cli/_export_logic.py (63 lines - export functionality); cp HPE_ARCHIVE/flashcore/cli/_vet_logic.py flashcore/cli/_vet_logic.py (222 lines - YAML validation/formatting for 'vet' command, NOT ingestion). Add stats command logic to main.py (query database for card counts, review stats, due cards). Display with rich tables. Update all imports to 'flashcore'.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_export_logic.py flashcore/cli/_export_logic.py (63 lines - export functionality); cp HPE_ARCHIVE/flashcore/cli/_vet_logic.py flashcore/cli/_vet_logic.py (222 lines - YAML validation/formatting for 'vet' command, NOT ingestion). Add stats command logic to main.py (query database for card counts, review stats, due cards). Display with rich tables. Update all imports to `flashcore`.",
             "status": "pending",
             "testStrategy": "Run 'flashcore stats --db=/tmp/test.db' - should display deck statistics. Run 'flashcore vet' - should validate YAML files."
           },
           {
             "id": 5,
-            "title": "Add CLI to __main__.py Entry Point",
+            "title": "Add CLI to `__main__.py` Entry Point",
             "description": "Wire CLI to package entry point for 'flashcore' command.",
             "dependencies": [
               2,
               3,
               4
             ],
-            "details": "Update flashcore/__main__.py to import and run CLI app (e.g., from flashcore.cli.main import main). Since setup.py is deprecated (Task 1.3), define console entrypoint in pyproject.toml using [project.scripts] (e.g., flashcore = \"flashcore.__main__:main\"). Test that 'flashcore' command is available after install.",
+            "details": "Update `flashcore/__main__.py` to import and run CLI app (e.g., from flashcore.cli.main import main). Since setup.py is deprecated (Task 1.3), define console entrypoint in pyproject.toml using [project.scripts] (e.g., flashcore = `flashcore.__main__:main`). Test that 'flashcore' command is available after install.",
             "status": "pending",
             "testStrategy": "After 'pip install -e .', run 'which flashcore' - should find command. Run 'flashcore --help' - should work."
           }
@@ -550,27 +550,91 @@
         "id": 8,
         "title": "Implement Data Safety Strategy",
         "description": "Develop a strategy for safely migrating data from the old system to the new library.",
-        "details": "PRD Section 4 Phase 3: Do NOT copy .db file directly (binary compatibility risk). Keep HPE_ARCHIVE as read-only reference. Instead: (1) Create export script flashcore/scripts/dump_history.py that connects directly to the OLD DB path (duckdb) and exports cards -> cards.json, reviews -> reviews.json (no imports from HPE_ARCHIVE required). (2) Create flashcore/scripts/migrate.py (utility folder, NOT core package) with import_from_json(cards_path, reviews_path, db_path) that recreates schema and inserts data. (3) Validation: Compare row counts between old and new DBs.",
-        "testStrategy": "Export from old DB using flashcore/scripts/dump_history.py, import to new DB using flashcore/scripts/migrate.py, verify: SELECT COUNT(*) FROM cards matches, SELECT COUNT(*) FROM reviews matches. Spot-check card UUIDs exist in both DBs.",
+        "details": "PRD Section 4 Phase 3: Do NOT copy .db file directly (binary compatibility risk). Keep HPE_ARCHIVE as read-only reference. Instead: (1) Create export script flashcore/scripts/dump_history.py that connects directly to the OLD DB path (duckdb) and exports cards -> cards.json, reviews -> reviews.json (no imports from HPE_ARCHIVE required). (2) Create flashcore/scripts/migrate.py (utility folder, NOT core package) with import_from_json(cards_path, reviews_path, db_path) that recreates schema and inserts data. (3) Validation: Compare row counts between old and new DBs, plus integrity checks (relationships and value ranges).",
+        "testStrategy": "Export from old DB using flashcore/scripts/dump_history.py, import to new DB using flashcore/scripts/migrate.py. Verify row counts: SELECT COUNT(*) FROM cards matches; SELECT COUNT(*) FROM reviews matches. Relationship check: SELECT COUNT(*) FROM reviews r WHERE NOT EXISTS (SELECT 1 FROM cards c WHERE c.uuid = r.card_uuid); expected 0. Range check (example): SELECT COUNT(*) FROM cards WHERE state != 'New' AND (stability IS NULL OR stability <= 0); expected 0. Spot-check card UUIDs exist in both DBs.",
         "priority": "medium",
         "dependencies": [
           7
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create dump_history.py Export Script",
+            "description": "Export cards and reviews from the legacy DB into JSON files.",
+            "dependencies": [],
+            "details": "Create flashcore/scripts/dump_history.py. It must connect directly to the old DuckDB file path and export cards -> cards.json, reviews -> reviews.json. Do not import anything from HPE_ARCHIVE.",
+            "status": "pending",
+            "testStrategy": "Run export and verify output JSON files exist and are parseable (python -c 'import json; json.load(open(...))')."
+          },
+          {
+            "id": 2,
+            "title": "Create migrate.py Import Utility",
+            "description": "Import cards/reviews JSON into a new DB and recreate schema.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create flashcore/scripts/migrate.py with import_from_json(cards_path, reviews_path, db_path). It recreates schema and inserts data.",
+            "status": "pending",
+            "testStrategy": "Run import into a fresh DB and verify tables exist and row counts are non-zero."
+          },
+          {
+            "id": 3,
+            "title": "Add Migration Validation Queries",
+            "description": "Validate migration completeness and integrity beyond simple row counts.",
+            "dependencies": [
+              2
+            ],
+            "details": "In addition to row count comparisons, run integrity checks: (1) Relationship validation: reviews must reference existing cards. (2) Value range validation: stability/difficulty values are within expected ranges. (3) Schema sanity: expected columns exist and are correct types.",
+            "status": "pending",
+            "testStrategy": "Verify relationship check returns 0 invalid rows; verify stability/difficulty checks return 0 invalid rows; verify schema contains expected columns."
+          }
+        ]
       },
       {
         "id": 9,
         "title": "Finalize and Document Migration",
         "description": "Complete the migration process and document the new architecture and usage.",
-        "details": "CRITICAL (PRD Section 4 Feature Branch Workflow): Remove HPE_ARCHIVE/ directory before final merge. Execute: 'git rm -r HPE_ARCHIVE/' and commit with message 'chore(repo): Remove HPE_ARCHIVE after successful pivot'. Document in README.md: (1) Installation: 'pip install flashcore', (2) Usage examples with explicit db_path, (3) Architecture: Hub-and-Spoke model, (4) Dependency constraints (no torch/fsrs-optimizer), (5) Migration guide from old system. Update pyproject.toml metadata (setup.py is deprecated/removed). PRD Section 5 Verification Checklist: Confirm no heavy deps, pytest passes, CLI works with migrated data, images/audio load correctly.",
-        "testStrategy": "Verify HPE_ARCHIVE/ does not exist in git tree. README.md contains installation, usage, and architecture sections. All PRD Section 5 checklist items pass.",
+        "details": "CRITICAL (PRD Section 4 Feature Branch Workflow): Remove HPE_ARCHIVE/ directory before final merge. Execute: 'git rm -r HPE_ARCHIVE/' and commit with message 'chore(repo): Remove HPE_ARCHIVE after successful pivot'. Document in README.md: (1) Installation: 'pip install flashcore', (2) Usage examples with explicit db_path, (3) Architecture: Hub-and-Spoke model, (4) Dependency constraints (no torch/fsrs-optimizer), (5) Migration guide from old system. Update pyproject.toml metadata (setup.py is deprecated/removed). PRD Section 5 Verification Checklist: Confirm no torch or fsrs-optimizer in pyproject.toml dependencies, pytest tests/ passes (all tests), flashcore CLI ingest/review/stats runs without error on migrated sample data, and assets referenced by YAML (images/audio) load correctly.",
+        "testStrategy": "Verify HPE_ARCHIVE/ does not exist in git tree. README.md contains installation, usage, architecture, and migration guide sections. Confirm: (1) No torch/transformers/fsrs-optimizer in dependencies, (2) pytest tests/ passes, (3) flashcore CLI ingest/review/stats works on migrated sample data, (4) images/audio referenced in YAML load correctly.",
         "priority": "medium",
         "dependencies": [
           8
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Remove HPE_ARCHIVE Before Final Merge",
+            "description": "Remove legacy archive directory to prevent dual source-of-truth confusion.",
+            "dependencies": [],
+            "details": "Execute: git rm -r HPE_ARCHIVE/ and commit with message 'chore(repo): Remove HPE_ARCHIVE after successful pivot'.",
+            "status": "pending",
+            "testStrategy": "Verify HPE_ARCHIVE/ is absent from git tree and repository root."
+          },
+          {
+            "id": 2,
+            "title": "Update README and Documentation",
+            "description": "Document installation, usage, architecture, constraints, and migration guide.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update README.md: installation, usage examples with explicit db_path, architecture (Hub-and-Spoke), dependency constraints (no torch/transformers/fsrs-optimizer), and migration guide.",
+            "status": "pending",
+            "testStrategy": "Verify README.md contains all required sections with runnable command examples."
+          },
+          {
+            "id": 3,
+            "title": "Run Verification Checklist",
+            "description": "Run PRD Section 5 verification checklist with explicit, testable criteria.",
+            "dependencies": [
+              2
+            ],
+            "details": "Confirm: (1) No torch/transformers/fsrs-optimizer in dependencies, (2) pytest tests/ passes, (3) flashcore CLI ingest/review/stats runs on migrated sample data, (4) assets referenced by YAML load correctly.",
+            "status": "pending",
+            "testStrategy": "All checklist items pass and are recorded in PR verification packet."
+          }
+        ]
       }
     ],
     "metadata": {
