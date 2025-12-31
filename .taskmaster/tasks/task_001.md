@@ -40,7 +40,7 @@ Update requirements.txt to exclude heavy ML dependencies and include only lightw
 
 **Details:**
 
-Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0, tomli>=2.0.1; python_version<'3.11'. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py). tomli enables reading a lightweight config.toml on Python 3.10.
+Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0, tomli>=2.0.1; python_version<'3.11'. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py). Prefer to move the tomli environment marker into pyproject.toml dependencies once Task 1.3 establishes pyproject.toml as the single source of truth.
 
 ### 1.3. Establish Modern Build System and Deprecate Legacy Setup
 
@@ -51,7 +51,7 @@ Create pyproject.toml as single source of truth and deprecate setup.py.
 
 **Details:**
 
-Create pyproject.toml with [project] name='flashcore' and requires-python='>=3.10'. CRITICAL: Preserve VERSION-file semantics from setup.py (setup.py currently reads flashcore/VERSION). In pyproject.toml use setuptools dynamic version, e.g. [project] dynamic = ['version'] and [tool.setuptools.dynamic] version = {file = 'flashcore/VERSION'}. Define console entrypoint under [project.scripts] (e.g., flashcore = 'flashcore.__main__:main'). CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion.
+Create pyproject.toml with [project] name='flashcore' and requires-python='>=3.10'. CRITICAL: Preserve VERSION-file semantics from setup.py (setup.py currently reads flashcore/VERSION). In pyproject.toml use setuptools dynamic version, e.g. [project] dynamic = ['version'] and [tool.setuptools.dynamic] version = {file = 'flashcore/VERSION'}. Define console entrypoint under [project.scripts] (e.g., flashcore = `flashcore.__main__:main`). CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion.
 
 ### 1.4. Verify No Heavy Dependencies in Tree
 
@@ -73,4 +73,4 @@ Add .gitignore to exclude build artifacts and virtual environments.
 
 **Details:**
 
-Create .gitignore with: __pycache__/, *.pyc, *.pyo, *.egg-info/, dist/, build/, .venv/, .pytest_cache/, .coverage.
+Create .gitignore with: `__pycache__/`, `*.pyc`, `*.pyo`, `*.egg-info/`, `dist/`, `build/`, `.venv/`, `.pytest_cache/`, `.coverage`.
