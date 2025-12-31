@@ -449,16 +449,68 @@
       },
       {
         "id": 7,
-        "title": "Migrate and Adapt Test Suite",
-        "description": "Transfer and adapt the existing test suite to the new library structure.",
-        "details": "Copy HPE_ARCHIVE/tests/ to tests/ directory. PRD Section 4 Phase 2 Step 5 emphasizes the test suite is a 'high-value asset' with architectural regression tests. Priority tests to migrate: test_database.py (includes TestIngestionBugReproduction), test_scheduler.py (verify O(1) optimization), test_yaml_processor.py (verify stateless behavior), test_rating_system_inconsistency.py, test_session_analytics_gaps.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. Update fixtures to use temp databases with explicit paths (no config.settings).",
-        "testStrategy": "Run 'pytest tests/ -v' - all tests should pass. Verify test coverage >80% with 'pytest --cov=flashcore tests/'.",
+        "title": "Migrate Integration and Architectural Regression Tests",
+        "description": "Transfer integration tests and architectural regression tests to verify end-to-end functionality.",
+        "details": "Since unit tests are now migrated incrementally (Tasks 2-5), this task focuses on: (1) CLI Integration Tests - copy HPE_ARCHIVE/tests/cli/ to tests/cli/ for end-to-end CLI command testing. (2) Architectural Regression Tests - copy test_rating_system_inconsistency.py, test_session_analytics_gaps.py, test_review_logic_duplication.py (PRD Section 4 Phase 2 Step 5 calls these 'high-value assets' documenting past flaws). (3) Service Layer Tests - copy test_review_processor.py, test_review_manager.py, test_session_manager.py. Update all imports from 'cultivation.scripts.flashcore' to 'flashcore'. Update fixtures to use explicit db_path.",
+        "testStrategy": "Run 'pytest tests/ -v' - all tests pass including integration and regression tests. Verify test coverage >80% with 'pytest --cov=flashcore tests/'. Run CLI integration tests to verify end-to-end workflows.",
         "priority": "high",
         "dependencies": [
           6
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Migrate CLI Integration Tests",
+            "description": "Copy CLI integration tests to verify end-to-end command functionality.",
+            "dependencies": [],
+            "details": "Execute: cp -r HPE_ARCHIVE/tests/cli/ tests/cli/. These tests verify the full CLI workflow (ingest, review, stats commands). Update imports and ensure tests use explicit --db flags (no config.settings).",
+            "status": "pending",
+            "testStrategy": "Run 'pytest tests/cli/ -v' - all CLI integration tests pass."
+          },
+          {
+            "id": 2,
+            "title": "Migrate Architectural Regression Tests",
+            "description": "Copy tests that document and prevent past architectural flaws.",
+            "dependencies": [],
+            "details": "Copy: test_rating_system_inconsistency.py, test_session_analytics_gaps.py, test_review_logic_duplication.py. PRD emphasizes these are 'invaluable architectural regression tests' that validate fixes for past bugs. Update imports to 'flashcore'.",
+            "status": "pending",
+            "testStrategy": "Run 'pytest tests/test_rating_system_inconsistency.py tests/test_session_analytics_gaps.py -v' - all regression tests pass."
+          },
+          {
+            "id": 3,
+            "title": "Migrate Service Layer Tests",
+            "description": "Copy tests for ReviewProcessor, ReviewManager, SessionManager.",
+            "dependencies": [],
+            "details": "Copy: test_review_processor.py, test_review_manager.py, test_session_manager.py, test_session_model.py. These test the service orchestration layer. Update imports to 'flashcore.services'.",
+            "status": "pending",
+            "testStrategy": "Run 'pytest tests/test_review_processor.py tests/test_review_manager.py -v' - all service tests pass."
+          },
+          {
+            "id": 4,
+            "title": "Copy conftest.py and Shared Fixtures",
+            "description": "Migrate shared test fixtures and configuration.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Copy HPE_ARCHIVE/tests/conftest.py to tests/conftest.py. Update fixtures to use explicit db_path (tmp_path / 'test.db') instead of config.settings. Ensure pytest configuration is correct.",
+            "status": "pending",
+            "testStrategy": "Run 'pytest tests/ --collect-only' - all tests discovered correctly with proper fixtures."
+          },
+          {
+            "id": 5,
+            "title": "Run Full Test Suite and Verify Coverage",
+            "description": "Execute complete test suite and verify coverage meets PRD requirements.",
+            "dependencies": [
+              4
+            ],
+            "details": "Run 'pytest tests/ -v' to execute all tests (unit + integration + regression). Run 'pytest --cov=flashcore tests/' to verify >80% coverage. All tests should pass, proving the refactoring is correct and safe.",
+            "status": "pending",
+            "testStrategy": "All tests pass. Coverage >80%. No regressions detected."
+          }
+        ]
       },
       {
         "id": 8,
