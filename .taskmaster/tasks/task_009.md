@@ -12,7 +12,7 @@
 
 **Details:**
 
-CRITICAL (PRD Section 4 Feature Branch Workflow): Remove HPE_ARCHIVE/ directory before final merge. Execute: 'git rm -r HPE_ARCHIVE/' and commit with message 'chore(repo): Remove HPE_ARCHIVE after successful pivot'. Document in README.md: (1) Installation: 'pip install flashcore', (2) Usage examples with explicit db_path, (3) Architecture: Hub-and-Spoke model, (4) Dependency constraints (no torch/fsrs-optimizer), (5) Migration guide from old system. Update setup.py metadata. PRD Section 5 Verification Checklist: Confirm no heavy deps, pytest passes, CLI works with migrated data, images/audio load correctly.
+CRITICAL (PRD Section 4 Feature Branch Workflow): Remove HPE_ARCHIVE/ directory before final merge. Execute: 'git rm -r HPE_ARCHIVE/' and commit with message 'chore(repo): Remove HPE_ARCHIVE after successful pivot'. Document in README.md: (1) Installation: 'pip install flashcore', (2) Usage examples with explicit db_path, (3) Architecture: Hub-and-Spoke model, (4) Dependency constraints (no torch/fsrs-optimizer), (5) Migration guide from old system. Update pyproject.toml metadata (setup.py is deprecated/removed). PRD Section 5 Verification Checklist: Confirm no heavy deps, pytest passes, CLI works with migrated data, images/audio load correctly.
 
 **Test Strategy:**
 
