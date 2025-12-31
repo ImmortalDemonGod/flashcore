@@ -20,16 +20,16 @@ Create card with 100 reviews. Time compute_next_state - should be <10ms regardle
 
 ## Subtasks
 
-### 4.1. Copy scheduler.py to flashcore/scheduler.py
+### 4.1. Copy scheduler.py and Update Imports
 
 **Status:** pending  
 **Dependencies:** None  
 
-Transfer the scheduler module from HPE_ARCHIVE.
+Transfer the scheduler module from HPE_ARCHIVE and update imports to use constants.py.
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes.
+Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from 'from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION' to 'from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION'. This reflects the config.py → constants.py rename for clarity.
 
 ### 4.2. Change compute_next_state Signature
 
