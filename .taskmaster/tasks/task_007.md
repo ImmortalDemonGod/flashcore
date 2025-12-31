@@ -51,7 +51,7 @@ Copy tests for ReviewProcessor, ReviewManager, SessionManager.
 
 **Details:**
 
-Copy: test_review_processor.py, test_review_manager.py, test_session_manager.py, test_session_model.py. These test the service orchestration layer. Update imports to 'flashcore.services'.
+Copy: test_review_processor.py, test_review_manager.py, test_session_manager.py, test_session_model.py. These test the service orchestration layer. Update imports to the new module layout: flashcore.review_processor, flashcore.review_manager, flashcore.session_manager.
 
 ### 7.4. Copy conftest.py and Shared Fixtures
 
