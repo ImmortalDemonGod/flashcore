@@ -179,13 +179,13 @@
           {
             "id": 2,
             "title": "Remove config.settings Dependency",
-            "description": "Eliminate all imports and references to config.settings from db.py.",
+            "description": "Eliminate all imports and references to config.settings from db package modules.",
             "dependencies": [
               1
             ],
-            "details": "In HPE_ARCHIVE/flashcore/database.py line 44, __init__ has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. Delete 'from .config import settings' import. The library must not know about config files.",
+            "details": "In flashcore/db/database.py line 44, __init__ has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. In flashcore/db/connection.py line 6, remove 'from .config import settings' import and line 16 'self.db_path_resolved = settings.db_path'. The library must not know about config files.",
             "status": "pending",
-            "testStrategy": "Run 'grep -n config flashcore/db.py' should return no results."
+            "testStrategy": "Run 'grep -rn config flashcore/db/' should return no results."
           },
           {
             "id": 3,
@@ -211,12 +211,12 @@
           },
           {
             "id": 5,
-            "title": "Add db.py to __init__.py Exports",
-            "description": "Expose FlashcardDatabase in flashcore/__init__.py.",
+            "title": "Add db Package to __init__.py Exports",
+            "description": "Expose FlashcardDatabase from db package in flashcore/__init__.py.",
             "dependencies": [
               4
             ],
-            "details": "Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. This allows 'from flashcore import FlashcardDatabase'.",
+            "details": "Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. The db/__init__.py already exports FlashcardDatabase from .database, so this import works cleanly. This allows 'from flashcore import FlashcardDatabase'.",
             "status": "pending",
             "testStrategy": "Test import and instantiation: 'python -c \"from flashcore import FlashcardDatabase; db = FlashcardDatabase(\"/tmp/test.db\")\"'."
           },
@@ -247,12 +247,12 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Copy scheduler.py to flashcore/scheduler.py",
-            "description": "Transfer the scheduler module from HPE_ARCHIVE.",
+            "title": "Copy scheduler.py and Update Imports",
+            "description": "Transfer the scheduler module from HPE_ARCHIVE and update imports to use constants.py.",
             "dependencies": [],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from 'from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION' to 'from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION'. This reflects the config.py → constants.py rename for clarity.",
             "status": "pending",
-            "testStrategy": "Verify file exists at flashcore/scheduler.py."
+            "testStrategy": "Verify file exists at flashcore/scheduler.py. Run 'grep -n \"from.*constants import\" flashcore/scheduler.py' - should find import on line ~16."
           },
           {
             "id": 2,
