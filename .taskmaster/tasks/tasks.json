@@ -219,6 +219,17 @@
             "details": "Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. This allows 'from flashcore import FlashcardDatabase'.",
             "status": "pending",
             "testStrategy": "Test import and instantiation: 'python -c \"from flashcore import FlashcardDatabase; db = FlashcardDatabase(\"/tmp/test.db\")\"'."
+          },
+          {
+            "id": 6,
+            "title": "Migrate Database Tests with DI Fixtures (Incremental Verification)",
+            "description": "Copy and adapt test_database.py to verify DI refactoring works correctly.",
+            "dependencies": [
+              5
+            ],
+            "details": "Execute: cp HPE_ARCHIVE/tests/test_database.py tests/test_db.py. CRITICAL FIXTURE UPDATE: Replace all fixtures that use 'FlashcardDatabase()' with 'FlashcardDatabase(db_path=tmp_path / \"test.db\")'. Update conftest.py to provide tmp_path fixture. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. This verifies Dependency Injection works and provides safety net for DB refactoring. Also copy test_database_errors.py for error handling tests.",
+            "status": "pending",
+            "testStrategy": "Run 'pytest tests/test_db.py -v' - all database tests pass with explicit db_path. Verify FlashcardDatabase() without args raises TypeError."
           }
         ]
       },
@@ -297,6 +308,17 @@
             "details": "In services.py (review_processor.py) line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.",
             "status": "pending",
             "testStrategy": "Run tests to verify scheduler integration works with new signature."
+          },
+          {
+            "id": 7,
+            "title": "Migrate Scheduler Tests with O(1) Benchmark (Incremental Verification)",
+            "description": "Copy and adapt test_scheduler.py to verify O(1) optimization works correctly.",
+            "dependencies": [
+              6
+            ],
+            "details": "Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Assert that time difference between 1 and 500 reviews is <50ms (proving O(1) not O(N)). This verifies the performance fix works.",
+            "status": "pending",
+            "testStrategy": "Run 'pytest tests/test_scheduler.py -v' - all tests pass. Run benchmark test - verify O(1) performance (constant time regardless of history length)."
           }
         ]
       },
