@@ -122,14 +122,36 @@
           },
           {
             "id": 5,
+            "title": "Copy config.py for FSRS Constants",
+            "description": "Transfer FSRS configuration constants from HPE_ARCHIVE.",
+            "dependencies": [
+              4
+            ],
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/config.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). These FSRS constants are imported by scheduler.py line 16-19. The library must not contain hardcoded paths.",
+            "status": "pending",
+            "testStrategy": "Verify config.py contains only DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION. Run 'grep -n Settings flashcore/config.py' should return no results."
+          },
+          {
+            "id": 6,
             "title": "Create __init__.py Exports",
             "description": "Expose models in flashcore/__init__.py for clean imports.",
             "dependencies": [
-              4
+              5
             ],
             "details": "Add to flashcore/__init__.py: 'from .models import Card, Review, Session, CardState, ReviewRating'. This allows 'from flashcore import Card'.",
             "status": "pending",
             "testStrategy": "Test import: 'python -c \"from flashcore import Card, Review\"'."
+          },
+          {
+            "id": 7,
+            "title": "Migrate Model Tests (Incremental Verification)",
+            "description": "Copy and adapt test_card.py to verify models work correctly.",
+            "dependencies": [
+              6
+            ],
+            "details": "Execute: cp HPE_ARCHIVE/tests/test_card.py tests/test_models.py. Update imports from 'cultivation.scripts.flashcore.card' to 'flashcore.models'. Verify Pydantic v2 validation works (model_validate, model_dump). Run 'pytest tests/test_models.py -v' - all tests should pass. This provides immediate safety net for model refactoring.",
+            "status": "pending",
+            "testStrategy": "Run 'pytest tests/test_models.py -v' - all model tests pass. Verify Card, Review, Session instantiation and validation."
           }
         ]
       },
@@ -234,34 +256,45 @@
           },
           {
             "id": 3,
+            "title": "Copy review_processor.py to flashcore/services.py",
+            "description": "Transfer the ReviewProcessor service module from HPE_ARCHIVE.",
+            "dependencies": [
+              2
+            ],
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/review_processor.py flashcore/services.py. This contains ReviewProcessor class that orchestrates scheduler and database for review operations. Also copy review_manager.py and session_manager.py if needed for service layer.",
+            "status": "pending",
+            "testStrategy": "Verify file exists at flashcore/services.py and contains ReviewProcessor class."
+          },
+          {
+            "id": 4,
             "title": "Remove History Replay Loop (O(N) -> O(1))",
             "description": "Delete the for loop that replays entire review history.",
             "dependencies": [
-              2
+              3
             ],
             "details": "Delete lines 154-160 in scheduler.py: 'fsrs_card = FSRSCard()' followed by 'for review in history: ...' loop. This is the performance bottleneck.",
             "status": "pending",
             "testStrategy": "Verify no 'for review in history' loop exists in compute_next_state method."
           },
           {
-            "id": 4,
+            "id": 5,
             "title": "Initialize FSRSCard from Cached Card State",
             "description": "Use card.stability, card.difficulty, card.state instead of replaying history.",
             "dependencies": [
-              3
+              4
             ],
             "details": "Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)).",
             "status": "pending",
             "testStrategy": "Verify fsrs_card is initialized from card attributes, not history loop."
           },
           {
-            "id": 5,
-            "title": "Update review_processor.py to Pass Card Object",
+            "id": 6,
+            "title": "Update services.py to Pass Card Object",
             "description": "Modify callers of compute_next_state to pass card instead of history.",
             "dependencies": [
-              4
+              5
             ],
-            "details": "In review_processor.py line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.",
+            "details": "In services.py (review_processor.py) line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.",
             "status": "pending",
             "testStrategy": "Run tests to verify scheduler integration works with new signature."
           }
@@ -301,32 +334,10 @@
           },
           {
             "id": 3,
-            "title": "Implement Deduplication in CLI Ingest Command",
-            "description": "Move deduplication checks to the CLI layer, integrating with the database.",
-            "dependencies": [
-              2
-            ],
-            "details": "In cli.py ingest command: (1) Call db.get_all_card_fronts_and_uuids() to get authoritative list of existing cards. (2) Process YAML files with YAMLProcessor. (3) Filter output cards against existing_fronts set. (4) Only insert cards not in existing_fronts. This makes DB the single source of truth.",
-            "status": "pending",
-            "testStrategy": "Ingest same deck twice - second run should detect all cards as duplicates and insert 0 new cards."
-          },
-          {
-            "id": 4,
-            "title": "Remove Intra-File Duplicate Checks from Parser",
-            "description": "Simplify parser to not check for duplicates even within a single file.",
-            "dependencies": [
-              3
-            ],
-            "details": "The parser should emit all cards from YAML without filtering. If a YAML file has duplicate fronts, both should be returned. The CLI layer will handle deduplication against DB. This makes parser truly stateless.",
-            "status": "pending",
-            "testStrategy": "Create YAML with duplicate fronts. Parser should return both cards. CLI should reject duplicate on insert."
-          },
-          {
-            "id": 5,
             "title": "Add parser.py to __init__.py Exports",
             "description": "Expose YAMLProcessor in flashcore/__init__.py.",
             "dependencies": [
-              4
+              2
             ],
             "details": "Add to flashcore/__init__.py: 'from .parser import YAMLProcessor, YAMLProcessorConfig'. This allows 'from flashcore import YAMLProcessor'.",
             "status": "pending",
@@ -338,14 +349,70 @@
         "id": 6,
         "title": "Develop CLI for flashcore-lib",
         "description": "Create a new CLI using Typer that interfaces with the refactored library.",
-        "details": "Reference HPE_ARCHIVE/flashcore/cli/ for command structure. Build flashcore/cli.py with Typer commands: review, ingest, stats. CRITICAL (PRD Section 3.3): CLI must accept --db flag for database path (no defaults). Example: 'flashcore review --db=/path/to/flash.db --deck=python'. The CLI is responsible for dependency injection - it receives paths from user and passes to library classes. Implement deduplication logic in ingest command per Task 5.",
+        "details": "Reference HPE_ARCHIVE/flashcore/cli/ for command structure. Build flashcore/cli.py with Typer commands: review, ingest, stats. CRITICAL (PRD Section 3.3): CLI must accept --db flag for database path (no defaults). Example: 'flashcore review --db=/path/to/flash.db --deck=python'. The CLI is responsible for dependency injection - it receives paths from user and passes to library classes. Implement deduplication logic in ingest command (moved from Task 5).",
         "testStrategy": "Run 'flashcore review --db=/tmp/test.db --deck=test' - should work. Run 'flashcore review' without --db - should show error requiring db path.",
         "priority": "medium",
         "dependencies": [
           5
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Scaffold CLI Application Structure",
+            "description": "Create the base Typer CLI application in flashcore/cli.py.",
+            "dependencies": [],
+            "details": "Create flashcore/cli.py with Typer app initialization. Reference HPE_ARCHIVE/flashcore/cli/main.py for structure. Set up command groups and common options (--db flag required for all commands).",
+            "status": "pending",
+            "testStrategy": "Run 'flashcore --help' - should show available commands."
+          },
+          {
+            "id": 2,
+            "title": "Implement Ingest Command with Deduplication",
+            "description": "Create ingest command that processes YAML files with stateless parser and DB-based deduplication.",
+            "dependencies": [
+              1
+            ],
+            "details": "Port logic from HPE_ARCHIVE/flashcore/cli/_ingest_logic.py. CRITICAL DEDUPLICATION LOGIC (from Task 5.3): (1) Call db.get_all_card_fronts_and_uuids() to get authoritative list of existing cards. (2) Process YAML files with YAMLProcessor (stateless). (3) Filter output cards against existing_fronts set. (4) Only insert cards not in existing_fronts. This makes DB the single source of truth.",
+            "status": "pending",
+            "testStrategy": "Ingest same deck twice - second run should detect all cards as duplicates and insert 0 new cards."
+          },
+          {
+            "id": 3,
+            "title": "Implement Review Command",
+            "description": "Create review command that orchestrates review sessions with dependency injection.",
+            "dependencies": [
+              1
+            ],
+            "details": "Port logic from HPE_ARCHIVE/flashcore/cli/_review_logic.py. Wire up: FlashcardDatabase(db_path=args.db), FSRS_Scheduler, ReviewSessionManager. Pass all paths explicitly - no config.settings references. Implement review UI flow.",
+            "status": "pending",
+            "testStrategy": "Run 'flashcore review --db=/tmp/test.db --deck=test' - should start review session."
+          },
+          {
+            "id": 4,
+            "title": "Implement Stats Command",
+            "description": "Create stats command to display deck statistics.",
+            "dependencies": [
+              1
+            ],
+            "details": "Port logic from HPE_ARCHIVE/flashcore/cli/ stats functionality. Query database for card counts, review stats, due cards. Display with rich tables.",
+            "status": "pending",
+            "testStrategy": "Run 'flashcore stats --db=/tmp/test.db' - should display deck statistics."
+          },
+          {
+            "id": 5,
+            "title": "Add CLI to __main__.py Entry Point",
+            "description": "Wire CLI to package entry point for 'flashcore' command.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Update flashcore/__main__.py to import and run CLI app. Ensure setup.py entry_points references this. Test that 'flashcore' command is available after pip install.",
+            "status": "pending",
+            "testStrategy": "After 'pip install -e .', run 'which flashcore' - should find command. Run 'flashcore --help' - should work."
+          }
+        ]
       },
       {
         "id": 7,
@@ -375,80 +442,13 @@
       },
       {
         "id": 9,
-        "title": "Verify Dependency Constraints",
-        "description": "Ensure the new library adheres to the specified dependency constraints.",
-        "details": "Review pyproject.toml to confirm no heavy dependencies are included. Ensure the library only includes lightweight runtime dependencies.",
-        "testStrategy": "Run dependency audits to verify that no unwanted dependencies are present.",
-        "priority": "medium",
-        "dependencies": [
-          8
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Review pyproject.toml for Heavy Dependencies",
-            "description": "Examine the pyproject.toml file to identify any heavy dependencies.",
-            "dependencies": [],
-            "details": "Open the pyproject.toml file and list all dependencies. Check each dependency against a predefined list of heavy dependencies.",
-            "status": "pending",
-            "testStrategy": "Verify that no heavy dependencies are listed in pyproject.toml."
-          },
-          {
-            "id": 2,
-            "title": "Identify Lightweight Runtime Dependencies",
-            "description": "Ensure only lightweight runtime dependencies are included in the library.",
-            "dependencies": [
-              1
-            ],
-            "details": "Cross-reference the dependencies in pyproject.toml with a list of approved lightweight dependencies.",
-            "status": "pending",
-            "testStrategy": "Confirm that all dependencies are on the approved lightweight list."
-          },
-          {
-            "id": 3,
-            "title": "Update Dependency List",
-            "description": "Remove any unapproved dependencies from the pyproject.toml file.",
-            "dependencies": [
-              2
-            ],
-            "details": "Edit the pyproject.toml file to remove any dependencies not on the approved list. Ensure the file is correctly formatted after changes.",
-            "status": "pending",
-            "testStrategy": "Check the updated pyproject.toml file to ensure only approved dependencies remain."
-          },
-          {
-            "id": 4,
-            "title": "Run Dependency Audit",
-            "description": "Perform an audit to verify that no unwanted dependencies are present.",
-            "dependencies": [
-              3
-            ],
-            "details": "Use a dependency audit tool to scan the project and confirm that no unapproved dependencies are included.",
-            "status": "pending",
-            "testStrategy": "Review the audit report to ensure compliance with dependency constraints."
-          },
-          {
-            "id": 5,
-            "title": "Document Dependency Verification Process",
-            "description": "Create documentation outlining the dependency verification process.",
-            "dependencies": [
-              4
-            ],
-            "details": "Write a document detailing the steps taken to verify dependencies, including tools used and criteria for lightweight dependencies.",
-            "status": "pending",
-            "testStrategy": "Review the documentation for clarity and completeness."
-          }
-        ]
-      },
-      {
-        "id": 10,
         "title": "Finalize and Document Migration",
         "description": "Complete the migration process and document the new architecture and usage.",
         "details": "CRITICAL (PRD Section 4 Feature Branch Workflow): Remove HPE_ARCHIVE/ directory before final merge. Execute: 'git rm -r HPE_ARCHIVE/' and commit with message 'chore(repo): Remove HPE_ARCHIVE after successful pivot'. Document in README.md: (1) Installation: 'pip install flashcore', (2) Usage examples with explicit db_path, (3) Architecture: Hub-and-Spoke model, (4) Dependency constraints (no torch/fsrs-optimizer), (5) Migration guide from old system. Update setup.py metadata. PRD Section 5 Verification Checklist: Confirm no heavy deps, pytest passes, CLI works with migrated data, images/audio load correctly.",
         "testStrategy": "Verify HPE_ARCHIVE/ does not exist in git tree. README.md contains installation, usage, and architecture sections. All PRD Section 5 checklist items pass.",
         "priority": "medium",
         "dependencies": [
-          9
+          8
         ],
         "status": "pending",
         "subtasks": []
