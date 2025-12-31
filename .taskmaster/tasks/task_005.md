@@ -29,7 +29,7 @@ Transfer the YAML processing module from HPE_ARCHIVE.
 
 **Details:**
 
-Execute: cp HPE_ARCHIVE/flashcore/yaml_processing/yaml_processor.py flashcore/parser.py. Also copy yaml_models.py if it contains necessary Pydantic models for YAML validation.
+Execute: cp HPE_ARCHIVE/flashcore/yaml_processing/yaml_processor.py flashcore/parser.py. Also copy the dependent files: HPE_ARCHIVE/flashcore/yaml_processing/yaml_models.py -> flashcore/yaml_models.py and HPE_ARCHIVE/flashcore/yaml_processing/yaml_validators.py -> flashcore/yaml_validators.py. Update imports inside these modules from cultivation.scripts.flashcore.* to flashcore.* (e.g., CardState and regex constants from models).
 
 ### 5.2. Remove self.seen_questions State Variable
 
@@ -63,3 +63,14 @@ Copy and adapt test_yaml_processor.py to verify parser is truly stateless.
 **Details:**
 
 Execute: cp HPE_ARCHIVE/tests/test_yaml_processor.py tests/test_parser.py. Update imports from 'cultivation.scripts.flashcore.yaml_processing' to 'flashcore.parser'. CRITICAL: Add new test 'test_parser_is_stateless' that instantiates YAMLProcessor, processes a file twice, and verifies identical output (no state carried between calls). Also test that processing file with duplicate fronts returns all cards (no internal filtering). This verifies stateless refactor works.
+
+### 5.5. Migrate YAML Validator Tests
+
+**Status:** pending  
+**Dependencies:** 5.4  
+
+Copy and adapt test_yaml_validators.py to verify yaml_validators.py and yaml_models.py ports are correct.
+
+**Details:**
+
+Execute: cp HPE_ARCHIVE/tests/test_yaml_validators.py tests/test_yaml_validators.py. Update imports from 'cultivation.scripts.flashcore.yaml_processing.yaml_validators' to 'flashcore.yaml_validators' and from 'cultivation.scripts.flashcore.yaml_processing.yaml_models' to 'flashcore.yaml_models'.
