@@ -20,27 +20,27 @@ Instantiate FlashcardDatabase without db_path argument - should raise TypeError.
 
 ## Subtasks
 
-### 3.1. Consolidate Database Modules into db.py
+### 3.1. Create Database Package Structure
 
 **Status:** pending  
 **Dependencies:** None  
 
-Merge database.py, connection.py, schema_manager.py, db_utils.py into single flashcore/db.py.
+Port database subsystem to flashcore/db/ package maintaining separation of concerns.
 
 **Details:**
 
-Copy HPE_ARCHIVE/flashcore/database.py as base. Inline ConnectionHandler, SchemaManager classes from their respective files. Keep as internal helpers. This simplifies the library structure per PRD Section 3.1.
+Create directory: mkdir -p flashcore/db. Copy modules: cp HPE_ARCHIVE/flashcore/database.py flashcore/db/database.py; cp HPE_ARCHIVE/flashcore/connection.py flashcore/db/connection.py; cp HPE_ARCHIVE/flashcore/schema_manager.py flashcore/db/schema_manager.py; cp HPE_ARCHIVE/flashcore/db_utils.py flashcore/db/db_utils.py; cp HPE_ARCHIVE/flashcore/schema.py flashcore/db/schema.py. Create flashcore/db/__init__.py that exports: 'from .database import FlashcardDatabase'. This maintains architectural separation (4 focused modules totaling 1089 lines) rather than creating a monolithic 1000+ line file.
 
 ### 3.2. Remove config.settings Dependency
 
 **Status:** pending  
 **Dependencies:** 3.1  
 
-Eliminate all imports and references to config.settings from db.py.
+Eliminate all imports and references to config.settings from db package modules.
 
 **Details:**
 
-In HPE_ARCHIVE/flashcore/database.py line 44, __init__ has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. Delete 'from .config import settings' import. The library must not know about config files.
+In flashcore/db/database.py line 44, __init__ has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. In flashcore/db/connection.py line 6, remove 'from .config import settings' import and line 16 'self.db_path_resolved = settings.db_path'. The library must not know about config files.
 
 ### 3.3. Make db_path Required Argument
 
@@ -64,16 +64,16 @@ Ensure ConnectionHandler also requires db_path and doesn't default to config.
 
 Review ConnectionHandler.__init__ in connection.py. If it also has Optional db_path with config default, apply same refactor. Ensure it receives db_path from FlashcardDatabase.
 
-### 3.5. Add db.py to __init__.py Exports
+### 3.5. Add db Package to __init__.py Exports
 
 **Status:** pending  
 **Dependencies:** 3.4  
 
-Expose FlashcardDatabase in flashcore/__init__.py.
+Expose FlashcardDatabase from db package in flashcore/__init__.py.
 
 **Details:**
 
-Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. This allows 'from flashcore import FlashcardDatabase'.
+Add to flashcore/__init__.py: 'from .db import FlashcardDatabase'. The db/__init__.py already exports FlashcardDatabase from .database, so this import works cleanly. This allows 'from flashcore import FlashcardDatabase'.
 
 ### 3.6. Migrate Database Tests with DI Fixtures (Incremental Verification)
 
