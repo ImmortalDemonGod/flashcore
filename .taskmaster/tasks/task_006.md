@@ -4,7 +4,7 @@
 
 **Status:** pending
 
-**Dependencies:** 5
+**Dependencies:** 4, 5
 
 **Priority:** medium
 
@@ -12,7 +12,7 @@
 
 **Details:**
 
-Port HPE_ARCHIVE/flashcore/cli/ as flashcore/cli/ PACKAGE (not single file). HPE_ARCHIVE has 6 modules totaling 960 lines: main.py (382 lines - entry point), review_ui.py (93 lines - UI), _review_logic.py (28 lines), _review_all_logic.py (172 lines), _vet_logic.py (222 lines - ingest), _export_logic.py (63 lines). Preserve this modular structure to avoid creating a 'God Object'. CRITICAL (PRD Section 3.3): CLI must accept --db flag for database path (no defaults). The CLI is responsible for dependency injection - it receives paths from user and passes to library classes.
+Port HPE_ARCHIVE/flashcore/cli/ as flashcore/cli/ PACKAGE (not single file). HPE_ARCHIVE has 6 modules totaling 960 lines: main.py (382 lines - entry point), review_ui.py (93 lines - UI), _review_logic.py (28 lines), _review_all_logic.py (172 lines), _vet_logic.py (222 lines - YAML vet/formatting), _export_logic.py (63 lines). Preserve this modular structure to avoid creating a 'God Object'. CRITICAL (PRD Section 3.3): CLI must accept --db flag for database path (no defaults). The CLI is responsible for dependency injection - it receives paths from user and passes to library classes.
 
 **Test Strategy:**
 
@@ -73,4 +73,4 @@ Wire CLI to package entry point for 'flashcore' command.
 
 **Details:**
 
-Update flashcore/__main__.py to import and run CLI app. Ensure setup.py entry_points references this. Test that 'flashcore' command is available after pip install.
+Update flashcore/__main__.py to import and run CLI app (e.g., from flashcore.cli.main import main). Since setup.py is deprecated (Task 1.3), define console entrypoint in pyproject.toml using [project.scripts] (e.g., flashcore = "flashcore.__main__:main"). Test that 'flashcore' command is available after install.
