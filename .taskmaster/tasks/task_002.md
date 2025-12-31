@@ -85,3 +85,14 @@ Expose models in flashcore/__init__.py for clean imports.
 **Details:**
 
 Add to flashcore/__init__.py: 'from .models import Card, Review, Session, CardState, ReviewRating'. This allows 'from flashcore import Card'.
+
+### 2.7. Migrate Model Tests (Incremental Verification)
+
+**Status:** pending  
+**Dependencies:** 2.6  
+
+Copy and adapt test_card.py to verify models work correctly.
+
+**Details:**
+
+Execute: cp HPE_ARCHIVE/tests/test_card.py tests/test_models.py. Update imports from 'cultivation.scripts.flashcore.card' to 'flashcore.models'. Verify Pydantic v2 validation works (model_validate, model_dump). Run 'pytest tests/test_models.py -v' - all tests should pass. This provides immediate safety net for model refactoring.
