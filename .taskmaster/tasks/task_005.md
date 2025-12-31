@@ -42,32 +42,10 @@ Delete the stateful seen_questions dictionary from YAMLProcessor.__init__.
 
 In parser.py line 40, delete 'self.seen_questions: Dict[str, Path] = {}'. Also remove all references to self.seen_questions in _handle_processed_card method (lines 99-110). The parser should not track duplicates.
 
-### 5.3. Implement Deduplication in CLI Ingest Command
+### 5.3. Add parser.py to __init__.py Exports
 
 **Status:** pending  
 **Dependencies:** 5.2  
-
-Move deduplication checks to the CLI layer, integrating with the database.
-
-**Details:**
-
-In cli.py ingest command: (1) Call db.get_all_card_fronts_and_uuids() to get authoritative list of existing cards. (2) Process YAML files with YAMLProcessor. (3) Filter output cards against existing_fronts set. (4) Only insert cards not in existing_fronts. This makes DB the single source of truth.
-
-### 5.4. Remove Intra-File Duplicate Checks from Parser
-
-**Status:** pending  
-**Dependencies:** 5.3  
-
-Simplify parser to not check for duplicates even within a single file.
-
-**Details:**
-
-The parser should emit all cards from YAML without filtering. If a YAML file has duplicate fronts, both should be returned. The CLI layer will handle deduplication against DB. This makes parser truly stateless.
-
-### 5.5. Add parser.py to __init__.py Exports
-
-**Status:** pending  
-**Dependencies:** 5.4  
 
 Expose YAMLProcessor in flashcore/__init__.py.
 
