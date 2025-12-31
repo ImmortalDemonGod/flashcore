@@ -1,0 +1,301 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Initialize flashcore-lib Repository",
+        "description": "Set up the new flashcore-lib repository with the necessary project structure and dependencies.",
+        "details": "Create a new directory for flashcore-lib. Initialize the repository with a standard Python package structure. Set up pyproject.toml with specified dependencies and configurations.",
+        "testStrategy": "Verify the repository structure and ensure all dependencies are correctly listed in pyproject.toml.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create flashcore-lib Directory",
+            "description": "Create a new directory for the flashcore-lib project.",
+            "dependencies": [],
+            "details": "Set up a new directory named flashcore-lib in the desired location.",
+            "status": "pending",
+            "testStrategy": "Check if the directory is created successfully."
+          },
+          {
+            "id": 2,
+            "title": "Initialize Git Repository",
+            "description": "Initialize a new Git repository in the flashcore-lib directory.",
+            "dependencies": [
+              1
+            ],
+            "details": "Run 'git init' inside the flashcore-lib directory to start version control.",
+            "status": "pending",
+            "testStrategy": "Verify the presence of a .git folder."
+          },
+          {
+            "id": 3,
+            "title": "Set Up Python Package Structure",
+            "description": "Create a standard Python package structure within the repository.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add __init__.py and other necessary files to establish a package structure.",
+            "status": "pending",
+            "testStrategy": "Ensure the package structure follows Python standards."
+          },
+          {
+            "id": 4,
+            "title": "Configure pyproject.toml",
+            "description": "Set up pyproject.toml with necessary dependencies and configurations.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create a pyproject.toml file and list all required dependencies and configurations.",
+            "status": "pending",
+            "testStrategy": "Check if all dependencies are correctly listed."
+          },
+          {
+            "id": 5,
+            "title": "Verify Initial Setup",
+            "description": "Verify the initial repository setup and configurations.",
+            "dependencies": [
+              4
+            ],
+            "details": "Review the directory structure and pyproject.toml for correctness.",
+            "status": "pending",
+            "testStrategy": "Ensure the repository structure and configurations meet project requirements."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Migrate Core Data Models",
+        "description": "Transfer and refactor core data models from the existing codebase to the new library.",
+        "details": "Copy card.py to models.py in flashcore-lib. Ensure all imports are self-contained or reference other planned library modules.",
+        "testStrategy": "Run unit tests to verify that data models behave as expected.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Refactor Database Layer for Dependency Injection",
+        "description": "Modify the database layer to support dependency injection for database paths.",
+        "details": "Refactor FlashcardDatabase to require a db_path argument. Remove hardcoded paths and ensure the database is initialized with the provided path.",
+        "testStrategy": "Test database initialization with various paths to ensure flexibility and correctness.",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Optimize Scheduler Logic",
+        "description": "Refactor the scheduler to eliminate the O(N) performance bottleneck.",
+        "details": "Modify compute_next_state to accept the Card object and initialize FSRSCard from its existing state, applying only the new review.",
+        "testStrategy": "Benchmark scheduler performance to ensure it operates in O(1) time complexity.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Refactor Parser Layer to be Stateless",
+        "description": "Remove stateful logic from the parser and centralize deduplication checks.",
+        "details": "Remove the seen_questions state from YAMLProcessor. Move deduplication logic to the CLI layer, ensuring checks against the database.",
+        "testStrategy": "Test parser functionality to ensure it correctly processes files without maintaining state.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Analyze Current Stateful Logic in YAMLProcessor",
+            "description": "Review the current implementation of YAMLProcessor to identify stateful logic.",
+            "dependencies": [],
+            "details": "Examine the YAMLProcessor class to understand how the seen_questions state is maintained and used.",
+            "status": "pending",
+            "testStrategy": "Ensure understanding by writing tests that replicate current stateful behavior."
+          },
+          {
+            "id": 2,
+            "title": "Remove Stateful Logic from YAMLProcessor",
+            "description": "Eliminate the seen_questions state from YAMLProcessor.",
+            "dependencies": [
+              1
+            ],
+            "details": "Refactor the YAMLProcessor to remove any stateful logic related to seen_questions, ensuring it operates statelessly.",
+            "status": "pending",
+            "testStrategy": "Run existing tests to confirm that YAMLProcessor functions correctly without maintaining state."
+          },
+          {
+            "id": 3,
+            "title": "Implement Deduplication Logic in CLI Layer",
+            "description": "Move deduplication checks to the CLI layer, integrating with the database.",
+            "dependencies": [
+              2
+            ],
+            "details": "Develop a new deduplication mechanism in the CLI layer that checks against the database for duplicates.",
+            "status": "pending",
+            "testStrategy": "Create tests to verify that the CLI layer correctly identifies duplicates using the database."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Database Checks for Deduplication",
+            "description": "Ensure deduplication logic in CLI checks against the database.",
+            "dependencies": [
+              3
+            ],
+            "details": "Modify the CLI layer to perform deduplication checks by querying the database for existing entries.",
+            "status": "pending",
+            "testStrategy": "Test database queries to ensure they accurately reflect current data and prevent duplicates."
+          },
+          {
+            "id": 5,
+            "title": "Validate Stateless Parser Functionality",
+            "description": "Test the parser to ensure it processes files correctly without state.",
+            "dependencies": [
+              4
+            ],
+            "details": "Conduct comprehensive tests on the parser to ensure its functionality remains intact after refactoring.",
+            "status": "pending",
+            "testStrategy": "Run a suite of tests to verify the parser's output matches expected results without maintaining state."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Develop CLI for flashcore-lib",
+        "description": "Create a new CLI using Typer that interfaces with the flashcore-lib.",
+        "details": "Build a Typer application in cli.py that utilizes the refactored library components. Implement commands for review, ingest, and other functionalities.",
+        "testStrategy": "Run CLI commands to ensure they execute correctly and interact with the library as expected.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Migrate and Adapt Test Suite",
+        "description": "Transfer and adapt the existing test suite to the new library structure.",
+        "details": "Copy tests from the old codebase to the new tests directory. Refactor tests to align with the new library structure and ensure all tests pass.",
+        "testStrategy": "Execute the full test suite and verify all tests pass successfully.",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Data Safety Strategy",
+        "description": "Develop a strategy for safely migrating data from the old system to the new library.",
+        "details": "Create scripts to export data from the old system and import it into the new library, ensuring schema compatibility and data integrity.",
+        "testStrategy": "Validate data migration by comparing row counts and data integrity between old and new databases.",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Verify Dependency Constraints",
+        "description": "Ensure the new library adheres to the specified dependency constraints.",
+        "details": "Review pyproject.toml to confirm no heavy dependencies are included. Ensure the library only includes lightweight runtime dependencies.",
+        "testStrategy": "Run dependency audits to verify that no unwanted dependencies are present.",
+        "priority": "medium",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Review pyproject.toml for Heavy Dependencies",
+            "description": "Examine the pyproject.toml file to identify any heavy dependencies.",
+            "dependencies": [],
+            "details": "Open the pyproject.toml file and list all dependencies. Check each dependency against a predefined list of heavy dependencies.",
+            "status": "pending",
+            "testStrategy": "Verify that no heavy dependencies are listed in pyproject.toml."
+          },
+          {
+            "id": 2,
+            "title": "Identify Lightweight Runtime Dependencies",
+            "description": "Ensure only lightweight runtime dependencies are included in the library.",
+            "dependencies": [
+              1
+            ],
+            "details": "Cross-reference the dependencies in pyproject.toml with a list of approved lightweight dependencies.",
+            "status": "pending",
+            "testStrategy": "Confirm that all dependencies are on the approved lightweight list."
+          },
+          {
+            "id": 3,
+            "title": "Update Dependency List",
+            "description": "Remove any unapproved dependencies from the pyproject.toml file.",
+            "dependencies": [
+              2
+            ],
+            "details": "Edit the pyproject.toml file to remove any dependencies not on the approved list. Ensure the file is correctly formatted after changes.",
+            "status": "pending",
+            "testStrategy": "Check the updated pyproject.toml file to ensure only approved dependencies remain."
+          },
+          {
+            "id": 4,
+            "title": "Run Dependency Audit",
+            "description": "Perform an audit to verify that no unwanted dependencies are present.",
+            "dependencies": [
+              3
+            ],
+            "details": "Use a dependency audit tool to scan the project and confirm that no unapproved dependencies are included.",
+            "status": "pending",
+            "testStrategy": "Review the audit report to ensure compliance with dependency constraints."
+          },
+          {
+            "id": 5,
+            "title": "Document Dependency Verification Process",
+            "description": "Create documentation outlining the dependency verification process.",
+            "dependencies": [
+              4
+            ],
+            "details": "Write a document detailing the steps taken to verify dependencies, including tools used and criteria for lightweight dependencies.",
+            "status": "pending",
+            "testStrategy": "Review the documentation for clarity and completeness."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Finalize and Document Migration",
+        "description": "Complete the migration process and document the new architecture and usage.",
+        "details": "Remove temporary scaffolding from the repository. Document the new library's architecture, usage, and migration process in README.md.",
+        "testStrategy": "Review documentation for accuracy and completeness. Ensure all aspects of the migration are covered.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-12-31T19:27:28.343Z",
+      "updated": "2025-12-31T19:27:28.343Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
