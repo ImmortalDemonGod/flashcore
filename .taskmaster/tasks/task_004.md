@@ -96,3 +96,14 @@ Copy and adapt test_scheduler.py to verify O(1) optimization works correctly.
 **Details:**
 
 Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Assert that time difference between 1 and 500 reviews is <50ms (proving O(1) not O(N)). This verifies the performance fix works.
+
+### 4.8. Preserve FSRS Parameter Override Support
+
+**Status:** pending  
+**Dependencies:** 4.1  
+
+Ensure FSRS_Scheduler can accept custom weight vectors at runtime (no forever-defaults trap).
+
+**Details:**
+
+HPE_ARCHIVE FSRS_Scheduler already supports injection via FSRSSchedulerConfig(parameters=..., desired_retention=...). When porting/optimizing, ensure this remains supported and is surfaced to the CLI (Task 6) so users can supply externally-optimized weights without fsrs-optimizer.
