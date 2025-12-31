@@ -64,10 +64,21 @@ Ensure all models have complete type hints and docstrings.
 
 Verify Card, Review, Session classes have docstrings explaining their purpose. Ensure all fields have type annotations.
 
-### 2.5. Create __init__.py Exports
+### 2.5. Copy config.py for FSRS Constants
 
 **Status:** pending  
 **Dependencies:** 2.4  
+
+Transfer FSRS configuration constants from HPE_ARCHIVE.
+
+**Details:**
+
+Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/config.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). These FSRS constants are imported by scheduler.py line 16-19. The library must not contain hardcoded paths.
+
+### 2.6. Create __init__.py Exports
+
+**Status:** pending  
+**Dependencies:** 2.5  
 
 Expose models in flashcore/__init__.py for clean imports.
 
