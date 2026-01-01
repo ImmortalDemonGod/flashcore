@@ -43,7 +43,7 @@ class Card(BaseModel):
     Represents a single flashcard after parsing and processing from YAML.
     This is the canonical internal representation of a card's content and metadata.
 
-    Media asset paths are always relative to 'cultivation/outputs/flashcards/yaml/assets/'.
+    Media asset paths should be relative to a configured assets directory.
     """
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
