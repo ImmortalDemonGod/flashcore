@@ -22,6 +22,7 @@ class CardState(IntEnum):
     """
     Represents the FSRS-defined state of a card's memory trace.
     """
+
     New = 0
     Learning = 1
     Review = 2
@@ -32,6 +33,7 @@ class Rating(IntEnum):
     """
     Represents the user's rating of their recall performance.
     """
+
     Again = 1
     Hard = 2
     Good = 3
@@ -40,84 +42,99 @@ class Rating(IntEnum):
 
 class Card(BaseModel):
     """
-    Represents a single flashcard after parsing and processing from YAML.
-    This is the canonical internal representation of a card's content and metadata.
+    Flashcard after parsing from YAML.
+    Canonical representation of card content and metadata.
 
-    Media asset paths should be relative to a configured assets directory.
+    Media paths relative to configured assets directory.
     """
+
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     uuid: UUID = Field(
         default_factory=uuid.uuid4,
-        description="Unique UUIDv4 identifier for the card. Auto-generated if not provided in YAML 'id'."
+        description="Unique UUIDv4 for the card. Auto-generated.",
     )
-    last_review_id: Optional[int] = Field(default=None, description="The ID of the last review record associated with this card.")
-    next_due_date: Optional[date] = Field(default=None, description="The next date the card is scheduled for review.")
-    state: CardState = Field(default=CardState.New, description="The current FSRS state of the card.")
-    stability: Optional[float] = Field(default=None, description="The stability of the card's memory trace (in days).")
-    difficulty: Optional[float] = Field(default=None, description="The difficulty of the card.")
+    last_review_id: Optional[int] = Field(
+        default=None,
+        description="ID of the last review record for this card.",
+    )
+    next_due_date: Optional[date] = Field(
+        default=None,
+        description="The next date the card is scheduled for review.",
+    )
+    state: CardState = Field(
+        default=CardState.New,
+        description="The current FSRS state of the card.",
+    )
+    stability: Optional[float] = Field(
+        default=None,
+        description="The stability of the card's memory trace (in days).",
+    )
+    difficulty: Optional[float] = Field(
+        default=None, description="The difficulty of the card."
+    )
 
     deck_name: str = Field(
         ...,
         min_length=1,
-        description="Fully qualified name of the deck the card belongs to (e.g., 'Backend::Auth'). Derived from YAML 'deck'."
+        description="Deck name (e.g., 'Backend::Auth') from YAML 'deck'.",
     )
     front: str = Field(
         ...,
         max_length=1024,
-        description="The question or prompt text. Supports Markdown and KaTeX. Maps from YAML 'q'."
+        description="Question text. Supports Markdown/KaTeX. From YAML 'q'.",
     )
     back: str = Field(
         ...,
         max_length=1024,
-        description="The answer text. Supports Markdown and KaTeX. Maps from YAML 'a'."
+        description="Answer text. Supports Markdown/KaTeX. From YAML 'a'.",
     )
     tags: Set[str] = Field(
         default_factory=set,
-        description="Set of unique, kebab-case tags. Result of merging deck-level global tags and card-specific tags from YAML."
+        description="Unique kebab-case tags merged from deck and card.",
     )
     added_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        description="UTC timestamp indicating when the card was first added/ingested into the system. This timestamp persists even if the card content is updated later."
+        description="UTC timestamp when card was first added (persists).",
     )
     modified_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        description="UTC timestamp indicating when the card was last modified. It is updated upon any change to the card's content."
+        description="UTC timestamp of last modification.",
     )
     origin_task: Optional[str] = Field(
         default=None,
-        description="Optional reference to an originating task ID (e.g., from Task Master)."
+        description="Optional originating task ID (e.g., Task Master).",
     )
     media: List[Path] = Field(
         default_factory=list,
-        description="Optional list of paths to media files (images, audio, etc.) associated with the card. Paths should be relative to a defined assets root directory (e.g., 'outputs/flashcards/assets/')."
+        description="Media file paths relative to assets directory.",
     )
     source_yaml_file: Optional[Path] = Field(
         default=None,
-        description="The path to the YAML file from which this card was loaded. Essential for traceability, debugging, and tools that might update YAML files (like 'tm-fc vet' sorting)."
+        description="Source YAML file path for traceability.",
     )
     internal_note: Optional[str] = Field(
         default=None,
-        description="A field for internal system notes or flags about the card, not typically exposed to the user (e.g., 'needs_review_for_xss_risk_if_sanitizer_fails', 'generated_by_task_hook')."
+        description="Internal system notes/flags (not user-facing).",
     )
     front_length: Optional[int] = Field(
         default=None,
         ge=0,
-        description="Character count of the front (question) text. Auto-calculated for content complexity analysis."
+        description="Character count of front text (auto-calculated).",
     )
     back_length: Optional[int] = Field(
         default=None,
         ge=0,
-        description="Character count of the back (answer) text. Auto-calculated for content complexity analysis."
+        description="Character count of back text (auto-calculated).",
     )
     has_media: Optional[bool] = Field(
         default=None,
-        description="Whether this card has associated media files. Auto-calculated for content complexity analysis."
+        description="Whether card has media (auto-calculated).",
     )
     tag_count: Optional[int] = Field(
         default=None,
         ge=0,
-        description="Number of tags associated with this card. Auto-calculated for content complexity analysis."
+        description="Number of tags (auto-calculated).",
     )
 
     @field_validator("tags")
@@ -136,147 +153,151 @@ class Card(BaseModel):
         self.has_media = bool(self.media)
         self.tag_count = len(self.tags)
 
+
 class Review(BaseModel):
     """
     Represents a single review event for a flashcard, including user feedback
     and FSRS scheduling parameters.
     """
+
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     review_id: Optional[int] = Field(
         default=None,
-        description="The auto-incrementing primary key from the 'reviews' database table. Will be None for new Review objects before they are persisted."
+        description="Auto-incrementing PK from reviews table (None if new).",
     )
     card_uuid: UUID = Field(
         ...,
-        description="The UUID of the card that was reviewed, linking to Card.uuid."
+        description="UUID of reviewed card (links to Card.uuid).",
     )
     session_uuid: Optional[UUID] = Field(
         default=None,
-        description="The UUID of the session this review belongs to, linking to Session.session_uuid. Nullable for reviews not associated with a session."
+        description="Session UUID (links to Session, nullable).",
     )
     ts: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        description="The UTC timestamp when the review occurred."
+        description="The UTC timestamp when the review occurred.",
     )
     rating: int = Field(
         ...,
         ge=1,
         le=4,
-        description="The user's rating of their recall performance (1=Again, 2=Hard, 3=Good, 4=Easy)."
+        description="User rating (1=Again, 2=Hard, 3=Good, 4=Easy).",
     )
     resp_ms: Optional[int] = Field(
         default=None,
         ge=0,
-        description="The response time in milliseconds taken by the user to recall the answer before revealing it. Nullable if not captured."
+        description="Response time in ms (nullable if not captured).",
     )
     eval_ms: Optional[int] = Field(
         default=None,
         ge=0,
-        description="The evaluation time in milliseconds taken by the user to assess their performance and provide a rating after seeing the answer. Nullable if not captured."
+        description="Evaluation time in ms after seeing answer (nullable).",
     )
     stab_before: Optional[float] = Field(
         default=None,  # Handled by FSRS logic for first reviews
-        description="The card's memory stability (in days) *before* this review was incorporated by FSRS. For the very first review of a card, the FSRS scheduler will use a default initial stability."
+        description="Stability before review (days).",
     )
     stab_after: float = Field(
         ...,
-        ge=0.1,  # Stability should generally be positive and non-zero after review
-        description="The card's new memory stability (in days) *after* this review and FSRS calculation."
+        ge=0.1,  # Positive and non-zero after review
+        description="New stability after review (days).",
     )
     diff: float = Field(
         ...,
-        description="The card's new difficulty rating *after* this review and FSRS calculation."
+        description="New difficulty after review.",
     )
     next_due: date = Field(
         ...,
-        description="The date when this card is next scheduled for review, calculated by FSRS."
+        description="Next review date (calculated by FSRS).",
     )
     elapsed_days_at_review: int = Field(
         ...,
         ge=0,
-        description="The number of days that had actually elapsed between the *previous* review's 'next_due' date (or card's 'added_at' for a new card) and the current review's 'ts'. This is a crucial input for FSRS."
+        description="Days elapsed since last review (crucial for FSRS).",
     )
     scheduled_days_interval: int = Field(
         ...,
         ge=0,  # The interval can be 0 for same-day learning steps.
-        description="The interval in days (e.g., 'nxt' from fsrs_once) that FSRS calculated for this review. next_due would be 'ts.date() + timedelta(days=scheduled_days_interval)'."
+        description="Interval in days calculated by FSRS.",
     )
     review_type: Optional[str] = Field(
         default="review",
-        description="Type of review, e.g., 'learn', 'review', 'relearn', 'manual'. Useful for advanced FSRS variants or analytics."
+        description="Review type (learn/review/relearn/manual).",
     )
 
     @field_validator("review_type")
     @classmethod
     def check_review_type_is_allowed(cls, v: str | None) -> str | None:
-        """Ensures review_type is one of the predefined allowed values or None."""
+        """Ensures review_type is allowed or None."""
         ALLOWED_REVIEW_TYPES = {"learn", "review", "relearn", "manual"}
         if v is not None and v not in ALLOWED_REVIEW_TYPES:
             raise ValueError(
-                f"Invalid review_type: '{v}'. Allowed types are: {ALLOWED_REVIEW_TYPES} or None."
+                f"Invalid review_type: '{v}'. "
+                f"Allowed: {ALLOWED_REVIEW_TYPES} or None."
             )
         return v
 
 
 class Session(BaseModel):
     """
-    Represents a flashcard review session, tracking timing, performance, and context.
-    Enables session-level analytics like fatigue detection and optimal timing analysis.
+    Flashcard review session tracking timing and performance.
+    Enables fatigue detection and timing analytics.
     """
+
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     session_id: Optional[int] = Field(
         default=None,
-        description="The auto-incrementing primary key from the 'sessions' database table. Will be None for new Session objects before they are persisted."
+        description="Auto-incrementing PK from sessions table (None if new).",
     )
     session_uuid: UUID = Field(
         default_factory=uuid.uuid4,
-        description="Unique identifier for this session. Used to link reviews to sessions."
+        description="Unique session identifier (links reviews).",
     )
     user_id: Optional[str] = Field(
         default=None,
-        description="Identifier for the user (future multi-user support). Currently optional."
+        description="User identifier (optional, future multi-user).",
     )
     start_ts: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        description="UTC timestamp when the session started."
+        description="UTC timestamp when the session started.",
     )
     end_ts: Optional[datetime] = Field(
         default=None,
-        description="UTC timestamp when the session ended. None for active sessions."
+        description="UTC timestamp when session ended (None if active).",
     )
     total_duration_ms: Optional[int] = Field(
         default=None,
         ge=0,
-        description="Total session duration in milliseconds. Calculated when session ends."
+        description="Total duration in ms (calculated on end).",
     )
     cards_reviewed: int = Field(
         default=0,
         ge=0,
-        description="Number of cards reviewed in this session."
+        description="Number of cards reviewed in this session.",
     )
     decks_accessed: Set[str] = Field(
         default_factory=set,
-        description="Set of deck names accessed during this session."
+        description="Set of deck names accessed during this session.",
     )
     deck_switches: int = Field(
         default=0,
         ge=0,
-        description="Number of times user switched between decks during session."
+        description="Deck switches during session.",
     )
     interruptions: int = Field(
         default=0,
         ge=0,
-        description="Number of interruptions or pauses detected during session."
+        description="Interruptions/pauses during session.",
     )
     device_type: Optional[str] = Field(
         default=None,
-        description="Type of device used (desktop, mobile, tablet). Auto-detected when possible."
+        description="Device type (desktop/mobile/tablet, auto-detected).",
     )
     platform: Optional[str] = Field(
         default=None,
-        description="Platform used (web, cli, mobile_app). Auto-detected when possible."
+        description="Platform (web/cli/mobile_app, auto-detected).",
     )
 
     def calculate_duration(self) -> Optional[int]:
@@ -297,7 +318,10 @@ class Session(BaseModel):
         self.decks_accessed.add(deck_name)
 
         # If we added a new deck and it's not the first deck, count as switch
-        if len(self.decks_accessed) > previous_deck_count and previous_deck_count > 0:
+        if (
+            len(self.decks_accessed) > previous_deck_count
+            and previous_deck_count > 0
+        ):
             self.deck_switches += 1
 
         self.cards_reviewed += 1
