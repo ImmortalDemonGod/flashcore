@@ -26,7 +26,7 @@
             "title": "Enforce Dependency Constraints (Nuclear Reactor Fix)",
             "description": "Update requirements.txt to exclude heavy ML dependencies and include only lightweight runtime deps.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "Edit requirements.txt to contain ONLY: duckdb>=1.0.0, pydantic>=2.7.0, fsrs>=3.0.0 (NOT fsrs-optimizer), typer>=0.12.0, rich>=13.0.0, ruamel.yaml>=0.17.0, PyYAML>=6.0.0, bleach>=6.0.0, tomli>=2.0.1; python_version<'3.11'. CRITICAL: Exclude torch, transformers, fsrs-optimizer per PRD Section 2.A. NOTE: PyYAML and bleach are required by the legacy YAML processing subsystem being ported (yaml_processor.py/yaml_models.py). Prefer to move the tomli environment marker into pyproject.toml dependencies once Task 1.3 establishes pyproject.toml as the single source of truth.",
             "status": "done",
@@ -38,7 +38,7 @@
             "title": "Establish Modern Build System and Deprecate Legacy Setup",
             "description": "Create pyproject.toml as single source of truth and deprecate setup.py.",
             "dependencies": [
-              2
+              "2"
             ],
             "details": "Create pyproject.toml with [project] name='flashcore' and requires-python='>=3.10'. CRITICAL: Preserve VERSION-file semantics from setup.py (setup.py currently reads flashcore/VERSION). In pyproject.toml use setuptools dynamic version, e.g. [project] dynamic = ['version'] and [tool.setuptools.dynamic] version = {file = 'flashcore/VERSION'}. Define console entrypoint under [project.scripts] (e.g., flashcore = `flashcore.__main__:main`). CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion.",
             "status": "done",
@@ -50,7 +50,7 @@
             "title": "Verify No Heavy Dependencies in Tree",
             "description": "Audit the full dependency tree to ensure no transitive heavy dependencies.",
             "dependencies": [
-              3
+              "3"
             ],
             "details": "Run 'pip install -e .' then 'pip list' and verify total install size <50MB. Use 'pipdeptree' to check for torch/transformers in transitive deps.",
             "status": "done",
@@ -62,7 +62,7 @@
             "title": "Create .gitignore for Python Package",
             "description": "Add .gitignore to exclude build artifacts and virtual environments.",
             "dependencies": [
-              4
+              "4"
             ],
             "details": "Create .gitignore with: `__pycache__/`, `*.pyc`, `*.pyo`, `*.egg-info/`, `dist/`, `build/`, `.venv/`, `.pytest_cache/`, `.coverage`.",
             "status": "done",
@@ -99,7 +99,7 @@
             "title": "Remove Cultivation Import References",
             "description": "Replace absolute imports with relative imports for library portability.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "Search for `from cultivation.scripts.flashcore` in models.py and replace with relative imports. Example: `from cultivation.scripts.flashcore.config import X` becomes `from .config import X` or remove if not needed.",
             "status": "pending",
@@ -111,7 +111,7 @@
             "title": "Verify Pydantic v2 Compatibility",
             "description": "Ensure all Pydantic models use v2 syntax (no deprecated v1 patterns).",
             "dependencies": [
-              2
+              "2"
             ],
             "details": "Check for: Field() usage, model_validate() instead of parse_obj(), model_dump() instead of dict(). Verify ConfigDict is used instead of class Config.",
             "status": "pending",
@@ -123,7 +123,7 @@
             "title": "Add Type Hints and Documentation",
             "description": "Ensure all models have complete type hints and docstrings.",
             "dependencies": [
-              3
+              "3"
             ],
             "details": "Verify Card, Review, Session classes have docstrings explaining their purpose. Ensure all fields have type annotations.",
             "status": "pending",
@@ -135,7 +135,7 @@
             "title": "Extract FSRS Constants to constants.py",
             "description": "Transfer FSRS algorithm constants from HPE_ARCHIVE config.py.",
             "dependencies": [
-              4
+              "4"
             ],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. PURITY CONSTRAINT: Ensure constants.py does NOT import pydantic, pydantic_settings, os, or pathlib. It must be a pure Python file containing only native types (Tuple, float) to prevent circular imports during the O(1) scheduler refactor. Remove lines 4-8 (Path, uuid, pydantic_settings imports). Allowed imports: keep only `from typing import Tuple` (for DEFAULT_PARAMETERS signature) if used; remove all other imports.",
             "status": "pending",
@@ -147,7 +147,7 @@
             "title": "Create `__init__.py` Exports",
             "description": "Expose models in `flashcore/__init__.py` for clean imports.",
             "dependencies": [
-              5
+              "5"
             ],
             "details": "Add to `flashcore/__init__.py`: 'from .models import Card, Review, Session, CardState, ReviewRating'. This allows 'from flashcore import Card'.",
             "status": "pending",
@@ -159,7 +159,7 @@
             "title": "Migrate Model Tests (Incremental Verification)",
             "description": "Copy and adapt test_card.py to verify models work correctly.",
             "dependencies": [
-              6
+              "6"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_card.py tests/test_models.py. Update imports from `cultivation.scripts.flashcore.card` to `flashcore.models`. Verify Pydantic v2 validation works (model_validate, model_dump). Run 'pytest tests/test_models.py -v' - all tests should pass. This provides immediate safety net for model refactoring.",
             "status": "pending",
@@ -195,7 +195,7 @@
             "title": "Remove config.settings Dependency",
             "description": "Eliminate all imports and references to config.settings from db package modules.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "In flashcore/db/database.py line 44, `__init__` has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. In flashcore/db/connection.py line 6, remove 'from .config import settings' import and line 16 'self.db_path_resolved = settings.db_path'. The library must not know about config files.",
             "status": "pending",
@@ -207,7 +207,7 @@
             "title": "Make db_path Required Argument",
             "description": "Change FlashcardDatabase.`__init__` signature to require db_path.",
             "dependencies": [
-              2
+              "2"
             ],
             "details": "Change signature from `def __init__(self, db_path: Optional[Union[str, Path]] = None, ...)` to `def __init__(self, db_path: Union[str, Path], read_only: bool = False)`. Update docstring to reflect: db_path is required (no default), accepted types are Union[str, Path], path resolution expectations (cwd vs absolute), and that the path must be writable unless read_only=True.",
             "status": "pending",
@@ -219,7 +219,7 @@
             "title": "Update ConnectionHandler for DI",
             "description": "Ensure ConnectionHandler also requires db_path and doesn't default to config.",
             "dependencies": [
-              3
+              "3"
             ],
             "details": "Review ConnectionHandler.`__init__` in connection.py. If it also has Optional db_path with config default, apply same refactor. Ensure it receives db_path from FlashcardDatabase.",
             "status": "pending",
@@ -231,7 +231,7 @@
             "title": "Add db Package to `__init__.py` Exports",
             "description": "Expose FlashcardDatabase from db package in `flashcore/__init__.py`.",
             "dependencies": [
-              4
+              "4"
             ],
             "details": "Add to `flashcore/__init__.py`: 'from .db import FlashcardDatabase'. The `db/__init__.py` already exports FlashcardDatabase from .database, so this import works cleanly. This allows 'from flashcore import FlashcardDatabase'.",
             "status": "pending",
@@ -243,7 +243,7 @@
             "title": "Remove pandas Dependency from Database Layer",
             "description": "Refactor DB queries to avoid pandas (keep dependency footprint small).",
             "dependencies": [
-              5
+              "5"
             ],
             "details": "HPE_ARCHIVE database layer uses DuckDB's fetch_df() which requires pandas. Refactor flashcore/db/database.py and flashcore/db/db_utils.py to avoid pandas entirely: replace fetch_df() calls with fetchall()/fetchone() and construct row dicts using cursor.description for column names. Remove any pandas imports/usages (e.g., pd.isna) and update marshalling accordingly.",
             "status": "pending",
@@ -255,7 +255,7 @@
             "title": "Migrate Database Tests with DI Fixtures (Incremental Verification)",
             "description": "Copy and adapt test_database.py to verify DI refactoring works correctly.",
             "dependencies": [
-              6
+              "6"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_database.py tests/test_db.py. CRITICAL FIXTURE UPDATE: Replace all fixtures that use 'FlashcardDatabase()' with 'FlashcardDatabase(db_path=tmp_path / \"test.db\")'. Update conftest.py to provide tmp_path fixture. Update imports from `cultivation.scripts.flashcore` to `flashcore`. This verifies Dependency Injection works and provides safety net for DB refactoring. Also copy test_database_errors.py for error handling tests.",
             "status": "pending",
@@ -281,7 +281,7 @@
             "title": "Copy scheduler.py and Update Imports",
             "description": "Transfer the scheduler module from HPE_ARCHIVE and update imports to use constants.py.",
             "dependencies": [],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py → constants.py rename for clarity.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py \u2192 constants.py rename for clarity.",
             "status": "pending",
             "testStrategy": "Verify file exists at flashcore/scheduler.py. Run 'grep -n \"from.*constants import\" flashcore/scheduler.py' - should find import on line ~16.",
             "parentId": "undefined"
@@ -291,7 +291,7 @@
             "title": "Change compute_next_state Signature",
             "description": "Modify method to accept Card object instead of history list.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "In scheduler.py line 147, change 'def compute_next_state(self, history: List[Review], new_rating: int, review_ts: datetime.datetime)' to 'def compute_next_state(self, card: Card, new_rating: int, review_ts: datetime.datetime)'. Update BaseScheduler abstract method signature too (line 53).",
             "status": "pending",
@@ -303,7 +303,7 @@
             "title": "Copy review_processor.py to flashcore/review_processor.py",
             "description": "Transfer the ReviewProcessor service module from HPE_ARCHIVE.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/review_processor.py flashcore/review_processor.py. Also port the dependent review/session services used by the CLI: cp HPE_ARCHIVE/flashcore/review_manager.py flashcore/review_manager.py; cp HPE_ARCHIVE/flashcore/session_manager.py flashcore/session_manager.py. CRITICAL: session_manager.py uses DuckDB fetch_df() (requires pandas). When porting, refactor session_manager.py to avoid fetch_df() and pandas usage, mirroring the DB-layer 'no pandas' constraint.",
             "status": "pending",
@@ -315,7 +315,7 @@
             "title": "Remove History Replay Loop (O(N) -> O(1))",
             "description": "Delete the for loop that replays entire review history.",
             "dependencies": [
-              3
+              "3"
             ],
             "details": "Delete the history replay logic in compute_next_state: the 'for review in history: ...' loop is the performance bottleneck. Ensure `fsrs_card = FSRSCard()` still exists exactly once in the O(1) implementation (either preserved outside the deleted block or re-added explicitly).",
             "status": "pending",
@@ -327,7 +327,7 @@
             "title": "Initialize FSRSCard from Cached Card State",
             "description": "Use card.stability, card.difficulty, card.state instead of replaying history.",
             "dependencies": [
-              4
+              "4"
             ],
             "details": "Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)). Validate that CardState values map correctly to FSRSState values; if they diverge, introduce an explicit CardState->FSRSState mapping function and add a test that covers all CardState variants.",
             "status": "pending",
@@ -339,7 +339,7 @@
             "title": "Update review_processor.py to Pass Card Object",
             "description": "Modify callers of compute_next_state to pass card instead of history.",
             "dependencies": [
-              5
+              "5"
             ],
             "details": "In flashcore/review_processor.py (review_processor.py) line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.",
             "status": "pending",
@@ -351,7 +351,7 @@
             "title": "Migrate Scheduler Tests with O(1) Benchmark (Incremental Verification)",
             "description": "Copy and adapt test_scheduler.py to verify O(1) optimization works correctly.",
             "dependencies": [
-              6
+              "6"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Prefer a relative assertion to avoid hardware dependence: assert time(500) < 2x time(1) (or similar constant-factor bound). This verifies the O(1) property without relying on absolute millisecond thresholds.",
             "status": "pending",
@@ -363,7 +363,7 @@
             "title": "Preserve FSRS Parameter Override Support",
             "description": "Ensure FSRS_Scheduler can accept custom weight vectors at runtime (no forever-defaults trap).",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "HPE_ARCHIVE FSRS_Scheduler already supports injection via FSRSSchedulerConfig(parameters=..., desired_retention=...). When porting/optimizing, ensure this remains supported and is surfaced to the CLI (Task 6) so users can supply externally-optimized weights without fsrs-optimizer.",
             "status": "pending",
@@ -399,7 +399,7 @@
             "title": "Remove self.seen_questions State Variable",
             "description": "Delete the stateful seen_questions dictionary from YAMLProcessor.`__init__`.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "In parser.py line 40, delete 'self.seen_questions: Dict[str, Path] = {}'. Also remove all references to self.seen_questions in _handle_processed_card method (lines 99-110). The parser should not track duplicates.",
             "status": "pending",
@@ -411,7 +411,7 @@
             "title": "Add parser.py to `__init__.py` Exports",
             "description": "Expose YAMLProcessor in `flashcore/__init__.py`.",
             "dependencies": [
-              2
+              "2"
             ],
             "details": "Add to `flashcore/__init__.py`: 'from .parser import YAMLProcessor, YAMLProcessorConfig'. This allows 'from flashcore import YAMLProcessor'.",
             "status": "pending",
@@ -423,7 +423,7 @@
             "title": "Migrate Parser Tests with Statelessness Verification (Incremental Verification)",
             "description": "Copy and adapt test_yaml_processor.py to verify parser is truly stateless.",
             "dependencies": [
-              3
+              "3"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_yaml_processor.py tests/test_parser.py. Update imports from 'cultivation.scripts.flashcore.yaml_processing' to 'flashcore.parser'. CRITICAL: Add new test 'test_parser_is_stateless' that instantiates YAMLProcessor, processes a file twice, and verifies identical output (no state carried between calls). Also test that processing file with duplicate fronts returns all cards (no internal filtering). This verifies stateless refactor works.",
             "status": "pending",
@@ -435,7 +435,7 @@
             "title": "Migrate YAML Validator Tests",
             "description": "Copy and adapt test_yaml_validators.py to verify yaml_validators.py and yaml_models.py ports are correct.",
             "dependencies": [
-              4
+              "4"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_yaml_validators.py tests/test_yaml_validators.py. Update imports from 'cultivation.scripts.flashcore.yaml_processing.yaml_validators' to 'flashcore.yaml_validators' and from 'cultivation.scripts.flashcore.yaml_processing.yaml_models' to 'flashcore.yaml_models'.",
             "status": "pending",
@@ -472,7 +472,7 @@
             "title": "Extract and Refactor Ingestion Logic with Authoritative Deduplication",
             "description": "Extract ingestion and upsert logic from legacy main.py and implement DB-based deduplication.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "CRITICAL SOURCE CORRECTION: Ingestion logic is in HPE_ARCHIVE/flashcore/cli/main.py lines 65-161 (`_load_cards_from_source`, `_filter_new_cards`, `_execute_ingestion`, `_perform_ingestion_logic`). Create flashcore/cli/ingest.py module extracting these functions. REFACTOR DEDUPLICATION (from Task 5.3): Replace `_filter_new_cards` logic to call db.get_all_card_fronts_and_uuids() BEFORE YAMLProcessor, filter output against existing_fronts set, then upsert only new cards. NOTE: `_vet_logic.py` (222 lines) is for 'vet' command (validation/formatting), NOT ingestion - copy separately if vet command needed.",
             "status": "pending",
@@ -484,7 +484,7 @@
             "title": "Port Review Logic Modules",
             "description": "Copy review logic modules maintaining separation between orchestration and UI.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_review_logic.py flashcore/cli/_review_logic.py (28 lines - session orchestration); cp HPE_ARCHIVE/flashcore/cli/_review_all_logic.py flashcore/cli/_review_all_logic.py (172 lines - multi-deck logic). Update imports to `flashcore`. Wire up: FlashcardDatabase(db_path=args.db), FSRS_Scheduler, ReviewSessionManager. Pass all paths explicitly - no config.settings references. Connect to review_ui.py for presentation layer.",
             "status": "pending",
@@ -496,7 +496,7 @@
             "title": "Port Export, Vet, and Stats Functionality",
             "description": "Copy remaining CLI modules for export, vet, and stats commands.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/cli/_export_logic.py flashcore/cli/_export_logic.py (63 lines - export functionality); cp HPE_ARCHIVE/flashcore/cli/_vet_logic.py flashcore/cli/_vet_logic.py (222 lines - YAML validation/formatting for 'vet' command, NOT ingestion). Add stats command logic to main.py (query database for card counts, review stats, due cards). Display with rich tables. Update all imports to `flashcore`.",
             "status": "pending",
@@ -508,9 +508,9 @@
             "title": "Add CLI to `__main__.py` Entry Point",
             "description": "Wire CLI to package entry point for 'flashcore' command.",
             "dependencies": [
-              2,
-              3,
-              4
+              "2",
+              "3",
+              "4"
             ],
             "details": "Update `flashcore/__main__.py` to import and run CLI app (e.g., from flashcore.cli.main import main). Since setup.py is deprecated (Task 1.3), define console entrypoint in pyproject.toml using [project.scripts] (e.g., flashcore = `flashcore.__main__:main`). Test that 'flashcore' command is available after install.",
             "status": "pending",
@@ -566,9 +566,9 @@
             "title": "Copy conftest.py and Shared Fixtures",
             "description": "Migrate shared test fixtures and configuration.",
             "dependencies": [
-              1,
-              2,
-              3
+              "1",
+              "2",
+              "3"
             ],
             "details": "Copy HPE_ARCHIVE/tests/conftest.py to tests/conftest.py. Update fixtures to use explicit db_path (tmp_path / 'test.db') instead of config.settings. Ensure pytest configuration is correct.",
             "status": "pending",
@@ -580,7 +580,7 @@
             "title": "Run Full Test Suite and Verify Coverage",
             "description": "Execute complete test suite and verify coverage meets PRD requirements.",
             "dependencies": [
-              4
+              "4"
             ],
             "details": "Run 'pytest tests/ -v' to execute all tests (unit + integration + regression). Run 'pytest --cov=flashcore tests/' to verify >80% coverage. All tests should pass, proving the refactoring is correct and safe.",
             "status": "pending",
@@ -616,7 +616,7 @@
             "title": "Create migrate.py Import Utility",
             "description": "Import cards/reviews JSON into a new DB and recreate schema.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "Create flashcore/scripts/migrate.py with import_from_json(cards_path, reviews_path, db_path). It recreates schema and inserts data.",
             "status": "pending",
@@ -628,7 +628,7 @@
             "title": "Add Migration Validation Queries",
             "description": "Validate migration completeness and integrity beyond simple row counts.",
             "dependencies": [
-              2
+              "2"
             ],
             "details": "In addition to row count comparisons, run integrity checks: (1) Relationship validation: reviews must reference existing cards. (2) Value range validation: stability/difficulty values are within expected ranges. (3) Schema sanity: expected columns exist and are correct types.",
             "status": "pending",
@@ -664,7 +664,7 @@
             "title": "Update README and Documentation",
             "description": "Document installation, usage, architecture, constraints, and migration guide.",
             "dependencies": [
-              1
+              "1"
             ],
             "details": "Update README.md: installation, usage examples with explicit db_path, architecture (Hub-and-Spoke), dependency constraints (no torch/transformers/fsrs-optimizer), and migration guide.",
             "status": "pending",
@@ -676,7 +676,7 @@
             "title": "Run Verification Checklist",
             "description": "Run PRD Section 5 verification checklist with explicit, testable criteria.",
             "dependencies": [
-              2
+              "2"
             ],
             "details": "Confirm: (1) No torch/transformers/fsrs-optimizer in dependencies, (2) pytest tests/ passes, (3) flashcore CLI ingest/review/stats runs on migrated sample data, (4) assets referenced by YAML load correctly.",
             "status": "pending",
