@@ -82,7 +82,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -90,7 +90,7 @@
             "description": "Transfer the Card, Review, Session, and CardState models from HPE_ARCHIVE.",
             "dependencies": [],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/card.py flashcore/models.py. This is the foundation data layer.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify file exists at flashcore/models.py.",
             "parentId": "undefined"
           },
@@ -102,7 +102,7 @@
               "1"
             ],
             "details": "Search for `from cultivation.scripts.flashcore` in models.py and replace with relative imports. Example: `from cultivation.scripts.flashcore.config import X` becomes `from .config import X` or remove if not needed.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run 'grep -n cultivation flashcore/models.py' should return no results.",
             "parentId": "undefined"
           },
@@ -114,7 +114,7 @@
               "2"
             ],
             "details": "Check for: Field() usage, model_validate() instead of parse_obj(), model_dump() instead of dict(). Verify ConfigDict is used instead of class Config.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run models through pydantic validation: 'python -c \"from flashcore.models import Card; Card.model_validate({...})\"'.",
             "parentId": "undefined"
           },
@@ -126,7 +126,7 @@
               "3"
             ],
             "details": "Verify Card, Review, Session classes have docstrings explaining their purpose. Ensure all fields have type annotations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run mypy on models.py: 'mypy flashcore/models.py --strict'.",
             "parentId": "undefined"
           },
@@ -138,7 +138,7 @@
               "4"
             ],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/config.py flashcore/constants.py. CRITICAL: Remove Settings class and all path defaults (db_path, yaml_source_dir, assets_dir, export_dir, user_uuid) - these violate DI pattern. KEEP ONLY: DEFAULT_PARAMETERS (lines 58-80) and DEFAULT_DESIRED_RETENTION (line 83). Rename file to constants.py (not config.py) to accurately reflect content - this file contains static FSRS algorithm parameters, not runtime configuration. PURITY CONSTRAINT: Ensure constants.py does NOT import pydantic, pydantic_settings, os, or pathlib. It must be a pure Python file containing only native types (Tuple, float) to prevent circular imports during the O(1) scheduler refactor. Remove lines 4-8 (Path, uuid, pydantic_settings imports). Allowed imports: keep only `from typing import Tuple` (for DEFAULT_PARAMETERS signature) if used; remove all other imports.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify flashcore/constants.py exists and contains only DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION. Run 'grep -n Settings flashcore/constants.py' should return no results. Run 'grep -n import flashcore/constants.py' should show only 'from typing import Tuple' or no imports.",
             "parentId": "undefined"
           },
@@ -150,7 +150,7 @@
               "5"
             ],
             "details": "Add to `flashcore/__init__.py`: 'from .models import Card, Review, Session, CardState, ReviewRating'. This allows 'from flashcore import Card'.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test import: 'python -c \"from flashcore import Card, Review\"'.",
             "parentId": "undefined"
           },
@@ -162,11 +162,12 @@
               "6"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_card.py tests/test_models.py. Update imports from `cultivation.scripts.flashcore.card` to `flashcore.models`. Verify Pydantic v2 validation works (model_validate, model_dump). Run 'pytest tests/test_models.py -v' - all tests should pass. This provides immediate safety net for model refactoring.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run 'pytest tests/test_models.py -v' - all model tests pass. Verify Card, Review, Session instantiation and validation.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-01-01T02:57:55.499Z"
       },
       {
         "id": "3",
@@ -281,7 +282,7 @@
             "title": "Copy scheduler.py and Update Imports",
             "description": "Transfer the scheduler module from HPE_ARCHIVE and update imports to use constants.py.",
             "dependencies": [],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py \u2192 constants.py rename for clarity.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py → constants.py rename for clarity.",
             "status": "pending",
             "testStrategy": "Verify file exists at flashcore/scheduler.py. Run 'grep -n \"from.*constants import\" flashcore/scheduler.py' - should find import on line ~16.",
             "parentId": "undefined"
@@ -688,9 +689,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-01-01T02:12:49.458Z",
+      "lastModified": "2026-01-01T02:57:55.504Z",
       "taskCount": 9,
-      "completedCount": 1,
+      "completedCount": 2,
       "tags": [
         "master"
       ]
