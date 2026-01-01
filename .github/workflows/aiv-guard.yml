@@ -42,7 +42,15 @@ jobs:
 
               const files = [];
               let page = 1;
+              const MAX_PAGES = 100; // Safety limit
               while (true) {
+                if (page > MAX_PAGES) {
+                  core.warning(
+                    `Reached maximum page limit (${MAX_PAGES}). Some files may not be checked.`
+                  );
+                  break;
+                }
+
                 const resp = await github.rest.pulls.listFiles({
                   owner,
                   repo,
@@ -51,9 +59,16 @@ jobs:
                   page,
                 });
 
-                if (!resp.data || resp.data.length === 0) break;
+                if (!resp.data || resp.data.length === 0) {
+                  break;
+                }
+
                 files.push(...resp.data);
-                if (resp.data.length < 100) break;
+
+                if (resp.data.length < 100) {
+                  break;
+                }
+
                 page += 1;
               }
 
