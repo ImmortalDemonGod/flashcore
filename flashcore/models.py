@@ -141,11 +141,13 @@ class Card(BaseModel):
     @classmethod
     def validate_tags_kebab_case(cls, tags: Set[str]) -> Set[str]:
         """
-        Ensure every tag uses kebab-case: lowercase letters, digits, and hyphens, starting and ending with an alphanumeric character and containing no spaces.
-        
+        Ensure every tag uses kebab-case: lowercase letters,
+        digits, and hyphens, starting and ending with an
+        alphanumeric character and containing no spaces.
+
         Returns:
             The original set of tags.
-        
+
         Raises:
             ValueError: If any tag does not conform to kebab-case.
         """
@@ -156,12 +158,16 @@ class Card(BaseModel):
 
     def calculate_complexity_metrics(self) -> None:
         """
-        Populate the card's complexity metrics from its current content and metadata.
-        
+        Populate the card's complexity metrics from its current
+        content and metadata.
+
         Sets the following attributes on the instance:
-        - `front_length`: number of characters in `front` (0 if empty or missing).
-        - `back_length`: number of characters in `back` (0 if empty or missing).
-        - `has_media`: `True` if `media` contains any entries, `False` otherwise.
+        - `front_length`: character count in `front`
+          (0 if empty or missing).
+        - `back_length`: character count in `back`
+          (0 if empty or missing).
+        - `has_media`: `True` if `media` contains entries,
+          `False` otherwise.
         - `tag_count`: number of tags in `tags`.
         """
         self.front_length = len(self.front) if self.front else 0
@@ -246,16 +252,19 @@ class Review(BaseModel):
     @classmethod
     def check_review_type_is_allowed(cls, v: str | None) -> str | None:
         """
-        Validate that a review type value is one of the allowed values or None.
-        
+        Validate that a review type value is one of the allowed
+        values or None.
+
         Parameters:
             v (str | None): Proposed review type.
-        
+
         Returns:
-            str | None: The original value when it is allowed or None.
-        
+            str | None: The original value when it is allowed
+            or None.
+
         Raises:
-            ValueError: If `v` is not None and not one of "learn", "review", "relearn", or "manual".
+            ValueError: If `v` is not None and not one of
+            "learn", "review", "relearn", or "manual".
         """
         ALLOWED_REVIEW_TYPES = {"learn", "review", "relearn", "manual"}
         if v is not None and v not in ALLOWED_REVIEW_TYPES:
@@ -329,10 +338,12 @@ class Session(BaseModel):
 
     def calculate_duration(self) -> Optional[int]:
         """
-        Return the session's duration in milliseconds if the session has ended.
-        
+        Return the session's duration in milliseconds if the
+        session has ended.
+
         Returns:
-            total_duration_ms (Optional[int]): Total duration in milliseconds, or `None` if `end_ts` is not set.
+            total_duration_ms (Optional[int]): Total duration in
+            milliseconds, or `None` if `end_ts` is not set.
         """
         if self.end_ts is None:
             return None
@@ -340,9 +351,11 @@ class Session(BaseModel):
 
     def end_session(self) -> None:
         """
-        Mark the session as ended by setting end_ts to the current UTC time and updating total_duration_ms.
-        
-        If the session is already ended (end_ts is not None), this method does nothing.
+        Mark the session as ended by setting end_ts to the current
+        UTC time and updating total_duration_ms.
+
+        If the session is already ended (end_ts is not None),
+        this method does nothing.
         """
         if self.end_ts is None:
             self.end_ts = datetime.now(timezone.utc)
@@ -351,9 +364,13 @@ class Session(BaseModel):
     def add_card_review(self, deck_name: str) -> None:
         """
         Record a reviewed card and update session metrics.
-        
+
         Parameters:
-            deck_name (str): Name of the deck the reviewed card belongs to. Adds this deck to `decks_accessed`, increments `cards_reviewed`, and increments `deck_switches` when a new deck is added after at least one previously accessed deck.
+            deck_name (str): Name of the deck the reviewed card
+            belongs to. Adds this deck to `decks_accessed`,
+            increments `cards_reviewed`, and increments
+            `deck_switches` when a new deck is added after at
+            least one previously accessed deck.
         """
         previous_deck_count = len(self.decks_accessed)
         self.decks_accessed.add(deck_name)
@@ -374,20 +391,25 @@ class Session(BaseModel):
     @property
     def is_active(self) -> bool:
         """
-        Indicates whether the session is active.
-        
+        Return whether the session is currently active
+        (has not been ended).
+
         Returns:
-            True if the session has no end timestamp (is ongoing), False otherwise.
+            bool: True if end_ts is None, indicating the
+                  session is still active; otherwise False.
         """
         return self.end_ts is None
 
     @property
     def cards_per_minute(self) -> Optional[float]:
         """
-        Compute the session's average review throughput in cards per minute.
-        
+        Compute the session's average review throughput in cards
+        per minute.
+
         Returns:
-            cards_per_minute (float | None): The number of cards reviewed per minute, or None if `total_duration_ms` is not set or zero.
+            cards_per_minute (float | None): The number of cards
+            reviewed per minute, or None if `total_duration_ms` is
+            not set or zero.
         """
         if self.total_duration_ms is None or self.total_duration_ms == 0:
             return None

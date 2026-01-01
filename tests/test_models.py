@@ -570,7 +570,7 @@ class TestSessionModel:
 def valid_card_uuid() -> uuid.UUID:
     """
     Provide a valid card UUID for tests.
-    
+
     Returns:
         uuid.UUID: A newly generated UUID suitable for identifying a card in tests.
     """
