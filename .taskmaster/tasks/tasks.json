@@ -50,7 +50,7 @@
               3
             ],
             "details": "Run 'pip install -e .' then 'pip list' and verify total install size <50MB. Use 'pipdeptree' to check for torch/transformers in transitive deps.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "PRD Section 5 Checklist Item 1: 'uv tree shows NO torch, transformers, or fsrs-optimizer'."
           },
           {
@@ -61,7 +61,7 @@
               4
             ],
             "details": "Create .gitignore with: `__pycache__/`, `*.pyc`, `*.pyo`, `*.egg-info/`, `dist/`, `build/`, `.venv/`, `.pytest_cache/`, `.coverage`.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify build artifacts are not tracked by git status."
           }
         ]
