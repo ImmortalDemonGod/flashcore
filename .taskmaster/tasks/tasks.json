@@ -39,7 +39,7 @@
               2
             ],
             "details": "Create pyproject.toml with [project] name='flashcore' and requires-python='>=3.10'. CRITICAL: Preserve VERSION-file semantics from setup.py (setup.py currently reads flashcore/VERSION). In pyproject.toml use setuptools dynamic version, e.g. [project] dynamic = ['version'] and [tool.setuptools.dynamic] version = {file = 'flashcore/VERSION'}. Define console entrypoint under [project.scripts] (e.g., flashcore = `flashcore.__main__:main`). CRITICAL: After creating pyproject.toml, rename setup.py to setup.py.bak or remove it entirely to prevent build tool confusion.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate with 'python -m build --sdist' and inspect generated metadata. Verify setup.py does not exist or is renamed to .bak."
           },
           {
