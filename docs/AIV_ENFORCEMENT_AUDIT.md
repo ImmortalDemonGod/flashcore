@@ -631,12 +631,14 @@ aiv trace --file=flashcore/scheduler.py --function=compute_next_state
    - Specify Ownership Commit as proof of cognition
 
 2. **Enforce Addendum 2.2 (Immutable Referencing)**
-   - Update `aiv-guard.yml` to reject mutable Class E links
-   - Document in PR template that links must target commit SHAs
+   - Status: Implemented (see `.github/workflows/aiv-guard.yml`)
+   - `aiv-guard.yml` rejects mutable Class E links (no `main`/`master`/`develop` blob refs)
+   - PR template includes Class E placeholders (Task + PRD)
 
 3. **Add Anti-Cheat Engine (Class F)**
-   - CI job to detect deleted assertions and added skips
-   - Warn (don't fail) when test weakening is detected
+   - Status: Implemented (see `.github/workflows/main.yml`)
+   - CI job detects deleted assertions and added skips
+   - Warns (doesn't fail) when test weakening is detected
 
 4. **Add SVP Operating Rules**
    - Time budget for verification (15-30 min)
