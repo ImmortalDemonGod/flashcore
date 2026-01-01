@@ -281,6 +281,151 @@ class TestReviewModel:
         assert "Extra inputs are not permitted" in str(excinfo.value) or \
                "unexpected_field" in str(excinfo.value)
 
+    def test_card_calculate_complexity_metrics(self):
+        """Test Card.calculate_complexity_metrics() method."""
+        card = Card(
+            deck_name="Test",
+            front="Short question?",
+            back="Longer answer with more details.",
+            tags={"tag1", "tag2", "tag3"},
+            media=[Path("image.png"), Path("audio.mp3")]
+        )
+        
+        # Initially None
+        assert card.front_length is None
+        assert card.back_length is None
+        assert card.has_media is None
+        assert card.tag_count is None
+        
+        # Calculate metrics
+        card.calculate_complexity_metrics()
+        
+        # Verify calculated values
+        assert card.front_length == len("Short question?")
+        assert card.back_length == len("Longer answer with more details.")
+        assert card.has_media is True
+        assert card.tag_count == 3
+
+    def test_card_calculate_complexity_metrics_no_media(self):
+        """Test complexity metrics with no media."""
+        card = Card(deck_name="Test", front="Q", back="A")
+        card.calculate_complexity_metrics()
+        
+        assert card.has_media is False
+        assert card.tag_count == 0
+
+
+# --- Session Model Tests ---
+
+class TestSessionModel:
+    def test_session_creation_minimal(self):
+        """Test Session creation with defaults."""
+        session = Session()
+        
+        assert isinstance(session.session_uuid, uuid.UUID)
+        assert session.user_id is None
+        assert isinstance(session.start_ts, datetime)
+        assert session.start_ts.tzinfo == timezone.utc
+        assert session.end_ts is None
+        assert session.total_duration_ms is None
+        assert session.cards_reviewed == 0
+        assert session.decks_accessed == set()
+        assert session.deck_switches == 0
+        assert session.interruptions == 0
+        assert session.is_active is True
+
+    def test_session_end_session(self):
+        """Test Session.end_session() method."""
+        session = Session()
+        assert session.is_active is True
+        assert session.end_ts is None
+        
+        session.end_session()
+        
+        assert session.is_active is False
+        assert session.end_ts is not None
+        assert isinstance(session.total_duration_ms, int)
+        assert session.total_duration_ms >= 0
+
+    def test_session_calculate_duration(self):
+        """Test Session.calculate_duration() method."""
+        session = Session()
+        
+        # Active session returns None
+        assert session.calculate_duration() is None
+        
+        # Ended session returns duration
+        session.end_session()
+        duration = session.calculate_duration()
+        assert isinstance(duration, int)
+        assert duration >= 0
+
+    def test_session_add_card_review(self):
+        """Test Session.add_card_review() tracks deck access patterns."""
+        session = Session()
+        
+        # First deck
+        session.add_card_review("Deck1")
+        assert session.cards_reviewed == 1
+        assert session.decks_accessed == {"Deck1"}
+        assert session.deck_switches == 0
+        
+        # Same deck again
+        session.add_card_review("Deck1")
+        assert session.cards_reviewed == 2
+        assert session.decks_accessed == {"Deck1"}
+        assert session.deck_switches == 0
+        
+        # Switch to new deck
+        session.add_card_review("Deck2")
+        assert session.cards_reviewed == 3
+        assert session.decks_accessed == {"Deck1", "Deck2"}
+        assert session.deck_switches == 1
+        
+        # Another new deck
+        session.add_card_review("Deck3")
+        assert session.cards_reviewed == 4
+        assert session.decks_accessed == {"Deck1", "Deck2", "Deck3"}
+        assert session.deck_switches == 2
+
+    def test_session_record_interruption(self):
+        """Test Session.record_interruption() method."""
+        session = Session()
+        assert session.interruptions == 0
+        
+        session.record_interruption()
+        assert session.interruptions == 1
+        
+        session.record_interruption()
+        assert session.interruptions == 2
+
+    def test_session_cards_per_minute(self):
+        """Test Session.cards_per_minute property."""
+        session = Session()
+        
+        # Active session with no duration returns None
+        assert session.cards_per_minute is None
+        
+        # Ended session with cards and explicit duration
+        session.add_card_review("Deck1")
+        session.add_card_review("Deck1")
+        session.add_card_review("Deck1")
+        session.end_ts = session.start_ts + timedelta(minutes=1)
+        session.total_duration_ms = 60000  # 1 minute
+        
+        # Should have a rate (3 cards in 1 minute = 3 cards/min)
+        rate = session.cards_per_minute
+        assert rate is not None
+        assert rate == 3.0
+
+    def test_session_cards_per_minute_zero_duration(self):
+        """Test cards_per_minute with zero duration edge case."""
+        session = Session()
+        session.total_duration_ms = 0
+        
+        # Should return None for zero duration
+        assert session.cards_per_minute is None
+
 
 # --- Fixtures ---
 
