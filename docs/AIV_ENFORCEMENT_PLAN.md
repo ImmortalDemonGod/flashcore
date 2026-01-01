@@ -13,7 +13,7 @@
 
 This document defines the **SOP compliance enforcement strategy** for the flashcore refactor project (Tasks 1-9). This is a **pragmatic, minimal-friction approach** focused on evidence-based verification without requiring advanced cognitive tooling (SVP).
 
-**Philosophy: Hard on Compliance, Soft on Cognition**
+### Philosophy: Hard on Compliance, Soft on Cognition
 
 For the refactor phase, we enforce:
 1. **Packet Gating:** No PR can merge without a complete Verification Packet
@@ -486,7 +486,7 @@ jobs:
 ## Operating Rules for This Branch
 
 ### One PR = One Task
-- Each PR implements exactly one Task Master task (or one subtask cluster)
+- Each PR implements exactly one Task Master task (or one subtask-cluster)
 - No mixed intent PRs
 
 ### PR Title Convention
@@ -557,7 +557,7 @@ Reproduction evidence should prioritize:
 **Mitigation:**
 - Allow "Fast-Track (Trivial)" exception for docs-only changes
 - Accept "good faith" packets even if formatting is imperfect
-- Focus on substance (evidence exists) over style (markdown formatting)
+- Focus on substance (evidence exists) over style (Markdown formatting)
 
 ### Risk 3: Verifier Friction (Compliance Overhead)
 **Mitigation:**
