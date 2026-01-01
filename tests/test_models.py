@@ -568,5 +568,10 @@ class TestSessionModel:
 
 @pytest.fixture
 def valid_card_uuid() -> uuid.UUID:
-    """Provides a valid UUID for review tests."""
+    """
+    Provide a valid card UUID for tests.
+    
+    Returns:
+        uuid.UUID: A newly generated UUID suitable for identifying a card in tests.
+    """
     return uuid.uuid4()
