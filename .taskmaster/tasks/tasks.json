@@ -82,7 +82,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -167,7 +167,7 @@
             "parentId": "undefined"
           }
         ],
-        "updatedAt": "2026-01-01T02:55:02.896Z"
+        "updatedAt": "2026-01-01T02:57:55.499Z"
       },
       {
         "id": "3",
@@ -282,7 +282,7 @@
             "title": "Copy scheduler.py and Update Imports",
             "description": "Transfer the scheduler module from HPE_ARCHIVE and update imports to use constants.py.",
             "dependencies": [],
-            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py \u2192 constants.py rename for clarity.",
+            "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py → constants.py rename for clarity.",
             "status": "pending",
             "testStrategy": "Verify file exists at flashcore/scheduler.py. Run 'grep -n \"from.*constants import\" flashcore/scheduler.py' - should find import on line ~16.",
             "parentId": "undefined"
@@ -689,9 +689,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-01-01T02:55:02.899Z",
+      "lastModified": "2026-01-01T02:57:55.504Z",
       "taskCount": 9,
-      "completedCount": 1,
+      "completedCount": 2,
       "tags": [
         "master"
       ]
