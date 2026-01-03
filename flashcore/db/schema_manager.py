@@ -113,8 +113,7 @@ class SchemaManager:
         )
 
         # Drop all known tables using CASCADE to also drop dependent objects like sequences.  # noqa: E501
-        # The order can still matter for complex dependencies, so we drop tables that are  # noqa: E501
-        # likely to be depended upon first.
+        # CASCADE handles foreign key dependencies automatically.
         cursor.execute("DROP TABLE IF EXISTS reviews CASCADE;")
         cursor.execute("DROP TABLE IF EXISTS sessions CASCADE;")
         cursor.execute("DROP TABLE IF EXISTS cards CASCADE;")
