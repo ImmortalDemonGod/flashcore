@@ -2,8 +2,7 @@ import duckdb
 import logging
 from .connection import ConnectionHandler
 from . import schema
-from .exceptions import DatabaseConnectionError, SchemaInitializationError
-from . import config as flashcore_config
+from ..exceptions import DatabaseConnectionError, SchemaInitializationError
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ class SchemaManager:
 
     def _perform_safety_check(self, cursor: duckdb.DuckDBPyConnection) -> None:
         """Checks for existing data before allowing table recreation."""
-        if str(self._handler.db_path_resolved) == ":memory:" or flashcore_config.settings.testing_mode:
+        if str(self._handler.db_path_resolved) == ":memory:":
             return
 
         try:

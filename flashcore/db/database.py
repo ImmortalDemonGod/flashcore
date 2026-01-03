@@ -6,7 +6,7 @@ import duckdb
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Sequence, Union, cast
-from .exceptions import (
+from ..exceptions import (
     CardOperationError,
     DatabaseConnectionError,
     DatabaseError,
@@ -21,7 +21,7 @@ import json
 from collections import Counter
 from . import db_utils
 
-from .card import Card, Review, CardState, Session
+from ..models import Card, Review, CardState, Session
 from .connection import ConnectionHandler
 from .schema_manager import SchemaManager
 
@@ -41,13 +41,14 @@ class FlashcardDatabase:
     utilities. Intended for use as a context manager.
     """
 
-    def __init__(self, db_path: Optional[Union[str, Path]] = None, read_only: bool = False):
+    def __init__(self, db_path: Union[str, Path], read_only: bool = False):
         """
         Initializes the database by creating a ConnectionHandler.
 
         Args:
-            db_path: Path to the database file. If None, uses the default path from settings.
-                     If ':memory:', uses an in-memory database.
+            db_path: Path to the database file (required). Use ':memory:' for
+                     an in-memory database. Paths are resolved relative to cwd
+                     unless absolute. Must be writable unless read_only=True.
             read_only: If True, opens the database in read-only mode.
         """
         self._handler = ConnectionHandler(db_path=db_path, read_only=read_only)
