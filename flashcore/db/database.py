@@ -720,11 +720,12 @@ class FlashcardDatabase:
             params.append(limit)
 
         try:
-            result_df = conn.execute(sql, params).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, params)
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
             try:
-                return [db_utils.db_row_to_session(cast(Dict[str, Any], row_dict)) for row_dict in result_df.to_dict('records')]
+                return [db_utils.db_row_to_session(cast(Dict[str, Any], row_dict)) for row_dict in rows]
             except MarshallingError as e:
                 raise SessionOperationError("Failed to parse recent sessions from database.") from e
         except duckdb.Error as e:
@@ -737,11 +738,12 @@ class FlashcardDatabase:
         sql = "SELECT * FROM reviews WHERE session_uuid = $1 ORDER BY ts ASC;"
 
         try:
-            result_df = conn.execute(sql, (session_uuid,)).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, (session_uuid,))
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
             try:
-                return [db_utils.db_row_to_review(cast(Dict[str, Any], row_dict)) for row_dict in result_df.to_dict('records')]
+                return [db_utils.db_row_to_review(cast(Dict[str, Any], row_dict)) for row_dict in rows]
             except MarshallingError as e:
                 raise ReviewOperationError(f"Failed to parse reviews for session {session_uuid} from database.") from e
         except duckdb.Error as e:
