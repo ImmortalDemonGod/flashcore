@@ -837,7 +837,8 @@ class TestGeneralErrorHandling:
     ):
         db = initialized_db_manager
         db.close_connection()
-        # After closing, the next operation should trigger reconnection
+        # After closing, need to reinitialize schema on reconnection
+        db.initialize_schema()
         affected = db.upsert_cards_batch([sample_card1])
         assert affected == 1
         assert db.get_card_by_uuid(sample_card1.uuid) is not None

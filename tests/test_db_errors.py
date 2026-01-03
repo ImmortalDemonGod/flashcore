@@ -125,18 +125,16 @@ def test_upsert_cards_batch_handles_db_error(mock_duckdb_connect):
 
 @patch("flashcore.db.db_utils.db_row_to_card")
 def test_get_card_by_uuid_handles_validation_error(
-    mock_db_row_to_card, in_memory_db_with_data
+    mock_db_row_to_card, initialized_db_manager, sample_card1
 ):
     """
     Tests that a CardOperationError is raised if a MarshallingError occurs
     when converting a database row to a Card object.
     """
-    db = in_memory_db_with_data
-    # Get a valid UUID from the fixture to ensure the DB query runs
-    conn = db.get_connection()
-    card_uuid_to_fetch = conn.execute(
-        "SELECT uuid FROM cards LIMIT 1"
-    ).fetchone()[0]
+    db = initialized_db_manager
+    # Add a card first
+    db.upsert_cards_batch([sample_card1])
+    card_uuid_to_fetch = sample_card1.uuid
 
     # Configure the mock to simulate a marshalling failure by raising the error
     # that db_row_to_card is expected to raise.
@@ -556,13 +554,15 @@ def test_get_all_card_fronts_and_uuids_handles_db_error(mock_duckdb_connect):
 
 @patch("flashcore.db.db_utils.db_row_to_card")
 def test_get_all_cards_handles_validation_error(
-    mock_db_row_to_card, in_memory_db_with_data
+    mock_db_row_to_card, initialized_db_manager, sample_card1
 ):
     """
     Tests that a CardOperationError is raised when card data from the database
     fails Pydantic validation, checking for the new exception chaining.
     """
-    db = in_memory_db_with_data
+    db = initialized_db_manager
+    # Add a card first
+    db.upsert_cards_batch([sample_card1])
 
     # Configure the mock to simulate a marshalling failure
     validation_error = ValidationError.from_exception_data(
@@ -587,13 +587,16 @@ def test_get_all_cards_handles_validation_error(
 
 @patch("flashcore.db.db_utils.db_row_to_card")
 def test_get_due_cards_handles_validation_error(
-    mock_db_row_to_card, in_memory_db_with_data
+    mock_db_row_to_card, initialized_db_manager, sample_card1
 ):
     """
     Tests that a CardOperationError is raised when due card data from the database
     fails Pydantic validation, checking for the new exception chaining.
     """
-    db = in_memory_db_with_data
+    db = initialized_db_manager
+    # Add a card with next_due_date set to make it due
+    sample_card1.next_due_date = date.today()
+    db.upsert_cards_batch([sample_card1])
 
     # Configure the mock to simulate a marshalling failure by raising the error
     # that db_row_to_card is expected to raise.
@@ -606,11 +609,13 @@ def test_get_due_cards_handles_validation_error(
     mock_db_row_to_card.side_effect = marshalling_error
 
     with pytest.raises(CardOperationError) as excinfo:
-        db.get_due_cards(deck_name="test-deck", on_date=date.today())
+        db.get_due_cards(
+            deck_name=sample_card1.deck_name, on_date=date.today()
+        )
 
     # Verify the exception chain is CardOperationError -> MarshallingError -> ValidationError
     assert (
-        "Failed to parse due cards for deck 'test-deck' from database."
+        f"Failed to parse due cards for deck '{sample_card1.deck_name}' from database."
         in str(excinfo.value)
     )
     assert isinstance(excinfo.value.original_exception, MarshallingError)
