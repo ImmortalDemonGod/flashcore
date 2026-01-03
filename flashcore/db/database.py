@@ -111,30 +111,30 @@ class FlashcardDatabase:
         )
 
     # --- Card Operations ---
-    _UPSERT_CARDS_SQL = """
-        INSERT INTO cards (uuid, deck_name, front, back, tags, added_at, modified_at,  # noqa: E501
-                           last_review_id, next_due_date, state, stability, difficulty,  # noqa: E501
-                           origin_task, media_paths, source_yaml_file, internal_note,  # noqa: E501
+    _UPSERT_CARDS_SQL = """  # noqa: E501
+        INSERT INTO cards (uuid, deck_name, front, back, tags, added_at, modified_at,
+                           last_review_id, next_due_date, state, stability, difficulty,
+                           origin_task, media_paths, source_yaml_file, internal_note,
                            front_length, back_length, has_media, tag_count)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)  # noqa: E501
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
         ON CONFLICT (uuid) DO UPDATE SET
             deck_name = EXCLUDED.deck_name,
             front = EXCLUDED.front,
             back = EXCLUDED.back,
             tags = EXCLUDED.tags,
             modified_at = EXCLUDED.modified_at,
-            -- Preserve review history fields: only update if incoming value is not None/default  # noqa: E501
+            -- Preserve review history fields: only update if incoming value is not None/default
             -- This prevents ingestion from destroying learning progress
             last_review_id = CASE
-                WHEN EXCLUDED.last_review_id IS NOT NULL THEN EXCLUDED.last_review_id  # noqa: E501
+                WHEN EXCLUDED.last_review_id IS NOT NULL THEN EXCLUDED.last_review_id
                 ELSE cards.last_review_id
             END,
             next_due_date = CASE
-                WHEN EXCLUDED.next_due_date IS NOT NULL THEN EXCLUDED.next_due_date  # noqa: E501
+                WHEN EXCLUDED.next_due_date IS NOT NULL THEN EXCLUDED.next_due_date
                 ELSE cards.next_due_date
             END,
             state = CASE
-                WHEN EXCLUDED.state IS NOT NULL AND EXCLUDED.state != 'New' THEN EXCLUDED.state  # noqa: E501
+                WHEN EXCLUDED.state IS NOT NULL AND EXCLUDED.state != 'New' THEN EXCLUDED.state
                 WHEN cards.state IS NOT NULL THEN cards.state
                 ELSE 'New'
             END,
@@ -219,14 +219,14 @@ class FlashcardDatabase:
             if not rows:
                 return None
             row_dict = rows[0]
-            logger.info(f"DEBUG: Fetched row for UUID {card_uuid}: {row_dict}")
+            logger.debug(f"Fetched card with UUID {card_uuid}")
             try:
                 return db_utils.db_row_to_card(cast(Dict[str, Any], row_dict))
             except MarshallingError as e:
                 raise CardOperationError(
                     f"Failed to parse card with UUID {card_uuid} from database.",  # noqa: E501
                     original_exception=e,
-                )
+                ) from e
         except duckdb.Error as e:
             logger.error(f"Error fetching card by UUID {card_uuid}: {e}")
             raise CardOperationError(
@@ -257,7 +257,7 @@ class FlashcardDatabase:
                 raise CardOperationError(
                     "Failed to parse cards from database.",
                     original_exception=e,
-                )
+                ) from e
         except duckdb.Error as e:
             logger.error(
                 f"Error fetching all cards (filter: {deck_name_filter}): {e}"
@@ -291,10 +291,10 @@ class FlashcardDatabase:
         Counts the number of cards due for review in a specific deck on or before a given date.  # noqa: E501
         """
         conn = self.get_connection()
-        sql = """
+        sql = """  # noqa: E501
             SELECT COUNT(*)
             FROM cards
-            WHERE deck_name = ? AND (next_due_date <= ? OR next_due_date IS NULL);  # noqa: E501
+            WHERE deck_name = ? AND (next_due_date <= ? OR next_due_date IS NULL);
         """
         try:
             # The result of a COUNT query is a single tuple with a single
@@ -330,7 +330,7 @@ class FlashcardDatabase:
         if limit == 0:
             return []
         conn = self.get_connection()
-        sql = """
+        sql = """  # noqa: E501
         SELECT * FROM cards
         WHERE deck_name = $1 AND (next_due_date <= $2 OR next_due_date IS NULL)
         """
@@ -389,12 +389,12 @@ class FlashcardDatabase:
         conn = self.get_connection()
         # This CTE-based query is more efficient as it scans the cards table
         # only once.
-        sql = """
+        sql = """  # noqa: E501
         WITH DeckStats AS (
             SELECT
                 deck_name,
                 COUNT(*) AS card_count,
-                COUNT(CASE WHEN next_due_date <= CURRENT_DATE OR next_due_date IS NULL THEN 1 END) AS due_count  # noqa: E501
+                COUNT(CASE WHEN next_due_date <= CURRENT_DATE OR next_due_date IS NULL THEN 1 END) AS due_count
             FROM cards
             GROUP BY deck_name
         ), StateStats AS (
@@ -407,7 +407,7 @@ class FlashcardDatabase:
         SELECT
             (SELECT COUNT(*) FROM cards) AS total_cards,
             (SELECT COUNT(*) FROM reviews) AS total_reviews,
-            (SELECT json_group_array(json_object('deck_name', deck_name, 'card_count', card_count, 'due_count', due_count)) FROM DeckStats) AS decks,  # noqa: E501
+            (SELECT json_group_array(json_object('deck_name', deck_name, 'card_count', card_count, 'due_count', due_count)) FROM DeckStats) AS decks,
             (SELECT json_group_object(state, count) FROM StateStats) AS states;
         """
         try:
@@ -533,9 +533,9 @@ class FlashcardDatabase:
             raise ReviewOperationError(
                 "Failed to prepare review data for database operation."
             ) from e
-        sql = """
-        INSERT INTO reviews (card_uuid, session_uuid, ts, rating, resp_ms, eval_ms, stab_before, stab_after, diff, next_due,  # noqa: E501
-                             elapsed_days_at_review, scheduled_days_interval, review_type)  # noqa: E501
+        sql = """  # noqa: E501
+        INSERT INTO reviews (card_uuid, session_uuid, ts, rating, resp_ms, eval_ms, stab_before, stab_after, diff, next_due,
+                             elapsed_days_at_review, scheduled_days_interval, review_type)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING review_id;
         """
@@ -555,9 +555,9 @@ class FlashcardDatabase:
         new_review_id: int,
     ) -> None:
         """Updates the card's state and links it to the new review."""
-        sql = """
+        sql = """  # noqa: E501
         UPDATE cards
-        SET last_review_id = $1, next_due_date = $2, state = $3, stability = $4, difficulty = $5, modified_at = $6  # noqa: E501
+        SET last_review_id = $1, next_due_date = $2, state = $3, stability = $4, difficulty = $5, modified_at = $6
         WHERE uuid = $7;
         """
         params = (
@@ -726,9 +726,9 @@ class FlashcardDatabase:
             raise SessionOperationError(
                 "Failed to prepare session data for database operation."
             ) from e
-        sql = """
-        INSERT INTO sessions (session_uuid, user_id, start_ts, end_ts, total_duration_ms,  # noqa: E501
-                             cards_reviewed, decks_accessed, deck_switches, interruptions,  # noqa: E501
+        sql = """  # noqa: E501
+        INSERT INTO sessions (session_uuid, user_id, start_ts, end_ts, total_duration_ms,
+                             cards_reviewed, decks_accessed, deck_switches, interruptions,
                              device_type, platform)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING session_id;
@@ -740,7 +740,7 @@ class FlashcardDatabase:
                 cursor.execute(sql, session_params)
                 result = cursor.fetchone()
                 if not result:
-                    raise CardOperationError(
+                    raise SessionOperationError(
                         "Failed to retrieve session_id after insertion."
                     )
                 session_id = result[0]
@@ -760,7 +760,7 @@ class FlashcardDatabase:
                     )
                 except duckdb.Error as rb_err:
                     logger.error(f"Failed to rollback transaction: {rb_err}")
-            raise CardOperationError(
+            raise SessionOperationError(
                 f"Failed to create session: {e}", original_exception=e
             ) from e
 
@@ -775,7 +775,7 @@ class FlashcardDatabase:
             raise ValueError("Session must have a session_uuid to be updated.")
 
         conn = self.get_connection()
-        sql = """
+        sql = """  # noqa: E501
         UPDATE sessions
         SET user_id = $1, start_ts = $2, end_ts = $3, total_duration_ms = $4,
             cards_reviewed = $5, decks_accessed = $6, deck_switches = $7,
@@ -814,7 +814,7 @@ class FlashcardDatabase:
                     )
                 except duckdb.Error as rb_err:
                     logger.error(f"Failed to rollback transaction: {rb_err}")
-            raise CardOperationError(
+            raise SessionOperationError(
                 f"Failed to update session: {e}", original_exception=e
             ) from e
 
@@ -839,7 +839,7 @@ class FlashcardDatabase:
                 ) from e
         except duckdb.Error as e:
             logger.error(f"Error fetching session by UUID {session_uuid}: {e}")
-            raise CardOperationError(
+            raise SessionOperationError(
                 f"Failed to get session by UUID: {e}", original_exception=e
             ) from e
 
@@ -875,7 +875,7 @@ class FlashcardDatabase:
             logger.error(
                 f"Error fetching active sessions for user {user_id}: {e}"
             )
-            raise CardOperationError(
+            raise SessionOperationError(
                 f"Failed to get active sessions: {e}", original_exception=e
             ) from e
 
@@ -915,7 +915,7 @@ class FlashcardDatabase:
             logger.error(
                 f"Error fetching recent sessions for user {user_id}: {e}"
             )
-            raise CardOperationError(
+            raise SessionOperationError(
                 f"Failed to get recent sessions: {e}", original_exception=e
             ) from e
 
