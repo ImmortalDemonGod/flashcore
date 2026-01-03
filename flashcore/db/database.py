@@ -41,7 +41,7 @@ def _rows_to_dicts(cursor: duckdb.DuckDBPyConnection) -> List[Dict[str, Any]]:
     if description is None:
         return []
     columns = [desc[0] for desc in description]
-    return [dict(zip(columns, row)) for row in rows]
+    return [dict(zip(columns, row, strict=True)) for row in rows]
 
 
 # --- Custom Exceptions ---

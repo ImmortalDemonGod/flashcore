@@ -769,9 +769,7 @@ class TestDatabaseErrorHandling:
             "DB error on get_deck_names"
         )
 
-        with pytest.raises(
-            CardOperationError, match="Could not fetch deck names."
-        ):
+        with pytest.raises(CardOperationError, match=r"Could not fetch deck names\."):
             initialized_db_manager.get_deck_names()
 
     def test_get_all_reviews_db_error(
@@ -849,11 +847,10 @@ class TestGeneralErrorHandling:
     ):
         db = initialized_db_manager
         db.close_connection()
-        # Should reconnect or raise
-        try:
-            db.upsert_cards_batch([sample_card1])
-        except Exception:
-            pass
+        # After closing, the next operation should trigger reconnection
+        affected = db.upsert_cards_batch([sample_card1])
+        assert affected == 1
+        assert db.get_card_by_uuid(sample_card1.uuid) is not None
 
     def test_read_only_db_write_attempt(self, db_path_file: Path):
         db_man = FlashcardDatabase(db_path_file)

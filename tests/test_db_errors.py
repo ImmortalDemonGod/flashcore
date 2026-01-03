@@ -382,7 +382,7 @@ def test_add_review_and_update_card_handles_missing_return_id(
     # 2. Execute and assert the correct error is raised
     with pytest.raises(
         ReviewOperationError,
-        match="Failed to retrieve review_id after insertion.",
+        match=r"Failed to retrieve review_id after insertion\.",
     ):
         db.add_review_and_update_card(sample_review, CardState.Review)
 
@@ -402,11 +402,11 @@ def test_delete_cards_by_uuids_batch_with_empty_list():
         mock_get_conn.assert_not_called()
 
 
-def test_add_review_and_update_card_read_only_mode_raises_error():
+def test_add_review_and_update_card_read_only_mode_raises_error(tmp_path):
     """
     Tests that calling add_review_and_update_card in read-only mode raises an error.
     """
-    db = FlashcardDatabase(db_path="test.db", read_only=True)
+    db = FlashcardDatabase(db_path=tmp_path / "test.db", read_only=True)
 
     # Create a valid review object with all required fields
     card_uuid = uuid.uuid4()
@@ -527,7 +527,7 @@ def test_delete_cards_by_uuids_batch_in_read_only_mode(tmp_path):
     # Now, connect to the existing database in read-only mode.
     db_read = FlashcardDatabase(db_path=db_path, read_only=True)
     with pytest.raises(
-        CardOperationError, match="Cannot delete cards in read-only mode."
+        CardOperationError, match=r"Cannot delete cards in read-only mode\."
     ):
         db_read.delete_cards_by_uuids_batch([uuid.uuid4()])
     db_read.close_connection()
@@ -549,7 +549,7 @@ def test_get_all_card_fronts_and_uuids_handles_db_error(mock_duckdb_connect):
 
     # 2. Execute and assert that the error is caught and re-raised correctly
     with pytest.raises(
-        CardOperationError, match="Could not fetch card fronts and UUIDs."
+        CardOperationError, match=r"Could not fetch card fronts and UUIDs\."
     ):
         db.get_all_card_fronts_and_uuids()
 
