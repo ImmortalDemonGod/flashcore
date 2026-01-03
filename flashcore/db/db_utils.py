@@ -37,9 +37,10 @@ def transform_db_row_for_card(row_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
     """Converts a sequence of Card models to a list of tuples for DB insertion.
-    
-    Note: This function may mutate input Card objects by computing complexity
-    metrics (front_length, back_length, has_media, tag_count) if not already set.
+
+    Note: This function may mutate input Card objects by computing
+    complexity metrics (front_length, back_length, has_media, tag_count)
+    if not already set.
     """
     result = []
     for card in cards:
