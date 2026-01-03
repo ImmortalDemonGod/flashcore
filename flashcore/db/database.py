@@ -1,6 +1,6 @@
 """
 DuckDB database interactions for flashcore.
-Implements the FlashcardDatabase class and supporting exceptions as per the v3.0 technical design.  # noqa: E501
+Implements the FlashcardDatabase class and supporting exceptions as per the v3.0 technical design.
 """
 
 import duckdb
@@ -69,7 +69,7 @@ class FlashcardDatabase:
         self._handler = ConnectionHandler(db_path=db_path, read_only=read_only)
         self._schema_manager = SchemaManager(self._handler)
         logger.info(
-            f"FlashcardDatabase initialized for DB at: {self._handler.db_path_resolved}"  # noqa: E501
+            f"FlashcardDatabase initialized for DB at: {self._handler.db_path_resolved}"
         )
 
     @property
@@ -183,7 +183,7 @@ class FlashcardDatabase:
             affected_rows = len(card_params_list)
             cursor.commit()
         logger.info(
-            f"Successfully upserted/processed {affected_rows} out of {len(card_params_list)} cards provided."  # noqa: E501
+            f"Successfully upserted/processed {affected_rows} out of {len(card_params_list)} cards provided."
         )
         return affected_rows
 
@@ -197,13 +197,13 @@ class FlashcardDatabase:
             try:
                 conn.rollback()
                 logger.info(
-                    "Transaction rolled back due to error in batch card upsert."  # noqa: E501
+                    "Transaction rolled back due to error in batch card upsert."
                 )
             except duckdb.Error as rb_err:
                 # Log the rollback error but still raise the original, more
                 # informative error.
                 logger.error(
-                    f"Failed to rollback transaction during upsert error: {rb_err}"  # noqa: E501
+                    f"Failed to rollback transaction during upsert error: {rb_err}"
                 )
 
         return CardOperationError(
@@ -224,7 +224,7 @@ class FlashcardDatabase:
                 return db_utils.db_row_to_card(cast(Dict[str, Any], row_dict))
             except MarshallingError as e:
                 raise CardOperationError(
-                    f"Failed to parse card with UUID {card_uuid} from database.",  # noqa: E501
+                    f"Failed to parse card with UUID {card_uuid} from database.",
                     original_exception=e,
                 )
         except duckdb.Error as e:
@@ -367,12 +367,12 @@ class FlashcardDatabase:
                 ]
             except MarshallingError as e:
                 raise CardOperationError(
-                    f"Failed to parse due cards for deck '{deck_name}' from database.",  # noqa: E501
+                    f"Failed to parse due cards for deck '{deck_name}' from database.",
                     original_exception=e,
                 )
         except duckdb.Error as e:
             logger.error(
-                f"Error fetching due cards for deck '{deck_name}' on date {on_date}: {e}"  # noqa: E501
+                f"Error fetching due cards for deck '{deck_name}' on date {on_date}: {e}"
             )
             raise CardOperationError(
                 f"Failed to fetch due cards: {e}", original_exception=e
@@ -513,8 +513,8 @@ class FlashcardDatabase:
                     front_to_uuid[normalized_front] = card_uuid
                 else:
                     logger.warning(
-                        f"Duplicate normalized front found: '{normalized_front}'. "  # noqa: E501
-                        f"Keeping first UUID seen: {front_to_uuid[normalized_front]}. "  # noqa: E501
+                        f"Duplicate normalized front found: '{normalized_front}'. "
+                        f"Keeping first UUID seen: {front_to_uuid[normalized_front]}. "
                         f"Discarding new UUID: {card_uuid}."
                     )
             return front_to_uuid
@@ -534,8 +534,8 @@ class FlashcardDatabase:
                 "Failed to prepare review data for database operation."
             ) from e
         sql = """
-        INSERT INTO reviews (card_uuid, session_uuid, ts, rating, resp_ms, eval_ms, stab_before, stab_after, diff, next_due,  # noqa: E501
-                             elapsed_days_at_review, scheduled_days_interval, review_type)  # noqa: E501
+        INSERT INTO reviews (card_uuid, session_uuid, ts, rating, resp_ms, eval_ms, stab_before, stab_after, diff, next_due,
+                             elapsed_days_at_review, scheduled_days_interval, review_type)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING review_id;
         """
@@ -626,7 +626,7 @@ class FlashcardDatabase:
         if updated_card is None:
             # This case should not be reachable if the transaction succeeded.
             raise ReviewOperationError(
-                f"Failed to retrieve card '{review.card_uuid}' after a successful review update. "  # noqa: E501
+                f"Failed to retrieve card '{review.card_uuid}' after a successful review update. "
                 "This indicates a critical data consistency issue."
             )
         return updated_card
@@ -653,7 +653,7 @@ class FlashcardDatabase:
                 ]
             except MarshallingError as e:
                 raise ReviewOperationError(
-                    f"Failed to parse reviews for card {card_uuid} from database."  # noqa: E501
+                    f"Failed to parse reviews for card {card_uuid} from database."
                 ) from e
         except duckdb.Error as e:
             logger.error(
@@ -704,7 +704,7 @@ class FlashcardDatabase:
                 ) from e
         except duckdb.Error as e:
             logger.error(
-                f"Error fetching all reviews (range: {start_ts} to {end_ts}): {e}"  # noqa: E501
+                f"Error fetching all reviews (range: {start_ts} to {end_ts}): {e}"
             )
             raise ReviewOperationError(
                 f"Failed to get all reviews: {e}", original_exception=e
@@ -756,7 +756,7 @@ class FlashcardDatabase:
                 try:
                     conn.rollback()
                     logger.info(
-                        "Transaction rolled back due to session creation error."  # noqa: E501
+                        "Transaction rolled back due to session creation error."
                     )
                 except duckdb.Error as rb_err:
                     logger.error(f"Failed to rollback transaction: {rb_err}")
@@ -835,7 +835,7 @@ class FlashcardDatabase:
                 return db_utils.db_row_to_session(row_dict)
             except MarshallingError as e:
                 raise SessionOperationError(
-                    f"Failed to parse session with UUID {session_uuid} from database."  # noqa: E501
+                    f"Failed to parse session with UUID {session_uuid} from database."
                 ) from e
         except duckdb.Error as e:
             logger.error(f"Error fetching session by UUID {session_uuid}: {e}")
