@@ -21,7 +21,7 @@ class SchemaManager:
 
     def initialize_schema(self, force_recreate_tables: bool = False) -> None:
         """
-        Initializes the database schema using a transaction. Skips if in read-only mode
+        Initializes the database schema using a transaction. Skips if in read-only mode  # noqa: E501
         unless it's an in-memory DB. Can force recreation of tables, which will
         delete all existing data.
         """
@@ -38,18 +38,18 @@ class SchemaManager:
                 self._create_schema_from_sql(cursor)
                 cursor.commit()
             logger.info(
-                f"Database schema at {self._handler.db_path_resolved} initialized successfully (or already exists)."
+                f"Database schema at {self._handler.db_path_resolved} initialized successfully (or already exists)."  # noqa: E501
             )
         except duckdb.Error as e:
             logger.error(
-                f"Error initializing database schema at {self._handler.db_path_resolved}: {e}"
+                f"Error initializing database schema at {self._handler.db_path_resolved}: {e}"  # noqa: E501
             )
             # Attempt to rollback on failure
             if conn and not getattr(conn, "closed", True):
                 try:
                     conn.rollback()
                     logger.info(
-                        "Transaction rolled back due to schema initialization error."
+                        "Transaction rolled back due to schema initialization error."  # noqa: E501
                     )
                 except duckdb.Error as rb_err:
                     logger.error(f"Failed to rollback transaction: {rb_err}")
@@ -61,7 +61,8 @@ class SchemaManager:
     def _handle_read_only_initialization(
         self, force_recreate_tables: bool
     ) -> bool:
-        """Handles the logic for schema initialization in read-only mode. Returns True if initialization should be skipped."""
+        """Handles the logic for schema initialization in read-only mode.
+        Returns True if initialization should be skipped."""
         if self._handler.read_only:
             if force_recreate_tables:
                 raise DatabaseConnectionError(
@@ -71,7 +72,7 @@ class SchemaManager:
             # proceed.
             if str(self._handler.db_path_resolved) != ":memory:":
                 logger.warning(
-                    "Attempting to initialize schema in read-only mode. Skipping."
+                    "Attempting to initialize schema in read-only mode. Skipping."  # noqa: E501
                 )
                 return True
         return False
@@ -93,13 +94,13 @@ class SchemaManager:
             card_count = card_result[0] if card_result else 0
 
             if review_count > 0 or card_count > 0:
-                error_msg = f"CRITICAL: Attempted to drop tables with existing data! Reviews: {review_count}, Cards: {card_count}. This would cause permanent data loss. Use backup/restore instead."
+                error_msg = f"CRITICAL: Attempted to drop tables with existing data! Reviews: {review_count}, Cards: {card_count}. This would cause permanent data loss. Use backup/restore instead."  # noqa: E501
                 logger.error(error_msg)
                 raise ValueError(error_msg)
         except Exception as e:
             # If we can't check, assume there might be data and refuse
             if "no such table" not in str(e).lower():
-                error_msg = f"CRITICAL: Cannot verify if tables contain data before dropping. Refusing to proceed to prevent data loss. Error: {e}"
+                error_msg = f"CRITICAL: Cannot verify if tables contain data before dropping. Refusing to proceed to prevent data loss. Error: {e}"  # noqa: E501
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -108,11 +109,11 @@ class SchemaManager:
         self._perform_safety_check(cursor)
 
         logger.warning(
-            f"Forcing table recreation for {self._handler.db_path_resolved}. ALL EXISTING DATA WILL BE LOST."
+            f"Forcing table recreation for {self._handler.db_path_resolved}. ALL EXISTING DATA WILL BE LOST."  # noqa: E501
         )
 
-        # Drop all known tables using CASCADE to also drop dependent objects like sequences.
-        # The order can still matter for complex dependencies, so we drop tables that are
+        # Drop all known tables using CASCADE to also drop dependent objects like sequences.  # noqa: E501
+        # The order can still matter for complex dependencies, so we drop tables that are  # noqa: E501
         # likely to be depended upon first.
         cursor.execute("DROP TABLE IF EXISTS reviews CASCADE;")
         cursor.execute("DROP TABLE IF EXISTS sessions CASCADE;")
