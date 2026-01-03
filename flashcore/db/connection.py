@@ -33,9 +33,11 @@ class ConnectionHandler:
                 if str(self.db_path_resolved) == ":memory:":
                     self.is_new_db = True
                 else:
-                    # For file-based DBs, it's new if the file doesn't exist yet.
+                    # For file-based DBs, it's new if the file doesn't exist
+                    # yet.
                     self.is_new_db = not self.db_path_resolved.exists()
-                    # Ensure the parent directory exists, mirroring the original logic.
+                    # Ensure the parent directory exists, mirroring the
+                    # original logic.
                     self.db_path_resolved.parent.mkdir(
                         parents=True, exist_ok=True
                     )
