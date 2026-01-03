@@ -67,7 +67,8 @@ class SchemaManager:
                 raise DatabaseConnectionError(
                     "Cannot force_recreate_tables in read-only mode."
                 )
-            # For a non-memory DB, it's just a warning. For in-memory, we proceed.
+            # For a non-memory DB, it's just a warning. For in-memory, we
+            # proceed.
             if str(self._handler.db_path_resolved) != ":memory:":
                 logger.warning(
                     "Attempting to initialize schema in read-only mode. Skipping."
