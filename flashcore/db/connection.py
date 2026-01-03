@@ -1,21 +1,17 @@
 import duckdb
 import logging
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
-from .config import settings
-from .exceptions import DatabaseConnectionError
+from ..exceptions import DatabaseConnectionError
 
 logger = logging.getLogger(__name__)
 
 class ConnectionHandler:
     """Manages the lifecycle of a DuckDB database connection."""
 
-    def __init__(self, db_path: Optional[Union[str, Path]] = None, read_only: bool = False):
-        if db_path is None:
-            self.db_path_resolved: Path = settings.db_path
-            logger.info(f"No DB path provided, using default from settings: {self.db_path_resolved}")
-        elif isinstance(db_path, str) and db_path.lower() == ":memory:":
+    def __init__(self, db_path: Union[str, Path], read_only: bool = False):
+        if isinstance(db_path, str) and db_path.lower() == ":memory:":
             self.db_path_resolved = Path(":memory:")
             logger.info("Using in-memory DuckDB database.")
         else:

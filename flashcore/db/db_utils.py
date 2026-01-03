@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import pandas as pd
 from pydantic import ValidationError
 
-from .card import Card, Review, Session, CardState
-from .exceptions import MarshallingError
+from ..models import Card, Review, Session, CardState
+from ..exceptions import MarshallingError
 import shutil
 from datetime import datetime
 
