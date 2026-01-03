@@ -36,7 +36,8 @@ class ReviewOperationError(DatabaseError):
 
 
 class MarshallingError(DatabaseError):
-    """Indicates an error during data conversion between application models and DB format."""
+    """Indicates an error during data conversion between application models
+    and DB format."""
 
     pass
 
