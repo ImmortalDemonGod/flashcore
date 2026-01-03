@@ -1,6 +1,6 @@
 """
-Utility functions for data marshalling between Pydantic models and database formats.
-This module helps decouple the core database logic from the specifics of data conversion.
+Utility functions for data marshalling between Pydantic models and database formats.  # noqa: E501
+This module helps decouple the core database logic from the specifics of data conversion.  # noqa: E501
 """
 
 from pathlib import Path
@@ -36,7 +36,8 @@ def transform_db_row_for_card(row_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
-    """Converts a sequence of Card models to a list of tuples for DB insertion."""
+    """Converts a sequence of Card models to a list of tuples for DB
+    insertion."""
     result = []
     for card in cards:
         # Calculate complexity metrics if not already set
@@ -78,7 +79,7 @@ def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
 def db_row_to_card(row_dict: Dict[str, Any]) -> Card:
     """
     Converts a database row dictionary to a Card Pydantic model.
-    This method handles necessary type transformations from DB types to model types.
+    This method handles necessary type transformations from DB types to model types.  # noqa: E501
     """
     data = transform_db_row_for_card(row_dict)
 
@@ -154,7 +155,7 @@ def find_latest_backup(db_path: Path) -> Optional[Path]:
     Finds the most recent backup file in the backups directory.
 
     Args:
-        db_path: The path to the main database file (to locate the backups dir).
+        db_path: The path to the main database file (to locate the backups dir).  # noqa: E501
 
     Returns:
         The path to the latest backup file, or None if no backups are found.
