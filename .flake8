@@ -1,0 +1,15 @@
+[flake8]
+max-line-length = 79
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .eggs,
+    *.egg-info,
+    .venv,
+    venv
+
+# Ignore E501 (line too long) in database.py due to SQL strings
+per-file-ignores =
+    flashcore/db/database.py:E501

@@ -179,7 +179,7 @@
         "dependencies": [
           "2"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -187,9 +187,10 @@
             "description": "Port database subsystem to flashcore/db/ package maintaining separation of concerns.",
             "dependencies": [],
             "details": "Create directory: mkdir -p flashcore/db. Copy modules: cp HPE_ARCHIVE/flashcore/database.py flashcore/db/database.py; cp HPE_ARCHIVE/flashcore/connection.py flashcore/db/connection.py; cp HPE_ARCHIVE/flashcore/schema_manager.py flashcore/db/schema_manager.py; cp HPE_ARCHIVE/flashcore/db_utils.py flashcore/db/db_utils.py; cp HPE_ARCHIVE/flashcore/schema.py flashcore/db/schema.py. Also copy shared exceptions: cp HPE_ARCHIVE/flashcore/exceptions.py flashcore/exceptions.py (required by DB + CLI). Create `flashcore/db/__init__.py` that exports ONLY: 'from .database import FlashcardDatabase' (keep other modules internal). This maintains architectural separation (focused modules) rather than creating a monolithic 1000+ line file.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify flashcore/db/ directory exists with 5 modules. Verify `flashcore/db/__init__.py` exports FlashcardDatabase (and does not re-export internal modules).",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-03T04:11:55.397Z"
           },
           {
             "id": 2,
@@ -199,9 +200,10 @@
               "1"
             ],
             "details": "In flashcore/db/database.py line 44, `__init__` has 'db_path: Optional[Union[str, Path]] = None' and defaults to settings. Remove this default. In flashcore/db/connection.py line 6, remove 'from .config import settings' import and line 16 'self.db_path_resolved = settings.db_path'. The library must not know about config files.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run 'grep -rn config flashcore/db/' should return no results.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-03T04:11:55.443Z"
           },
           {
             "id": 3,
@@ -211,9 +213,10 @@
               "2"
             ],
             "details": "Change signature from `def __init__(self, db_path: Optional[Union[str, Path]] = None, ...)` to `def __init__(self, db_path: Union[str, Path], read_only: bool = False)`. Update docstring to reflect: db_path is required (no default), accepted types are Union[str, Path], path resolution expectations (cwd vs absolute), and that the path must be writable unless read_only=True.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Attempt to instantiate without argument: 'FlashcardDatabase()' should raise TypeError: missing required positional argument 'db_path'.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-03T04:11:55.451Z"
           },
           {
             "id": 4,
@@ -223,9 +226,10 @@
               "3"
             ],
             "details": "Review ConnectionHandler.`__init__` in connection.py. If it also has Optional db_path with config default, apply same refactor. Ensure it receives db_path from FlashcardDatabase.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trace db_path flow: FlashcardDatabase -> ConnectionHandler -> duckdb.connect(). No config lookups in chain.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-03T04:11:55.458Z"
           },
           {
             "id": 5,
@@ -235,9 +239,10 @@
               "4"
             ],
             "details": "Add to `flashcore/__init__.py`: 'from .db import FlashcardDatabase'. The `db/__init__.py` already exports FlashcardDatabase from .database, so this import works cleanly. This allows 'from flashcore import FlashcardDatabase'.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test import and instantiation: 'python -c \"from flashcore import FlashcardDatabase; db = FlashcardDatabase(\\\"/tmp/test.db\\\")\"'.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-03T04:11:55.460Z"
           },
           {
             "id": 6,
@@ -247,9 +252,10 @@
               "5"
             ],
             "details": "HPE_ARCHIVE database layer uses DuckDB's fetch_df() which requires pandas. Refactor flashcore/db/database.py and flashcore/db/db_utils.py to avoid pandas entirely: replace fetch_df() calls with fetchall()/fetchone() and construct row dicts using cursor.description for column names. Remove any pandas imports/usages (e.g., pd.isna) and update marshalling accordingly.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run 'python -c \"import flashcore; from flashcore.db import FlashcardDatabase\"' in an environment WITHOUT pandas installed; imports should succeed. Run DB unit tests after refactor.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-03T04:11:55.461Z"
           },
           {
             "id": 7,
@@ -259,11 +265,13 @@
               "6"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_database.py tests/test_db.py. CRITICAL FIXTURE UPDATE: Replace all fixtures that use 'FlashcardDatabase()' with 'FlashcardDatabase(db_path=tmp_path / \"test.db\")'. Update conftest.py to provide tmp_path fixture. Update imports from `cultivation.scripts.flashcore` to `flashcore`. This verifies Dependency Injection works and provides safety net for DB refactoring. Also copy test_database_errors.py for error handling tests.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run 'pytest tests/test_db.py -v' - all database tests pass with explicit db_path. Verify FlashcardDatabase() without args raises TypeError.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-03T04:11:55.463Z"
           }
-        ]
+        ],
+        "updatedAt": "2026-01-03T04:11:55.463Z"
       },
       {
         "id": "4",
@@ -689,9 +697,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-01-01T02:57:55.504Z",
+      "lastModified": "2026-01-03T04:11:55.464Z",
       "taskCount": 9,
-      "completedCount": 2,
+      "completedCount": 3,
       "tags": [
         "master"
       ]

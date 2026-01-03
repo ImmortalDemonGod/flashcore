@@ -2,6 +2,7 @@
 
 from .models import Card, Review, Session, CardState, Rating
 from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION
+from .db import FlashcardDatabase
 
 __all__ = [
     "Card",
@@ -11,4 +12,5 @@ __all__ = [
     "Rating",
     "DEFAULT_PARAMETERS",
     "DEFAULT_DESIRED_RETENTION",
+    "FlashcardDatabase",
 ]
