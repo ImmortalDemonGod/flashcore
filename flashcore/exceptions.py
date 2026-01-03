@@ -7,6 +7,13 @@ class DatabaseError(Exception):
     def __init__(
         self, message: str, original_exception: Optional[Exception] = None
     ):
+        """
+        Initialize the DatabaseError with a human-readable message and an optional original exception.
+        
+        Parameters:
+            message (str): A descriptive error message for this DatabaseError.
+            original_exception (Optional[Exception]): The underlying exception that caused this error, if any; stored for later inspection.
+        """
         super().__init__(message)
         self.original_exception = original_exception
 
