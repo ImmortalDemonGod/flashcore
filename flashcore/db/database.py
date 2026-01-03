@@ -37,7 +37,10 @@ def _rows_to_dicts(cursor: duckdb.DuckDBPyConnection) -> List[Dict[str, Any]]:
     rows = cursor.fetchall()
     if not rows:
         return []
-    columns = [desc[0] for desc in cursor.description]
+    description = cursor.description
+    if description is None:
+        return []
+    columns = [desc[0] for desc in description]
     return [dict(zip(columns, row)) for row in rows]
 
 
