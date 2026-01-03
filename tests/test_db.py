@@ -49,6 +49,7 @@ def db_manager(
                 db_path_file.unlink()
             except OSError as e:
                 import logging
+
                 logging.warning(
                     f"Error removing temporary DB file in test fixture teardown: {e}"
                 )
@@ -770,7 +771,9 @@ class TestDatabaseErrorHandling:
             "DB error on get_deck_names"
         )
 
-        with pytest.raises(CardOperationError, match=r"Could not fetch deck names\."):
+        with pytest.raises(
+            CardOperationError, match=r"Could not fetch deck names\."
+        ):
             initialized_db_manager.get_deck_names()
 
     def test_get_all_reviews_db_error(
