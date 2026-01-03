@@ -112,29 +112,29 @@ class FlashcardDatabase:
 
     # --- Card Operations ---
     _UPSERT_CARDS_SQL = """
-        INSERT INTO cards (uuid, deck_name, front, back, tags, added_at, modified_at,  # noqa: E501
-                           last_review_id, next_due_date, state, stability, difficulty,  # noqa: E501
-                           origin_task, media_paths, source_yaml_file, internal_note,  # noqa: E501
+        INSERT INTO cards (uuid, deck_name, front, back, tags, added_at, modified_at,
+                           last_review_id, next_due_date, state, stability, difficulty,
+                           origin_task, media_paths, source_yaml_file, internal_note,
                            front_length, back_length, has_media, tag_count)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)  # noqa: E501
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
         ON CONFLICT (uuid) DO UPDATE SET
             deck_name = EXCLUDED.deck_name,
             front = EXCLUDED.front,
             back = EXCLUDED.back,
             tags = EXCLUDED.tags,
             modified_at = EXCLUDED.modified_at,
-            -- Preserve review history fields: only update if incoming value is not None/default  # noqa: E501
+            -- Preserve review history fields: only update if incoming value is not None/default
             -- This prevents ingestion from destroying learning progress
             last_review_id = CASE
-                WHEN EXCLUDED.last_review_id IS NOT NULL THEN EXCLUDED.last_review_id  # noqa: E501
+                WHEN EXCLUDED.last_review_id IS NOT NULL THEN EXCLUDED.last_review_id
                 ELSE cards.last_review_id
             END,
             next_due_date = CASE
-                WHEN EXCLUDED.next_due_date IS NOT NULL THEN EXCLUDED.next_due_date  # noqa: E501
+                WHEN EXCLUDED.next_due_date IS NOT NULL THEN EXCLUDED.next_due_date
                 ELSE cards.next_due_date
             END,
             state = CASE
-                WHEN EXCLUDED.state IS NOT NULL AND EXCLUDED.state != 'New' THEN EXCLUDED.state  # noqa: E501
+                WHEN EXCLUDED.state IS NOT NULL AND EXCLUDED.state != 'New' THEN EXCLUDED.state
                 WHEN cards.state IS NOT NULL THEN cards.state
                 ELSE 'New'
             END,
