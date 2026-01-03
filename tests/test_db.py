@@ -148,25 +148,10 @@ def create_sample_review(card_uuid, bypass_validation: bool = False, **overrides
 # --- Test Classes ---
 
 class TestFlashcardDatabaseConnection:
-    def test_instantiation_default_path(self, monkeypatch, tmp_path: Path):
-        # This test verifies that FlashcardDatabase() correctly uses the default path from settings.
-        # To prevent it from deleting the user's actual live database, we monkeypatch
-        # the setting to point to a temporary file for the duration of this test.
-        temp_db_path = tmp_path / "default.db"
-        monkeypatch.setattr(settings, 'db_path', temp_db_path)
-
-        db_man_default = FlashcardDatabase()  # No path provided
-        assert db_man_default.db_path_resolved == temp_db_path
-        conn = None
-        try:
-            conn = db_man_default.get_connection()
-            assert temp_db_path.parent.exists()
-        finally:
-            if conn:
-                conn.close()
-            # The following cleanup is now safe as it operates on the temp_db_path
-            if temp_db_path.exists():
-                temp_db_path.unlink()
+    def test_instantiation_requires_db_path(self):
+        # This test verifies that FlashcardDatabase() requires db_path parameter
+        with pytest.raises(TypeError, match="missing 1 required positional argument: 'db_path'"):
+            FlashcardDatabase()  # No path provided - should raise TypeError
 
     def test_instantiation_custom_file_path(self, tmp_path: Path):
         custom_path = tmp_path / "custom_dir" / "my_flash.db"
