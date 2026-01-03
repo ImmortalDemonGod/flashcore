@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flashcore"
+dynamic = ["version"]
+description = "Awesome flashcore created by ImmortalDemonGod"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "ImmortalDemonGod"}
+]
+dependencies = [
+    "duckdb>=1.0.0",
+    "pydantic>=2.7.0",
+    "fsrs>=3.0.0",
+    "typer>=0.12.0",
+    "rich>=13.0.0",
+    "ruamel.yaml>=0.17.0",
+    "PyYAML>=6.0.0",
+    "bleach>=6.0.0",
+    "tomli>=2.0.1; python_version<'3.11'",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "flake8>=6.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "gitchangelog>=3.0.0",
+    "mkdocs>=1.5.0",
+]
+
+[project.scripts]
+flashcore = "flashcore.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/ImmortalDemonGod/flashcore/"
+
+[tool.setuptools.dynamic]
+version = {file = "flashcore/VERSION"}
+
+[tool.setuptools.packages.find]
+exclude = ["tests", ".github"]

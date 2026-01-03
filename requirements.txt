@@ -3,3 +3,9 @@
 # Add the requirements you need to this file.
 # or run `make init` to create this file automatically based on the template.
 # You can also run `make switch-to-poetry` to use the poetry package manager.
+#
+# NOTE: Dependencies are now managed in pyproject.toml (single source of truth).
+# Install runtime dependencies with: pip install -e .
+# Install with test dependencies: pip install -e '.[test]'
+
+-e .
