@@ -47,8 +47,9 @@ def db_manager(
         if request.param == "file" and db_path_file.exists():
             try:
                 db_path_file.unlink()
-            except Exception as e:
-                print(
+            except OSError as e:
+                import logging
+                logging.warning(
                     f"Error removing temporary DB file in test fixture teardown: {e}"
                 )
 
