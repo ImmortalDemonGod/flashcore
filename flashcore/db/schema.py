@@ -33,7 +33,7 @@ DB_SCHEMA_SQL = """
 
     CREATE TABLE IF NOT EXISTS reviews (
         review_id INTEGER PRIMARY KEY DEFAULT nextval('review_seq'),
-        card_uuid UUID NOT NULL REFERENCES cards(uuid),
+        card_uuid UUID NOT NULL,  -- No FK constraint for migration flexibility
         session_uuid UUID,
         ts TIMESTAMP WITH TIME ZONE NOT NULL,
         rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 4),
