@@ -111,7 +111,9 @@ class FlashcardDatabase:
         )
 
     # --- Card Operations ---
-    _UPSERT_CARDS_SQL = """  # noqa: E501
+    # fmt: off
+    # noqa: E501
+    _UPSERT_CARDS_SQL = """
         INSERT INTO cards (uuid, deck_name, front, back, tags, added_at, modified_at,
                            last_review_id, next_due_date, state, stability, difficulty,
                            origin_task, media_paths, source_yaml_file, internal_note,
@@ -291,7 +293,7 @@ class FlashcardDatabase:
         Counts the number of cards due for review in a specific deck on or before a given date.  # noqa: E501
         """
         conn = self.get_connection()
-        sql = """  # noqa: E501
+        sql = """
             SELECT COUNT(*)
             FROM cards
             WHERE deck_name = ? AND (next_due_date <= ? OR next_due_date IS NULL);
@@ -330,7 +332,7 @@ class FlashcardDatabase:
         if limit == 0:
             return []
         conn = self.get_connection()
-        sql = """  # noqa: E501
+        sql = """
         SELECT * FROM cards
         WHERE deck_name = $1 AND (next_due_date <= $2 OR next_due_date IS NULL)
         """
@@ -389,7 +391,7 @@ class FlashcardDatabase:
         conn = self.get_connection()
         # This CTE-based query is more efficient as it scans the cards table
         # only once.
-        sql = """  # noqa: E501
+        sql = """
         WITH DeckStats AS (
             SELECT
                 deck_name,
@@ -533,7 +535,7 @@ class FlashcardDatabase:
             raise ReviewOperationError(
                 "Failed to prepare review data for database operation."
             ) from e
-        sql = """  # noqa: E501
+        sql = """
         INSERT INTO reviews (card_uuid, session_uuid, ts, rating, resp_ms, eval_ms, stab_before, stab_after, diff, next_due,
                              elapsed_days_at_review, scheduled_days_interval, review_type)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
@@ -555,7 +557,7 @@ class FlashcardDatabase:
         new_review_id: int,
     ) -> None:
         """Updates the card's state and links it to the new review."""
-        sql = """  # noqa: E501
+        sql = """
         UPDATE cards
         SET last_review_id = $1, next_due_date = $2, state = $3, stability = $4, difficulty = $5, modified_at = $6
         WHERE uuid = $7;
@@ -726,7 +728,7 @@ class FlashcardDatabase:
             raise SessionOperationError(
                 "Failed to prepare session data for database operation."
             ) from e
-        sql = """  # noqa: E501
+        sql = """
         INSERT INTO sessions (session_uuid, user_id, start_ts, end_ts, total_duration_ms,
                              cards_reviewed, decks_accessed, deck_switches, interruptions,
                              device_type, platform)
@@ -775,7 +777,7 @@ class FlashcardDatabase:
             raise ValueError("Session must have a session_uuid to be updated.")
 
         conn = self.get_connection()
-        sql = """  # noqa: E501
+        sql = """
         UPDATE sessions
         SET user_id = $1, start_ts = $2, end_ts = $3, total_duration_ms = $4,
             cards_reviewed = $5, decks_accessed = $6, deck_switches = $7,
