@@ -21,9 +21,15 @@ class SchemaManager:
 
     def initialize_schema(self, force_recreate_tables: bool = False) -> None:
         """
-        Initializes the database schema using a transaction. Skips if in read-only mode  # noqa: E501
-        unless it's an in-memory DB. Can force recreation of tables, which will
-        delete all existing data.
+        Initialize the database schema in a transaction.
+        
+        If the connection handler is in read-only mode for a persistent database, initialization is skipped; in-memory databases are initialized even in read-only mode. If `force_recreate_tables` is true, existing tables will be dropped and recreated (all existing data will be lost). On underlying database errors this method raises a SchemaInitializationError.
+        
+        Parameters:
+        	force_recreate_tables (bool): If true, drop and recreate tables, which will delete existing data.
+        
+        Raises:
+        	SchemaInitializationError: If an error occurs while creating or applying the schema.
         """
         if self._handle_read_only_initialization(force_recreate_tables):
             return
@@ -61,8 +67,20 @@ class SchemaManager:
     def _handle_read_only_initialization(
         self, force_recreate_tables: bool
     ) -> bool:
-        """Handles the logic for schema initialization in read-only mode.
-        Returns True if initialization should be skipped."""
+        """
+        Decide whether schema initialization should be skipped when the connection is read-only.
+        
+        If the connection handler is read-only and `force_recreate_tables` is True, this will raise a DatabaseConnectionError. If the connection handler is read-only and the database is not in-memory, the function returns True to indicate initialization should be skipped; otherwise it returns False.
+        
+        Parameters:
+            force_recreate_tables (bool): Whether the caller requests dropping and recreating tables.
+        
+        Returns:
+            bool: True if initialization should be skipped, False otherwise.
+        
+        Raises:
+            DatabaseConnectionError: If `force_recreate_tables` is requested while in read-only mode.
+        """
         if self._handler.read_only:
             if force_recreate_tables:
                 raise DatabaseConnectionError(
@@ -78,7 +96,17 @@ class SchemaManager:
         return False
 
     def _perform_safety_check(self, cursor: duckdb.DuckDBPyConnection) -> None:
-        """Checks for existing data before allowing table recreation."""
+        """
+        Verify the database is empty before destructive table recreation.
+        
+        If the resolved database path is in-memory, no check is performed. Uses the provided cursor to confirm that the "reviews" and "cards" tables contain zero rows; if either table contains rows, raises ValueError to refuse destructive operations. If the existence/count check fails for any reason other than a missing table, raises ValueError to refuse proceeding and prevent possible data loss.
+        
+        Parameters:
+            cursor (duckdb.DuckDBPyConnection): Cursor/connection used to execute verification queries.
+        
+        Raises:
+            ValueError: If either table contains rows, or if verification cannot be completed (except when a table is missing).
+        """
         if str(self._handler.db_path_resolved) == ":memory:":
             return
 
@@ -105,7 +133,14 @@ class SchemaManager:
                 raise ValueError(error_msg)
 
     def _recreate_tables(self, cursor: duckdb.DuckDBPyConnection) -> None:
-        """Drops all tables and sequences to force recreation."""
+        """
+        Forcefully drop existing schema objects to allow fresh schema creation.
+        
+        Performs a safety check to refuse operation if persistent data would be lost, logs a warning about irreversible data loss, and then drops the known tables (reviews, sessions, cards) and their dependent objects.
+        
+        Parameters:
+        	cursor (duckdb.DuckDBPyConnection): Active DuckDB cursor/connection used to execute the DROP statements.
+        """
         self._perform_safety_check(cursor)
 
         logger.warning(
@@ -121,5 +156,10 @@ class SchemaManager:
     def _create_schema_from_sql(
         self, cursor: duckdb.DuckDBPyConnection
     ) -> None:
-        """Executes the SQL statements to create the database schema."""
+        """
+        Create the database schema by executing the module's predefined SQL.
+        
+        Parameters:
+            cursor (duckdb.DuckDBPyConnection): Database cursor used to execute the schema SQL stored in schema.DB_SCHEMA_SQL.
+        """
         cursor.execute(schema.DB_SCHEMA_SQL)
