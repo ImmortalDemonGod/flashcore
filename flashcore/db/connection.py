@@ -18,7 +18,7 @@ class ConnectionHandler:
         else:
             self.db_path_resolved = Path(db_path).resolve()
             logger.info(
-                f"ConnectionHandler initialized for DB at: {self.db_path_resolved}"
+                f"ConnectionHandler initialized for DB at: {self.db_path_resolved}"  # noqa: E501
             )
 
         self.read_only: bool = read_only
@@ -26,7 +26,8 @@ class ConnectionHandler:
         self.is_new_db: bool = False
 
     def get_connection(self) -> duckdb.DuckDBPyConnection:
-        """Establishes and returns a database connection. Reuses an existing open connection."""
+        """Establishes and returns a database connection. Reuses an existing
+        open connection."""
         if self._connection is None:
             try:
                 # This logic determines if the schema needs to be initialized.
@@ -54,7 +55,8 @@ class ConnectionHandler:
         return self._connection
 
     def close_connection(self) -> None:
-        """Closes the connection if it exists and sets it to None, allowing for reconnection."""
+        """Closes the connection if it exists and sets it to None, allowing
+        for reconnection."""
         if self._connection:
             try:
                 self._connection.close()
