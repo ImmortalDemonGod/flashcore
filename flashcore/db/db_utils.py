@@ -2,6 +2,7 @@
 Utility functions for data marshalling between Pydantic models and database formats.
 This module helps decouple the core database logic from the specifics of data conversion.
 """
+
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from pydantic import ValidationError
@@ -17,7 +18,9 @@ def transform_db_row_for_card(row_dict: Dict[str, Any]) -> Dict[str, Any]:
     data = row_dict.copy()
 
     media_paths = data.pop("media_paths", None)
-    data["media"] = [Path(p) for p in media_paths] if media_paths is not None else []
+    data["media"] = (
+        [Path(p) for p in media_paths] if media_paths is not None else []
+    )
 
     if data.get("source_yaml_file"):
         data["source_yaml_file"] = Path(data["source_yaml_file"])
@@ -37,31 +40,38 @@ def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
     result = []
     for card in cards:
         # Calculate complexity metrics if not already set
-        if card.front_length is None or card.back_length is None or card.has_media is None or card.tag_count is None:
+        if (
+            card.front_length is None
+            or card.back_length is None
+            or card.has_media is None
+            or card.tag_count is None
+        ):
             card.calculate_complexity_metrics()
 
-        result.append((
-            card.uuid,
-            card.deck_name,
-            card.front,
-            card.back,
-            list(card.tags) if card.tags else None,
-            card.added_at,
-            card.modified_at,
-            card.last_review_id,
-            card.next_due_date,
-            card.state.name if card.state else None,
-            card.stability,
-            card.difficulty,
-            card.origin_task,
-            [str(p) for p in card.media] if card.media else None,
-            str(card.source_yaml_file) if card.source_yaml_file else None,
-            card.internal_note,
-            card.front_length,
-            card.back_length,
-            card.has_media,
-            card.tag_count
-        ))
+        result.append(
+            (
+                card.uuid,
+                card.deck_name,
+                card.front,
+                card.back,
+                list(card.tags) if card.tags else None,
+                card.added_at,
+                card.modified_at,
+                card.last_review_id,
+                card.next_due_date,
+                card.state.name if card.state else None,
+                card.stability,
+                card.difficulty,
+                card.origin_task,
+                [str(p) for p in card.media] if card.media else None,
+                str(card.source_yaml_file) if card.source_yaml_file else None,
+                card.internal_note,
+                card.front_length,
+                card.back_length,
+                card.has_media,
+                card.tag_count,
+            )
+        )
     return result
 
 
@@ -76,7 +86,10 @@ def db_row_to_card(row_dict: Dict[str, Any]) -> Card:
         return Card(**data)
     except ValidationError as e:
         # Consider adding logger here if this module gets one
-        raise MarshallingError(f"Failed to parse card from DB row: {row_dict}. Error: {e}", original_exception=e) from e
+        raise MarshallingError(
+            f"Failed to parse card from DB row: {row_dict}. Error: {e}",
+            original_exception=e,
+        ) from e
 
 
 def review_to_db_params_tuple(review: Review) -> Tuple:
@@ -94,7 +107,7 @@ def review_to_db_params_tuple(review: Review) -> Tuple:
         review.next_due,
         review.elapsed_days_at_review,
         review.scheduled_days_interval,
-        review.review_type
+        review.review_type,
     )
 
 
@@ -116,7 +129,7 @@ def session_to_db_params_tuple(session: Session) -> Tuple:
         session.deck_switches,
         session.interruptions,
         session.device_type,
-        session.platform
+        session.platform,
     )
 
 
@@ -124,12 +137,16 @@ def db_row_to_session(row_dict: Dict[str, Any]) -> Session:
     """Convert database row to Session model."""
     data = row_dict.copy()
     decks_accessed = data.pop("decks_accessed", None)
-    data["decks_accessed"] = set(decks_accessed) if decks_accessed is not None else set()
+    data["decks_accessed"] = (
+        set(decks_accessed) if decks_accessed is not None else set()
+    )
     try:
         return Session(**data)
     except ValidationError as e:
         # Consider adding logger here if this module gets one
-        raise MarshallingError(f"Data validation failed for session: {e}", original_exception=e) from e
+        raise MarshallingError(
+            f"Data validation failed for session: {e}", original_exception=e
+        ) from e
 
 
 def find_latest_backup(db_path: Path) -> Optional[Path]:
