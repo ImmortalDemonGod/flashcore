@@ -64,12 +64,11 @@ DB_SCHEMA_SQL = """
     );
 
     CREATE INDEX IF NOT EXISTS idx_cards_deck_name ON cards (deck_name);
-    CREATE INDEX IF NOT EXISTS idx_cards_next_due_date ON cards (next_due_date);  # noqa: E501
+    CREATE INDEX IF NOT EXISTS idx_cards_next_due_date ON cards (next_due_date);
     CREATE INDEX IF NOT EXISTS idx_reviews_card_uuid ON reviews (card_uuid);
-    CREATE INDEX IF NOT EXISTS idx_reviews_session_uuid ON reviews (session_uuid);  # noqa: E501
+    CREATE INDEX IF NOT EXISTS idx_reviews_session_uuid ON reviews (session_uuid);
     CREATE INDEX IF NOT EXISTS idx_reviews_ts ON reviews (ts);
     CREATE INDEX IF NOT EXISTS idx_reviews_next_due ON reviews (next_due);
-    CREATE INDEX IF NOT EXISTS idx_sessions_uuid ON sessions (session_uuid);
     CREATE INDEX IF NOT EXISTS idx_sessions_start_ts ON sessions (start_ts);
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
-"""
+"""  # noqa: E501
