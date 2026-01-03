@@ -28,6 +28,16 @@ from .schema_manager import SchemaManager
 # --- Logging Setup ---
 logger = logging.getLogger(__name__)
 
+# --- Helper Functions ---
+
+def _rows_to_dicts(cursor: duckdb.DuckDBPyConnection) -> List[Dict[str, Any]]:
+    """Convert cursor results to list of dictionaries using column names."""
+    rows = cursor.fetchall()
+    if not rows:
+        return []
+    columns = [desc[0] for desc in cursor.description]
+    return [dict(zip(columns, row)) for row in rows]
+
 # --- Custom Exceptions ---
 
 
@@ -183,10 +193,11 @@ class FlashcardDatabase:
         conn = self.get_connection()
         sql = "SELECT * FROM cards WHERE uuid = $1;"
         try:
-            result = conn.execute(sql, (card_uuid,)).fetch_df()
-            if result.empty:
+            cursor = conn.execute(sql, (card_uuid,))
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return None
-            row_dict = cast(Dict[str, Any], result.to_dict('records')[0])
+            row_dict = rows[0]
             logger.info(f"DEBUG: Fetched row for UUID {card_uuid}: {row_dict}")
             try:
                 return db_utils.db_row_to_card(cast(Dict[str, Any], row_dict))
@@ -205,11 +216,12 @@ class FlashcardDatabase:
             params.append(deck_name_filter)
         sql += " ORDER BY deck_name, front;"
         try:
-            result_df = conn.execute(sql, params).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, params)
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
             try:
-                return [db_utils.db_row_to_card(cast(Dict[str, Any], row)) for row in result_df.to_dict('records')]
+                return [db_utils.db_row_to_card(cast(Dict[str, Any], row)) for row in rows]
             except MarshallingError as e:
                 raise CardOperationError("Failed to parse cards from database.", original_exception=e)
         except duckdb.Error as e:
@@ -223,11 +235,11 @@ class FlashcardDatabase:
         conn = self.get_connection()
         sql = "SELECT DISTINCT deck_name FROM cards ORDER BY deck_name;"
         try:
-            result_df = conn.execute(sql).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql)
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
-            # The result is a DataFrame with one column 'deck_name'
-            return result_df['deck_name'].tolist()
+            return [row['deck_name'] for row in rows]
         except duckdb.Error as e:
             logger.error(f"Could not fetch deck names due to a database error: {e}")
             raise CardOperationError("Could not fetch deck names.", original_exception=e) from e
@@ -289,11 +301,12 @@ class FlashcardDatabase:
             params.append(limit)
 
         try:
-            result_df = conn.execute(sql, params).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, params)
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
             try:
-                return [db_utils.db_row_to_card(cast(Dict[str, Any], row_dict)) for row_dict in result_df.to_dict('records')]
+                return [db_utils.db_row_to_card(cast(Dict[str, Any], row_dict)) for row_dict in rows]
             except MarshallingError as e:
                 raise CardOperationError(f"Failed to parse due cards for deck '{deck_name}' from database.", original_exception=e)
         except duckdb.Error as e:
@@ -512,11 +525,12 @@ class FlashcardDatabase:
         order_clause = "ORDER BY ts DESC, review_id DESC" if order_by_ts_desc else "ORDER BY ts ASC, review_id ASC"
         sql = f"SELECT * FROM reviews WHERE card_uuid = $1 {order_clause};"
         try:
-            result_df = conn.execute(sql, (card_uuid,)).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, (card_uuid,))
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
             try:
-                return [db_utils.db_row_to_review(cast(Dict[str, Any], row_dict)) for row_dict in result_df.to_dict('records')]
+                return [db_utils.db_row_to_review(cast(Dict[str, Any], row_dict)) for row_dict in rows]
             except MarshallingError as e:
                 raise ReviewOperationError(f"Failed to parse reviews for card {card_uuid} from database.") from e
         except duckdb.Error as e:
@@ -542,11 +556,12 @@ class FlashcardDatabase:
             sql += " WHERE " + " AND ".join(conditions)
         sql += " ORDER BY ts ASC, review_id ASC;"
         try:
-            result_df = conn.execute(sql, params).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, params)
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
             try:
-                return [db_utils.db_row_to_review(cast(Dict[str, Any], row_dict)) for row_dict in result_df.to_dict('records')]
+                return [db_utils.db_row_to_review(cast(Dict[str, Any], row_dict)) for row_dict in rows]
             except MarshallingError as e:
                 raise ReviewOperationError("Failed to parse all reviews from database.") from e
         except duckdb.Error as e:
@@ -650,10 +665,11 @@ class FlashcardDatabase:
         sql = "SELECT * FROM sessions WHERE session_uuid = $1;"
 
         try:
-            result_df = conn.execute(sql, (session_uuid,)).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, (session_uuid,))
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return None
-            row_dict = cast(Dict[str, Any], result_df.to_dict('records')[0])
+            row_dict = rows[0]
             try:
                 return db_utils.db_row_to_session(row_dict)
             except MarshallingError as e:
@@ -675,11 +691,12 @@ class FlashcardDatabase:
         sql += " ORDER BY start_ts DESC;"
 
         try:
-            result_df = conn.execute(sql, params).fetch_df()
-            if result_df.empty:
+            cursor = conn.execute(sql, params)
+            rows = _rows_to_dicts(cursor)
+            if not rows:
                 return []
             try:
-                return [db_utils.db_row_to_session(cast(Dict[str, Any], row_dict)) for row_dict in result_df.to_dict('records')]
+                return [db_utils.db_row_to_session(cast(Dict[str, Any], row_dict)) for row_dict in rows]
             except MarshallingError as e:
                 raise SessionOperationError("Failed to parse all active sessions from database.") from e
         except duckdb.Error as e:
