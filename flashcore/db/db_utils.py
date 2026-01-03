@@ -4,21 +4,12 @@ This module helps decouple the core database logic from the specifics of data co
 """
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
-import pandas as pd
 from pydantic import ValidationError
 
 from ..models import Card, Review, Session, CardState
 from ..exceptions import MarshallingError
 import shutil
 from datetime import datetime
-
-
-def clean_pandas_null_values(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Converts pandas-specific nulls (e.g., NaT, NaN) to Python None."""
-    for key, value in data.items():
-        if not isinstance(value, (list, set)) and pd.isna(value):
-            data[key] = None
-    return data
 
 
 def transform_db_row_for_card(row_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -80,7 +71,6 @@ def db_row_to_card(row_dict: Dict[str, Any]) -> Card:
     This method handles necessary type transformations from DB types to model types.
     """
     data = transform_db_row_for_card(row_dict)
-    data = clean_pandas_null_values(data)
 
     try:
         return Card(**data)
@@ -135,7 +125,6 @@ def db_row_to_session(row_dict: Dict[str, Any]) -> Session:
     data = row_dict.copy()
     decks_accessed = data.pop("decks_accessed", None)
     data["decks_accessed"] = set(decks_accessed) if decks_accessed is not None else set()
-    data = clean_pandas_null_values(data)
     try:
         return Session(**data)
     except ValidationError as e:
