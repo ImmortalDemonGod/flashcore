@@ -22,14 +22,14 @@ class SchemaManager:
     def initialize_schema(self, force_recreate_tables: bool = False) -> None:
         """
         Initialize the database schema in a transaction.
-        
-        If the connection handler is in read-only mode for a persistent database, initialization is skipped; in-memory databases are initialized even in read-only mode. If `force_recreate_tables` is true, existing tables will be dropped and recreated (all existing data will be lost). On underlying database errors this method raises a SchemaInitializationError.
-        
+
+        If the connection handler is in read-only mode for a persistent database, initialization is skipped; in-memory databases are initialized even in read-only mode. If `force_recreate_tables` is true, existing tables will be dropped and recreated (all existing data will be lost). On underlying database errors this method raises a SchemaInitializationError.  # noqa: E501
+
         Parameters:
-        	force_recreate_tables (bool): If true, drop and recreate tables, which will delete existing data.
-        
+                force_recreate_tables (bool): If true, drop and recreate tables, which will delete existing data.  # noqa: E501
+
         Raises:
-        	SchemaInitializationError: If an error occurs while creating or applying the schema.
+                SchemaInitializationError: If an error occurs while creating or applying the schema.  # noqa: E501
         """
         if self._handle_read_only_initialization(force_recreate_tables):
             return
@@ -68,18 +68,18 @@ class SchemaManager:
         self, force_recreate_tables: bool
     ) -> bool:
         """
-        Decide whether schema initialization should be skipped when the connection is read-only.
-        
-        If the connection handler is read-only and `force_recreate_tables` is True, this will raise a DatabaseConnectionError. If the connection handler is read-only and the database is not in-memory, the function returns True to indicate initialization should be skipped; otherwise it returns False.
-        
+        Decide whether schema initialization should be skipped when the connection is read-only.  # noqa: E501
+
+        If the connection handler is read-only and `force_recreate_tables` is True, this will raise a DatabaseConnectionError. If the connection handler is read-only and the database is not in-memory, the function returns True to indicate initialization should be skipped; otherwise it returns False.  # noqa: E501
+
         Parameters:
-            force_recreate_tables (bool): Whether the caller requests dropping and recreating tables.
-        
+            force_recreate_tables (bool): Whether the caller requests dropping and recreating tables.  # noqa: E501
+
         Returns:
             bool: True if initialization should be skipped, False otherwise.
-        
+
         Raises:
-            DatabaseConnectionError: If `force_recreate_tables` is requested while in read-only mode.
+            DatabaseConnectionError: If `force_recreate_tables` is requested while in read-only mode.  # noqa: E501
         """
         if self._handler.read_only:
             if force_recreate_tables:
@@ -98,14 +98,14 @@ class SchemaManager:
     def _perform_safety_check(self, cursor: duckdb.DuckDBPyConnection) -> None:
         """
         Verify the database is empty before destructive table recreation.
-        
-        If the resolved database path is in-memory, no check is performed. Uses the provided cursor to confirm that the "reviews" and "cards" tables contain zero rows; if either table contains rows, raises ValueError to refuse destructive operations. If the existence/count check fails for any reason other than a missing table, raises ValueError to refuse proceeding and prevent possible data loss.
-        
+
+        If the resolved database path is in-memory, no check is performed. Uses the provided cursor to confirm that the "reviews" and "cards" tables contain zero rows; if either table contains rows, raises ValueError to refuse destructive operations. If the existence/count check fails for any reason other than a missing table, raises ValueError to refuse proceeding and prevent possible data loss.  # noqa: E501
+
         Parameters:
-            cursor (duckdb.DuckDBPyConnection): Cursor/connection used to execute verification queries.
-        
+            cursor (duckdb.DuckDBPyConnection): Cursor/connection used to execute verification queries.  # noqa: E501
+
         Raises:
-            ValueError: If either table contains rows, or if verification cannot be completed (except when a table is missing).
+            ValueError: If either table contains rows, or if verification cannot be completed (except when a table is missing).  # noqa: E501
         """
         if str(self._handler.db_path_resolved) == ":memory:":
             return
@@ -135,11 +135,11 @@ class SchemaManager:
     def _recreate_tables(self, cursor: duckdb.DuckDBPyConnection) -> None:
         """
         Forcefully drop existing schema objects to allow fresh schema creation.
-        
-        Performs a safety check to refuse operation if persistent data would be lost, logs a warning about irreversible data loss, and then drops the known tables (reviews, sessions, cards) and their dependent objects.
-        
+
+        Performs a safety check to refuse operation if persistent data would be lost, logs a warning about irreversible data loss, and then drops the known tables (reviews, sessions, cards) and their dependent objects.  # noqa: E501
+
         Parameters:
-        	cursor (duckdb.DuckDBPyConnection): Active DuckDB cursor/connection used to execute the DROP statements.
+                cursor (duckdb.DuckDBPyConnection): Active DuckDB cursor/connection used to execute the DROP statements.  # noqa: E501
         """
         self._perform_safety_check(cursor)
 
@@ -158,8 +158,8 @@ class SchemaManager:
     ) -> None:
         """
         Create the database schema by executing the module's predefined SQL.
-        
+
         Parameters:
-            cursor (duckdb.DuckDBPyConnection): Database cursor used to execute the schema SQL stored in schema.DB_SCHEMA_SQL.
+            cursor (duckdb.DuckDBPyConnection): Database cursor used to execute the schema SQL stored in schema.DB_SCHEMA_SQL.  # noqa: E501
         """
         cursor.execute(schema.DB_SCHEMA_SQL)
