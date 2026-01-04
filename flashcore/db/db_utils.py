@@ -16,10 +16,10 @@ from datetime import datetime
 def transform_db_row_for_card(row_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
     Prepare a database row dictionary for constructing a Card model.
-    
+
     Parameters:
-        row_dict (Dict[str, Any]): Raw database row; may contain keys `media_paths`, `source_yaml_file`, `tags`, and `state`.
-    
+        row_dict (Dict[str, Any]): Raw database row; may contain keys `media_paths`, `source_yaml_file`, `tags`, and `state`.  # noqa: E501
+
     Returns:
         Dict[str, Any]: A copy of the input row with canonicalized fields:
             - `media`: list of Path objects (empty list if no media_paths).
@@ -49,16 +49,16 @@ def transform_db_row_for_card(row_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
     """
-    Convert a sequence of Card models into a list of tuples suitable for bulk database insertion.
-    
-    This function will ensure each card has complexity metrics (front_length, back_length, has_media, tag_count)
-    by calling card.calculate_complexity_metrics() when any of those fields are missing; that call may mutate
+    Convert a sequence of Card models into a list of tuples suitable for bulk database insertion.  # noqa: E501
+
+    This function will ensure each card has complexity metrics (front_length, back_length, has_media, tag_count)  # noqa: E501
+    by calling card.calculate_complexity_metrics() when any of those fields are missing; that call may mutate  # noqa: E501
     the input Card objects.
-    
+
     Returns:
-        List[Tuple]: A list of tuples, one per card, with fields in the following order:
-        (uuid, deck_name, front, back, tags, added_at, modified_at, last_review_id, next_due_date,
-        state_name, stability, difficulty, origin_task, media_paths, source_yaml_file, internal_note,
+        List[Tuple]: A list of tuples, one per card, with fields in the following order:  # noqa: E501
+        (uuid, deck_name, front, back, tags, added_at, modified_at, last_review_id, next_due_date,  # noqa: E501
+        state_name, stability, difficulty, origin_task, media_paths, source_yaml_file, internal_note,  # noqa: E501
         front_length, back_length, has_media, tag_count).
     """
     result = []
@@ -102,14 +102,14 @@ def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
 def db_row_to_card(row_dict: Dict[str, Any]) -> Card:
     """
     Create a Card model from a database row dictionary.
-    
-    Transforms database-native fields to model-compatible types and validates the result.
-    
+
+    Transforms database-native fields to model-compatible types and validates the result.  # noqa: E501
+
     Returns:
         Card: The constructed Card instance.
-    
+
     Raises:
-        MarshallingError: If the row cannot be validated into a Card (wraps the original ValidationError).
+        MarshallingError: If the row cannot be validated into a Card (wraps the original ValidationError).  # noqa: E501
     """
     data = transform_db_row_for_card(row_dict)
 
@@ -126,15 +126,15 @@ def db_row_to_card(row_dict: Dict[str, Any]) -> Card:
 def review_to_db_params_tuple(review: Review) -> Tuple:
     """
     Convert a Review model into a tuple suitable for database insertion.
-    
+
     Parameters:
-    	review (Review): Review instance to serialize.
-    
+        review (Review): Review instance to serialize.
+
     Returns:
-    	tuple: Ordered tuple with fields:
-    		(card_uuid, session_uuid, ts, rating, resp_ms, eval_ms,
-    		 stab_before, stab_after, diff, next_due,
-    		 elapsed_days_at_review, scheduled_days_interval, review_type)
+        tuple: Ordered tuple with fields:
+                (card_uuid, session_uuid, ts, rating, resp_ms, eval_ms,
+                 stab_before, stab_after, diff, next_due,
+                 elapsed_days_at_review, scheduled_days_interval, review_type)
     """
     return (
         review.card_uuid,
@@ -161,10 +161,10 @@ def db_row_to_review(row_dict: Dict[str, Any]) -> Review:
 def session_to_db_params_tuple(session: Session) -> Tuple:
     """
     Serialize a Session model into a tuple suitable for database insertion.
-    
+
     Parameters:
         session (Session): Session model to serialize.
-    
+
     Returns:
         A tuple containing, in order:
         - `session_uuid`: session UUID
@@ -197,15 +197,15 @@ def session_to_db_params_tuple(session: Session) -> Tuple:
 def db_row_to_session(row_dict: Dict[str, Any]) -> Session:
     """
     Create a Session model from a raw database row dictionary.
-    
-    Converts the 'decks_accessed' entry to a set (an empty set if missing) before constructing the model. Raises MarshallingError if Pydantic validation fails.
-    
+
+    Converts the 'decks_accessed' entry to a set (an empty set if missing) before constructing the model. Raises MarshallingError if Pydantic validation fails.  # noqa: E501
+
     Parameters:
-        row_dict (Dict[str, Any]): Raw database row mapping column names to values.
-    
+        row_dict (Dict[str, Any]): Raw database row mapping column names to values.  # noqa: E501
+
     Returns:
         Session: Constructed Session instance.
-    
+
     Raises:
         MarshallingError: If model validation fails while building the Session.
     """
@@ -226,12 +226,15 @@ def db_row_to_session(row_dict: Dict[str, Any]) -> Session:
 def find_latest_backup(db_path: Path) -> Optional[Path]:
     """
     Locate the most recent backup file for the given database path.
-    
+
     Parameters:
-        db_path (Path): Path to the main database file; the function looks for backups in a "backups" subdirectory of db_path.parent.
-    
+        db_path (Path): Path to the main database file; the function
+            looks for backups in a "backups" subdirectory of
+            db_path.parent.
+
     Returns:
-        Path or None: Path to the latest backup file, or `None` if no backups are found.
+        Path or None: Path to the latest backup file, or `None` if no
+            backups are found.
     """
     backup_dir = db_path.parent / "backups"
     if not backup_dir.exists():

@@ -8,11 +8,11 @@ class DatabaseError(Exception):
         self, message: str, original_exception: Optional[Exception] = None
     ):
         """
-        Initialize the DatabaseError with a human-readable message and an optional original exception.
-        
+        Initialize the DatabaseError with a human-readable message and an optional original exception.  # noqa: E501
+
         Parameters:
             message (str): A descriptive error message for this DatabaseError.
-            original_exception (Optional[Exception]): The underlying exception that caused this error, if any; stored for later inspection.
+            original_exception (Optional[Exception]): The underlying exception that caused this error, if any; stored for later inspection.  # noqa: E501
         """
         super().__init__(message)
         self.original_exception = original_exception

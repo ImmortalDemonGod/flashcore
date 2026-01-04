@@ -26,7 +26,7 @@ from flashcore.exceptions import (
 def db_path_memory() -> str:
     """
     Path string representing an in-memory database.
-    
+
     Returns:
         str: The in-memory database path ":memory:".
     """
@@ -37,10 +37,10 @@ def db_path_memory() -> str:
 def db_path_file(tmp_path: Path) -> Path:
     """
     Return a Path for a file-based test database inside pytest's temporary directory.
-    
+
     Parameters:
         tmp_path (Path): pytest-provided temporary directory for the test.
-    
+
     Returns:
         Path: Path to the "test_flash.db" file located inside `tmp_path`.
     """
@@ -53,12 +53,12 @@ def db_manager(
 ) -> Generator[FlashcardDatabase, None, None]:
     """
     Provide a pytest fixture that yields a FlashcardDatabase configured for either in-memory or file-backed storage and performs cleanup after the test.
-    
+
     Parameters:
         request: pytest fixture request object whose `param` value must be either `"memory"` or `"file"` to select the backend.
         db_path_memory (str): Database path string used for the in-memory backend.
         db_path_file (Path): Path to a temporary file used for the file-backed backend; the file will be removed during fixture teardown if it exists.
-    
+
     Returns:
         FlashcardDatabase: An instance connected to the selected backend. The connection is closed and, for file-backed mode, the temporary file is deleted when the fixture is torn down.
     """
@@ -85,7 +85,7 @@ def db_manager(
 def initialized_db_manager(db_manager: FlashcardDatabase) -> FlashcardDatabase:
     """
     Initialize the database schema for the provided FlashcardDatabase fixture and return the same manager.
-    
+
     Returns:
         FlashcardDatabase: The same FlashcardDatabase instance with its schema initialized.
     """
@@ -97,7 +97,7 @@ def initialized_db_manager(db_manager: FlashcardDatabase) -> FlashcardDatabase:
 def sample_card1() -> Card:
     """
     Pre-built sample Card for tests representing an entry in "Deck A::Sub1" with deterministic metadata.
-    
+
     Returns:
         Card: A Card with UUID 11111111-1111-1111-1111-111111111111, deck_name "Deck A::Sub1", front "Card 1 Front", back "Card 1 Back", tags {"tag1", "common-tag"}, added_at 2023-01-01T10:00:00Z (UTC), and source_yaml_file set to Path("source/deck_a.yaml").
     """
@@ -116,7 +116,7 @@ def sample_card1() -> Card:
 def sample_card2() -> Card:
     """
     Create a predefined sample Card representing "Card 2" in the "Deck A::Sub2" deck.
-    
+
     Returns:
         Card: A Card with UUID 22222222-2222-2222-2222-222222222222, deck_name "Deck A::Sub2", front "Card 2 Front", back "Card 2 Back", tags {"tag2", "common-tag"}, added_at 2023-01-02T10:00:00Z, and source_yaml_file Path("source/deck_a.yaml").
     """
@@ -135,7 +135,7 @@ def sample_card2() -> Card:
 def sample_card3_deck_b() -> Card:
     """
     Create a pre-defined sample Card in "Deck B" for tests.
-    
+
     Returns:
         Card: A Card instance with UUID 33333333-3333-3333-3333-333333333333, deck_name "Deck B", preset front/back text, tag {"tag3"}, added_at timestamp (2023-01-03T10:00:00Z), and source_yaml_file set to "source/deck_b.yaml".
     """
@@ -154,10 +154,10 @@ def sample_card3_deck_b() -> Card:
 def sample_review1(sample_card1: Card) -> Review:
     """
     Builds a sample Review for the given card with predefined timestamp, difficulty, stability, and due date.
-    
+
     Parameters:
         sample_card1 (Card): Card whose `uuid` will be associated with the created review.
-    
+
     Returns:
         Review: A Review instance with:
             - ts: 2023-01-05T12:00:00Z
@@ -186,10 +186,10 @@ def sample_review1(sample_card1: Card) -> Review:
 def sample_review2_for_card1(sample_card1: Card) -> Review:
     """
     Create a predefined Review instance associated with the given card for tests.
-    
+
     Parameters:
         sample_card1 (Card): Card whose UUID is used as the review's card_uuid.
-    
+
     Returns:
         Review: A Review with ts 2023-01-08T13:00:00Z, rating 2, stab_before 2.5, stab_after 6.0, diff 4.8, next_due 2023-01-14, elapsed_days_at_review 3, and scheduled_days_interval 6.
     """
@@ -212,10 +212,10 @@ def sample_review2_for_card1(sample_card1: Card) -> Review:
 def create_sample_card(**overrides) -> Card:
     """
     Create a Card model populated with sensible defaults, allowing field overrides.
-    
+
     Parameters:
         overrides (optional): Keyword arguments to replace default Card fields (e.g., uuid, deck_name, front, back, tags, added_at, source_yaml_file, origin_task, media, internal_note).
-    
+
     Returns:
         Card: A Card instance built from the default values with any provided overrides applied.
     """
@@ -240,12 +240,12 @@ def create_sample_review(
 ) -> Review:
     """
     Builds a sample Review object for tests associated with the given card UUID.
-    
+
     Parameters:
         card_uuid (UUID | str): UUID of the card the review belongs to.
         bypass_validation (bool): If true, construct the Review without running Pydantic validation (uses model_construct).
         **overrides: Field values to override the function's built-in defaults (e.g., `ts`, `rating`, `next_due`).
-    
+
     Returns:
         Review: A Review instance populated with sensible defaults merged with any provided overrides.
     """

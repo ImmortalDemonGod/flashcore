@@ -13,17 +13,17 @@ class ConnectionHandler:
 
     def __init__(self, db_path: Union[str, Path], read_only: bool = False):
         """
-        Initialize the ConnectionHandler with a database path and optional read-only mode.
-        
+        Initialize the ConnectionHandler with a database path and optional read-only mode.  # noqa: E501
+
         Parameters:
-            db_path (Union[str, Path]): Path to the DuckDB database file or the string ":memory:" (case-insensitive) to use an in-memory database. File paths are resolved to an absolute Path.
-            read_only (bool): Whether the connection should be opened in read-only mode; stored on the instance.
-        
+            db_path (Union[str, Path]): Path to the DuckDB database file or the string ":memory:" (case-insensitive) to use an in-memory database. File paths are resolved to an absolute Path.  # noqa: E501
+            read_only (bool): Whether the connection should be opened in read-only mode; stored on the instance.  # noqa: E501
+
         Attributes set:
-            db_path_resolved (Path): Resolved Path or Path(":memory:") for in-memory usage.
+            db_path_resolved (Path): Resolved Path or Path(":memory:") for in-memory usage.  # noqa: E501
             read_only (bool): Same value as the `read_only` parameter.
-            _connection (Optional[duckdb.DuckDBPyConnection]): Initialized to None until a connection is created.
-            is_new_db (bool): Initialized to False; indicates whether the database is newly created.
+            _connection (Optional[duckdb.DuckDBPyConnection]): Initialized to None until a connection is created.  # noqa: E501
+            is_new_db (bool): Initialized to False; indicates whether the database is newly created.  # noqa: E501
         """
         if isinstance(db_path, str) and db_path.lower() == ":memory:":
             self.db_path_resolved = Path(":memory:")
@@ -40,18 +40,18 @@ class ConnectionHandler:
 
     def get_connection(self) -> duckdb.DuckDBPyConnection:
         """
-        Provide an active DuckDB connection, creating and opening one if none exists.
-        
-        Sets `self.is_new_db` to True for an in-memory database or when the file-based
-        database file does not yet exist. Ensures the database parent directory exists
+        Provide an active DuckDB connection, creating and opening one if none exists.  # noqa: E501
+
+        Sets `self.is_new_db` to True for an in-memory database or when the file-based  # noqa: E501
+        database file does not yet exist. Ensures the database parent directory exists  # noqa: E501
         for file-based databases.
-        
+
         Returns:
-            duckdb.DuckDBPyConnection: Active DuckDB connection; reuses an existing
+            duckdb.DuckDBPyConnection: Active DuckDB connection; reuses an existing  # noqa: E501
             open connection if available.
-        
+
         Raises:
-            DatabaseConnectionError: If DuckDB fails to establish the connection.
+            DatabaseConnectionError: If DuckDB fails to establish the connection.  # noqa: E501
         """
         if self._connection is None:
             try:
@@ -97,16 +97,16 @@ class ConnectionHandler:
     def __enter__(self) -> duckdb.DuckDBPyConnection:
         """
         Enter a context-managed block and provide the active DuckDB connection.
-        
+
         Returns:
-            duckdb.DuckDBPyConnection: The active DuckDB connection managed by this handler.
+            duckdb.DuckDBPyConnection: The active DuckDB connection managed by this handler.  # noqa: E501
         """
         return self.get_connection()
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """
         Close the managed DuckDB connection when exiting a context.
-        
-        Closes the current connection and ensures the handler is ready for reconnection; does not suppress exceptions raised inside the context.
+
+        Closes the current connection and ensures the handler is ready for reconnection; does not suppress exceptions raised inside the context.  # noqa: E501
         """
         self.close_connection()
