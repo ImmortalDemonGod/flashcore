@@ -61,14 +61,19 @@
 - **Overall: XX%**
 
 ### Class C (Negative Evidence - Conservation)
-<!-- Prove absence: no deleted tests, no removed dependencies, no config usage -->
+<!-- ⚠️ CRITICAL: Use CI artifact links, not "trust me I ran grep" -->
+<!-- The CI job "negative-checks" produces architecture_lint.txt artifact -->
 
 **Claim 3: No regressions**
-- Zero deleted assertions or test functions
-- Verification: `git diff main...BRANCH -- tests/ | grep -E "^-.*assert|^-.*def test_"` → 0 results
+- **Evidence:** [Anti-Cheat Report Artifact](https://github.com/OWNER/REPO/actions/runs/XXXXXX/artifacts/YYYYY)
+- Shows: 0 deleted assertions, 0 added skips
+- CI Job: `anti-cheat-warning` step
 
-**Claim X: No [unwanted dependency]**
-- Verification: `grep -rn "pattern" path/` → No matches
+**Claim X: No [unwanted dependency] in [module]**
+- **Evidence:** [Architecture Lint Artifact](https://github.com/OWNER/REPO/actions/runs/XXXXXX/artifacts/YYYYY)
+- Shows: `✅ PASS: No [pattern] references found`
+- CI Job: `negative-checks` → `Architecture Lint - Database Layer` step
+- **Methodology:** `grep -rn "pattern" path/` (executed by CI, not verifier)
 
 ### Class L (UI/Visual Evidence)
 <!-- REQUIRED if user-visible changes. Use GIF/Loom, not static screenshots -->
@@ -84,25 +89,27 @@
 
 ---
 
-## Reproduction
-<!-- Copy-pastable commands for verifier to inspect evidence -->
+## Verification Methodology
+<!-- ⚠️ Zero-Touch Mandate: These commands show HOW evidence was generated -->
+<!-- The verifier inspects ARTIFACTS, not runs commands locally -->
+<!-- Primary proof = CI artifact link. Commands = context only. -->
 
-**Verify [Claim X]:**
+**How [Claim X] was verified:**
 ```bash
-command-to-verify
-# Expected: [expected output]
+command-used-to-generate-evidence
+# Result: [actual output that became the artifact]
 ```
 
-**Run Tests:**
+**How tests were verified:**
 ```bash
 pytest tests/ -v
-# Expected: XXX passed
+# Result: XXX passed (see CI Run #XXXXXX)
 ```
 
-**Check Coverage:**
+**How coverage was measured:**
 ```bash
 pytest tests/ --cov=module --cov-report=term-missing
-# Expected: XX% overall coverage
+# Result: XX% overall (see CI coverage report)
 ```
 
 ---

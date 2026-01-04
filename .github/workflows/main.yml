@@ -130,6 +130,36 @@ jobs:
           python-version: '3.10'
       - name: Install project
         run: make install
+      - name: Architecture Lint - Database Layer
+        run: |
+          mkdir -p artifacts
+          echo "# Architecture Lint Report (Class C Evidence)" > artifacts/architecture_lint.txt
+          echo "" >> artifacts/architecture_lint.txt
+          
+          # Check for config.settings usage in db layer
+          echo "## Check: No config.settings in flashcore/db/" >> artifacts/architecture_lint.txt
+          if grep -rn "config\|settings" flashcore/db/ 2>/dev/null > artifacts/config_grep.txt; then
+            echo "❌ FAIL: Found config/settings references" >> artifacts/architecture_lint.txt
+            cat artifacts/config_grep.txt >> artifacts/architecture_lint.txt
+            exit 1
+          else
+            echo "✅ PASS: No config/settings references found" >> artifacts/architecture_lint.txt
+          fi
+          
+          # Check for pandas usage in db layer
+          echo "" >> artifacts/architecture_lint.txt
+          echo "## Check: No pandas in flashcore/db/" >> artifacts/architecture_lint.txt
+          if grep -rn "pandas\|pd\.\|fetch_df" flashcore/db/ 2>/dev/null > artifacts/pandas_grep.txt; then
+            echo "❌ FAIL: Found pandas references" >> artifacts/architecture_lint.txt
+            cat artifacts/pandas_grep.txt >> artifacts/architecture_lint.txt
+            exit 1
+          else
+            echo "✅ PASS: No pandas references found" >> artifacts/architecture_lint.txt
+          fi
+          
+          echo "" >> artifacts/architecture_lint.txt
+          echo "All architecture constraints verified." >> artifacts/architecture_lint.txt
+          cat artifacts/architecture_lint.txt
       - name: Check for legacy imports
         run: |
           mkdir -p artifacts
@@ -156,7 +186,10 @@ jobs:
         with:
           name: negative-evidence
           if-no-files-found: warn
-          path: artifacts/
+          path: |
+            artifacts/architecture_lint.txt
+            artifacts/no_cultivation_imports.txt
+            artifacts/heavy_deps_check.txt
 
   anti-cheat-warning:
     if: github.event_name == 'pull_request'
