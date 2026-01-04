@@ -50,7 +50,7 @@ jobs:
         run: make test
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
           if-no-files-found: warn
@@ -82,7 +82,7 @@ jobs:
         run: make test
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
           if-no-files-found: warn
@@ -114,7 +114,7 @@ jobs:
         run: pytest -s -vvvv -l --tb=long --cov=flashcore --cov-report=xml --cov-report=html tests
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
           if-no-files-found: warn
@@ -184,7 +184,7 @@ jobs:
           fi
       - name: Upload negative evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: negative-evidence
           if-no-files-found: warn
@@ -224,7 +224,7 @@ jobs:
           fi
       - name: Upload anti-cheat report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: anti-cheat-report
           if-no-files-found: warn
