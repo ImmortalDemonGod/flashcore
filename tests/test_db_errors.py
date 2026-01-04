@@ -86,7 +86,13 @@ def test_initialize_schema_handles_rollback_error(
 
 
 def _create_sample_card():
-    """Helper function to create a sample card for testing."""
+    """
+    Create a sample Card instance used in tests.
+    
+    Returns:
+        Card: A Card with a new UUID, deck_name "test_deck", front "front", back "back",
+        added_at and modified_at set to the current UTC time, and state set to CardState.New.
+    """
     return Card(
         uuid=uuid.uuid4(),
         deck_name="test_deck",

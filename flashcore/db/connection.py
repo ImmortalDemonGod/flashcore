@@ -12,6 +12,19 @@ class ConnectionHandler:
     """Manages the lifecycle of a DuckDB database connection."""
 
     def __init__(self, db_path: Union[str, Path], read_only: bool = False):
+        """
+        Initialize the ConnectionHandler with a database path and optional read-only mode.
+        
+        Parameters:
+            db_path (Union[str, Path]): Path to the DuckDB database file or the string ":memory:" (case-insensitive) to use an in-memory database. File paths are resolved to an absolute Path.
+            read_only (bool): Whether the connection should be opened in read-only mode; stored on the instance.
+        
+        Attributes set:
+            db_path_resolved (Path): Resolved Path or Path(":memory:") for in-memory usage.
+            read_only (bool): Same value as the `read_only` parameter.
+            _connection (Optional[duckdb.DuckDBPyConnection]): Initialized to None until a connection is created.
+            is_new_db (bool): Initialized to False; indicates whether the database is newly created.
+        """
         if isinstance(db_path, str) and db_path.lower() == ":memory:":
             self.db_path_resolved = Path(":memory:")
             logger.info("Using in-memory DuckDB database.")
@@ -26,8 +39,20 @@ class ConnectionHandler:
         self.is_new_db: bool = False
 
     def get_connection(self) -> duckdb.DuckDBPyConnection:
-        """Establishes and returns a database connection. Reuses an existing
-        open connection."""
+        """
+        Provide an active DuckDB connection, creating and opening one if none exists.
+        
+        Sets `self.is_new_db` to True for an in-memory database or when the file-based
+        database file does not yet exist. Ensures the database parent directory exists
+        for file-based databases.
+        
+        Returns:
+            duckdb.DuckDBPyConnection: Active DuckDB connection; reuses an existing
+            open connection if available.
+        
+        Raises:
+            DatabaseConnectionError: If DuckDB fails to establish the connection.
+        """
         if self._connection is None:
             try:
                 # This logic determines if the schema needs to be initialized.
@@ -70,7 +95,18 @@ class ConnectionHandler:
                 self._connection = None
 
     def __enter__(self) -> duckdb.DuckDBPyConnection:
+        """
+        Enter a context-managed block and provide the active DuckDB connection.
+        
+        Returns:
+            duckdb.DuckDBPyConnection: The active DuckDB connection managed by this handler.
+        """
         return self.get_connection()
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """
+        Close the managed DuckDB connection when exiting a context.
+        
+        Closes the current connection and ensures the handler is ready for reconnection; does not suppress exceptions raised inside the context.
+        """
         self.close_connection()
