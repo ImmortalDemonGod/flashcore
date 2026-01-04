@@ -3,6 +3,16 @@
 **Commit:** `<latest-commit-sha>`  
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
+> [!IMPORTANT]
+> **Immutability Requirement (Addendum 2.2):**
+> - All Class E links MUST use commit SHAs, NOT `main`/`master`/`develop` branches
+> - All Class B code links MUST use commit SHAs, NOT mutable branch names
+> - CI run links are naturally immutable (actions/runs/XXXXXX)
+> - **Validation will FAIL if mutable branch links are detected**
+>
+> ✅ Good: `/blob/a1b2c3d/file.py` or `/actions/runs/12345`  
+> ❌ Bad: `/blob/main/file.py` or `/tree/develop/`
+
 ---
 
 ## Claim(s)
@@ -17,7 +27,8 @@
 ## Evidence
 
 ### Class E (Intent Alignment)
-<!-- REQUIRED: Link to task definition with immutable commit SHA, not mutable branch -->
+<!-- ⚠️ CRITICAL: Must use commit SHA, NOT main/master/develop branch -->
+<!-- Example: /blob/a1b2c3d/.taskmaster/tasks/tasks.json (NOT /blob/main/...) -->
 
 - **Link:** [Task #X - "Task Title"](https://github.com/OWNER/REPO/blob/COMMIT_SHA/.taskmaster/tasks/tasks.json#LXX-YY)
 - **Requirements Verified:**
@@ -25,14 +36,16 @@
   2. ✅ [Requirement 2]
 
 ### Class B (Referential Evidence)
-<!-- Code structure, file paths, signatures - use immutable commit SHAs -->
+<!-- ⚠️ CRITICAL: All code links must use commit SHA permalinks -->
+<!-- Get permalink: View file on GitHub → Press 'y' key → Copy URL -->
 
 **Claim 1: [Description]**
 - [`path/to/file.py`](https://github.com/OWNER/REPO/blob/COMMIT_SHA/path/to/file.py) - Description
 - Signature: [`def function(...)`](https://github.com/OWNER/REPO/blob/COMMIT_SHA/path/to/file.py#LXX)
 
 ### Class A (Execution Evidence)
-<!-- CI runs, test results, coverage reports -->
+<!-- CI run links are naturally immutable (actions/runs/XXXXXX) -->
+<!-- Link to SPECIFIC run number, not "latest" or workflow file -->
 
 **Claim 2: All tests pass**
 - [CI Run #XXXXXXX - All Jobs Successful](https://github.com/OWNER/REPO/actions/runs/XXXXXXX)
