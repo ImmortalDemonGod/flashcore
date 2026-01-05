@@ -202,11 +202,11 @@ def test_multiple_reviews_stability_increase(
         next_due_date=result1.next_due,
     )
 
-    # Review 2: Reviewed on its due date, rated Easy (3) to graduate
+    # Review 2: Reviewed on its due date, rated Easy (4) to graduate
     review_ts2 = datetime.datetime.combine(
         next_due1, datetime.time(10, 0, 0), tzinfo=UTC
     )
-    rating2 = 3
+    rating2 = 4
     result2 = scheduler.compute_next_state(card, rating2, review_ts2)
 
     stability2 = result2.stab
