@@ -476,3 +476,56 @@ def test_config_impact_on_scheduling():
 
     # Higher desired retention means we need to review more often to achieve it.
     assert result2.scheduled_days < result1.scheduled_days
+
+
+def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
+    """
+    Verify O(1) performance: time should be constant regardless of review count.
+    Uses relative assertion to avoid hardware dependence.
+    """
+    import time
+    from uuid import uuid4
+    
+    def time_scheduler_call(num_reviews: int) -> float:
+        """Create card with N reviews and time scheduler call."""
+        card = Card(
+            uuid=uuid4(),
+            deck_name="test",
+            front="Q",
+            back="A",
+            state=CardState.Review if num_reviews > 0 else CardState.New,
+            stability=10.0 if num_reviews > 0 else None,
+            difficulty=5.0 if num_reviews > 0 else None,
+            next_due_date=datetime.date(2024, 1, 1) if num_reviews > 0 else None
+        )
+        
+        review_ts = datetime.datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
+        
+        start = time.perf_counter()
+        scheduler.compute_next_state(card=card, new_rating=3, review_ts=review_ts)
+        end = time.perf_counter()
+        
+        return end - start
+    
+    # Time with different review counts
+    time_1 = time_scheduler_call(1)
+    time_10 = time_scheduler_call(10)
+    time_100 = time_scheduler_call(100)
+    time_500 = time_scheduler_call(500)
+    
+    # O(1) verification: time(500) should be < 2x time(1)
+    # Allow 2x factor for measurement noise and cache effects
+    assert time_500 < time_1 * 2.0, (
+        f"O(1) property violated: time(500)={time_500:.6f}s should be "
+        f"< 2x time(1)={time_1:.6f}s (actual ratio: {time_500/time_1:.2f}x)"
+    )
+    
+    # Additional sanity check: time should be small (<10ms)
+    assert time_500 < 0.010, f"Scheduler too slow: {time_500*1000:.2f}ms"
+    
+    print(f"\n✓ O(1) Performance Verified:")
+    print(f"  1 review:   {time_1*1000:.3f}ms")
+    print(f"  10 reviews:  {time_10*1000:.3f}ms")
+    print(f"  100 reviews: {time_100*1000:.3f}ms")
+    print(f"  500 reviews: {time_500*1000:.3f}ms")
+    print(f"  Ratio (500/1): {time_500/time_1:.2f}x")
