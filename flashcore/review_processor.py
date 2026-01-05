@@ -66,11 +66,10 @@ class ReviewProcessor:
         
         This method encapsulates all the core review processing steps:
         1. Handle timestamp (use provided or current time)
-        2. Fetch review history for the card
-        3. Compute next state using scheduler
-        4. Create Review object with all required fields
-        5. Persist to database and update card state
-        6. Return updated card
+        2. Compute next state using scheduler (O(1) with cached card state)
+        3. Create Review object with all required fields
+        4. Persist to database and update card state
+        5. Return updated card
         
         Args:
             card: The card being reviewed
@@ -93,20 +92,14 @@ class ReviewProcessor:
         logger.debug(f"Processing review for card {card.uuid} with rating {rating}")
         
         try:
-            # Step 2: Fetch review history for scheduler
-            review_history = self.db_manager.get_reviews_for_card(
-                card.uuid, 
-                order_by_ts_desc=False
-            )
-            
-            # Step 3: Compute next state using scheduler
+            # Step 2: Compute next state using scheduler (O(1) with cached card state)
             scheduler_output: SchedulerOutput = self.scheduler.compute_next_state(
-                history=review_history,
+                card=card,
                 new_rating=rating,
                 review_ts=ts
             )
             
-            # Step 4: Create Review object with all required fields
+            # Step 3: Create Review object with all required fields
             new_review = Review(
                 card_uuid=card.uuid,
                 session_uuid=session_uuid,  # For future session analytics
@@ -123,7 +116,7 @@ class ReviewProcessor:
                 review_type=scheduler_output.review_type,
             )
             
-            # Step 5: Persist to database and update card state
+            # Step 4: Persist to database and update card state
             updated_card = self.db_manager.add_review_and_update_card(
                 review=new_review,
                 new_card_state=scheduler_output.state
@@ -134,7 +127,7 @@ class ReviewProcessor:
                 f"Next due: {updated_card.next_due_date}, State: {updated_card.state}"
             )
             
-            # Step 6: Return updated card
+            # Step 5: Return updated card
             return updated_card
             
         except Exception as e:
