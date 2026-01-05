@@ -41,7 +41,9 @@ class ReviewProcessor:
     - Foundation for future session analytics integration
     """
 
-    def __init__(self, db_manager: FlashcardDatabase, scheduler: FSRS_Scheduler):
+    def __init__(
+        self, db_manager: FlashcardDatabase, scheduler: FSRS_Scheduler
+    ):
         """
         Initialize the ReviewProcessor.
 
@@ -59,7 +61,7 @@ class ReviewProcessor:
         resp_ms: int = 0,
         eval_ms: int = 0,
         reviewed_at: Optional[datetime] = None,
-        session_uuid: Optional[UUID] = None
+        session_uuid: Optional[UUID] = None,
     ) -> Card:
         """
         Process a review submission with consistent logic.
@@ -89,14 +91,16 @@ class ReviewProcessor:
         # Step 1: Handle timestamp
         ts = reviewed_at or datetime.now(timezone.utc)
 
-        logger.debug(f"Processing review for card {card.uuid} with rating {rating}")
+        logger.debug(
+            f"Processing review for card {card.uuid} with rating {rating}"
+        )
 
         try:
             # Step 2: Compute next state using scheduler (O(1) with cached card state)
-            scheduler_output: SchedulerOutput = self.scheduler.compute_next_state(
-                card=card,
-                new_rating=rating,
-                review_ts=ts
+            scheduler_output: SchedulerOutput = (
+                self.scheduler.compute_next_state(
+                    card=card, new_rating=rating, review_ts=ts
+                )
             )
 
             # Step 3: Create Review object with all required fields
@@ -118,8 +122,7 @@ class ReviewProcessor:
 
             # Step 4: Persist to database and update card state
             updated_card = self.db_manager.add_review_and_update_card(
-                review=new_review,
-                new_card_state=scheduler_output.state
+                review=new_review, new_card_state=scheduler_output.state
             )
 
             logger.debug(
@@ -130,8 +133,8 @@ class ReviewProcessor:
             # Step 5: Return updated card
             return updated_card
 
-        except Exception as e:
-            logger.error(f"Failed to process review for card {card.uuid}: {e}")
+        except Exception:
+            logger.exception(f"Failed to process review for card {card.uuid}")
             raise
 
     def process_review_by_uuid(
@@ -141,7 +144,7 @@ class ReviewProcessor:
         resp_ms: int = 0,
         eval_ms: int = 0,
         reviewed_at: Optional[datetime] = None,
-        session_uuid: Optional[UUID] = None
+        session_uuid: Optional[UUID] = None,
     ) -> Card:
         """
         Process a review submission by card UUID.
@@ -176,5 +179,5 @@ class ReviewProcessor:
             resp_ms=resp_ms,
             eval_ms=eval_ms,
             reviewed_at=reviewed_at,
-            session_uuid=session_uuid
+            session_uuid=session_uuid,
         )

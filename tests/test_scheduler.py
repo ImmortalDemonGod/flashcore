@@ -26,7 +26,9 @@ def sample_card_uuid() -> UUID:
     return uuid4()
 
 
-def test_first_review_new_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
+def test_first_review_new_card(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
     """Test scheduling for the first review of a new card in the learning phase."""
     # Create a new card with no history
     card = Card(
@@ -34,7 +36,7 @@ def test_first_review_new_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
 
@@ -43,7 +45,9 @@ def test_first_review_new_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID
     result_good = scheduler.compute_next_state(card, rating_good, review_ts)
 
     assert result_good.state == CardState.Learning
-    assert result_good.scheduled_days == 0, "First 'Good' review should be a same-day learning step."
+    assert (
+        result_good.scheduled_days == 0
+    ), "First 'Good' review should be a same-day learning step."
     assert result_good.next_due == review_ts.date()
 
     # Rating: Again (1) - should also enter a learning step.
@@ -51,32 +55,38 @@ def test_first_review_new_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID
     result_again = scheduler.compute_next_state(card, rating_again, review_ts)
 
     assert result_again.state == CardState.Learning
-    assert result_again.scheduled_days == 0, "First 'Again' review should be a same-day learning step."
+    assert (
+        result_again.scheduled_days == 0
+    ), "First 'Again' review should be a same-day learning step."
 
     # Both 'Good' and 'Again' on a new card lead to a 0-day interval (learning step)
     assert result_again.scheduled_days == result_good.scheduled_days
 
 
-def test_invalid_rating_input(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
+def test_invalid_rating_input(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
     """Test that invalid rating inputs raise ValueError."""
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     # Use a naive datetime to test coverage for the _ensure_utc helper
     review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0)  # No tzinfo
 
-    with pytest.raises(ValueError, match="Invalid rating: 5. Must be 1-4"):
+    with pytest.raises(ValueError, match=r"Invalid rating: 5\. Must be 1-4"):
         scheduler.compute_next_state(card, 5, review_ts)
 
-    with pytest.raises(ValueError, match="Invalid rating: -1. Must be 1-4"):
+    with pytest.raises(ValueError, match=r"Invalid rating: -1\. Must be 1-4"):
         scheduler.compute_next_state(card, -1, review_ts)
 
 
-def test_rating_impact_on_interval(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
+def test_rating_impact_on_interval(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
     """Test rating impact for a card that is in the learning phase."""
     # First review is 'Good', placing the card into the learning phase.
     card = Card(
@@ -84,10 +94,12 @@ def test_rating_impact_on_interval(scheduler: FSRS_Scheduler, sample_card_uuid: 
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review1_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
-    initial_good_result = scheduler.compute_next_state(card, 3, review1_ts)  # Good = 3
+    initial_good_result = scheduler.compute_next_state(
+        card, 3, review1_ts
+    )  # Good = 3
     assert initial_good_result.scheduled_days == 0
     assert initial_good_result.state == CardState.Learning
 
@@ -100,44 +112,66 @@ def test_rating_impact_on_interval(scheduler: FSRS_Scheduler, sample_card_uuid: 
         state=initial_good_result.state,
         stability=initial_good_result.stab,
         difficulty=initial_good_result.diff,
-        next_due_date=initial_good_result.next_due
+        next_due_date=initial_good_result.next_due,
     )
 
     # The next review happens on the same day, as it's a learning step.
-    review2_ts = datetime.datetime.combine(initial_good_result.next_due, datetime.time(10, 10, 0), tzinfo=UTC)
+    review2_ts = datetime.datetime.combine(
+        initial_good_result.next_due, datetime.time(10, 10, 0), tzinfo=UTC
+    )
 
     # 'Again' or 'Hard' should keep the card in the learning phase (0-day interval).
-    result_again = scheduler.compute_next_state(card_after_first, 1, review2_ts)  # Again
-    result_hard = scheduler.compute_next_state(card_after_first, 2, review2_ts)   # Hard
+    result_again = scheduler.compute_next_state(
+        card_after_first, 1, review2_ts
+    )  # Again
+    result_hard = scheduler.compute_next_state(
+        card_after_first, 2, review2_ts
+    )  # Hard
 
     # 'Good' should graduate the card (interval > 0).
-    result_good = scheduler.compute_next_state(card_after_first, 3, review2_ts)   # Good
+    result_good = scheduler.compute_next_state(
+        card_after_first, 3, review2_ts
+    )  # Good
 
     # 'Easy' should also graduate the card with an even longer interval.
-    result_easy = scheduler.compute_next_state(card_after_first, 4, review2_ts)  # Easy
+    result_easy = scheduler.compute_next_state(
+        card_after_first, 4, review2_ts
+    )  # Easy
 
-    assert result_again.scheduled_days == 0, "'Again' should reset learning, resulting in a 0-day step."
+    assert (
+        result_again.scheduled_days == 0
+    ), "'Again' should reset learning, resulting in a 0-day step."
     assert result_again.state == CardState.Learning
 
-    assert result_hard.scheduled_days == 0, "'Hard' should repeat a learning step, resulting in a 0-day step."
+    assert (
+        result_hard.scheduled_days == 0
+    ), "'Hard' should repeat a learning step, resulting in a 0-day step."
     assert result_hard.state == CardState.Learning
 
-    assert result_good.scheduled_days > 0, "'Good' on a learning card should graduate it."
+    assert (
+        result_good.scheduled_days > 0
+    ), "'Good' on a learning card should graduate it."
     assert result_good.state == CardState.Review
 
-    assert result_easy.scheduled_days > 0, "'Easy' on a learning card should graduate it."
+    assert (
+        result_easy.scheduled_days > 0
+    ), "'Easy' on a learning card should graduate it."
     assert result_easy.state == CardState.Review
-    assert result_easy.scheduled_days >= result_good.scheduled_days, "'Easy' should have longer interval than 'Good'"
+    assert (
+        result_easy.scheduled_days >= result_good.scheduled_days
+    ), "'Easy' should have longer interval than 'Good'"
 
 
-def test_multiple_reviews_stability_increase(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
+def test_multiple_reviews_stability_increase(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
     """Test that stability and scheduled_days generally increase with multiple successful (Good) reviews."""
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review_ts_base = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
 
@@ -159,11 +193,13 @@ def test_multiple_reviews_stability_increase(scheduler: FSRS_Scheduler, sample_c
         state=result1.state,
         stability=result1.stab,
         difficulty=result1.diff,
-        next_due_date=result1.next_due
+        next_due_date=result1.next_due,
     )
 
     # Review 2: Reviewed on its due date, rated Easy (3) to graduate
-    review_ts2 = datetime.datetime.combine(next_due1, datetime.time(10, 0, 0), tzinfo=UTC)
+    review_ts2 = datetime.datetime.combine(
+        next_due1, datetime.time(10, 0, 0), tzinfo=UTC
+    )
     rating2 = 3
     result2 = scheduler.compute_next_state(card, rating2, review_ts2)
 
@@ -184,12 +220,14 @@ def test_multiple_reviews_stability_increase(scheduler: FSRS_Scheduler, sample_c
         state=result2.state,
         stability=result2.stab,
         difficulty=result2.diff,
-        next_due_date=result2.next_due
+        next_due_date=result2.next_due,
     )
 
     # Review 3: Reviewed 1 day after due date, rated Good (2)
     # Note: Review after due date to ensure elapsed_days > 0 for stability increase
-    review_ts3 = datetime.datetime.combine(next_due2, datetime.time(10, 0, 0), tzinfo=UTC) + datetime.timedelta(days=1)
+    review_ts3 = datetime.datetime.combine(
+        next_due2, datetime.time(10, 0, 0), tzinfo=UTC
+    ) + datetime.timedelta(days=1)
     rating3 = 2
     result3 = scheduler.compute_next_state(card, rating3, review_ts3)
 
@@ -200,7 +238,9 @@ def test_multiple_reviews_stability_increase(scheduler: FSRS_Scheduler, sample_c
     # With O(1) cached state, stability increases when reviewing after due date
     assert stability3 > stability2
     assert scheduled_days3 > 0  # Should have positive interval
-    assert next_due3 > review_ts3.date()  # Next due should be after review date
+    assert (
+        next_due3 > review_ts3.date()
+    )  # Next due should be after review date
 
 
 def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
@@ -213,7 +253,7 @@ def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review_ts_base = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
 
@@ -229,11 +269,13 @@ def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         state=result1.state,
         stability=result1.stab,
         difficulty=result1.diff,
-        next_due_date=result1.next_due
+        next_due_date=result1.next_due,
     )
 
     # Review 2: Learning card -> Review state. Use Easy (3) to graduate.
-    review_ts_2 = datetime.datetime.combine(result1.next_due, datetime.time(10, 0, 0), tzinfo=UTC)
+    review_ts_2 = datetime.datetime.combine(
+        result1.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    )
     rating2 = 3
     result2 = scheduler.compute_next_state(card, rating2, review_ts_2)
 
@@ -245,17 +287,23 @@ def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         state=result2.state,
         stability=result2.stab,
         difficulty=result2.diff,
-        next_due_date=result2.next_due
+        next_due_date=result2.next_due,
     )
 
     # Now the card is in the 'Review' state.
     # Scenario 1 (Control): Review on the exact due date.
-    review_ts_on_time = datetime.datetime.combine(result2.next_due, datetime.time(10, 0, 0), tzinfo=UTC)
-    result_on_time = scheduler.compute_next_state(card, 2, review_ts_on_time)  # Rated Good
+    review_ts_on_time = datetime.datetime.combine(
+        result2.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    )
+    result_on_time = scheduler.compute_next_state(
+        card, 2, review_ts_on_time
+    )  # Rated Good
 
     # Scenario 2 (Lapsed): Review 10 days AFTER the due date.
     review_ts_lapsed = review_ts_on_time + datetime.timedelta(days=10)
-    result_lapsed = scheduler.compute_next_state(card, 2, review_ts_lapsed)  # Rated Good
+    result_lapsed = scheduler.compute_next_state(
+        card, 2, review_ts_lapsed
+    )  # Rated Good
 
     # FSRS theory: A successful review after a longer-than-scheduled delay indicates
     # stronger memory retention, thus stability should increase more.
@@ -274,7 +322,7 @@ def test_review_early_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review_ts_base = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
 
@@ -291,15 +339,21 @@ def test_review_early_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         state=res1.state,
         stability=res1.stab,
         difficulty=res1.diff,
-        next_due_date=res1.next_due
+        next_due_date=res1.next_due,
     )
 
     # Review 2 (Learning -> Review)
-    review_ts_2 = datetime.datetime.combine(res1.next_due, datetime.time(10, 0, 0), tzinfo=UTC)
+    review_ts_2 = datetime.datetime.combine(
+        res1.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    )
     rating2 = 3  # Use Easy to graduate
     res2 = scheduler.compute_next_state(card, rating2, review_ts_2)
-    assert res2.state == CardState.Review, "Card should have graduated to Review state."
-    assert res2.scheduled_days >= 2, "Graduated card should have an interval >= 2 days."
+    assert (
+        res2.state == CardState.Review
+    ), "Card should have graduated to Review state."
+    assert (
+        res2.scheduled_days >= 2
+    ), "Graduated card should have an interval >= 2 days."
 
     card = Card(
         uuid=sample_card_uuid,
@@ -309,17 +363,23 @@ def test_review_early_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         state=res2.state,
         stability=res2.stab,
         difficulty=res2.diff,
-        next_due_date=res2.next_due
+        next_due_date=res2.next_due,
     )
 
     # Step 2: Now that the card is in a stable review state, test early vs. on-time.
     # Scenario 1 (Control): Review on the exact due date.
-    review_ts_on_time = datetime.datetime.combine(res2.next_due, datetime.time(10, 0, 0), tzinfo=UTC)
-    result_on_time = scheduler.compute_next_state(card, 2, review_ts_on_time)  # Rated Good
+    review_ts_on_time = datetime.datetime.combine(
+        res2.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    )
+    result_on_time = scheduler.compute_next_state(
+        card, 2, review_ts_on_time
+    )  # Rated Good
 
     # Scenario 2 (Early): Review 2 days BEFORE the due date.
     review_ts_early = review_ts_on_time - datetime.timedelta(days=2)
-    result_early = scheduler.compute_next_state(card, 2, review_ts_early)  # Rated Good
+    result_early = scheduler.compute_next_state(
+        card, 2, review_ts_early
+    )  # Rated Good
 
     # FSRS theory: A successful early review provides less information about memory
     # strength, so the stability increase should be smaller.
@@ -339,7 +399,7 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
 
@@ -355,16 +415,18 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
         state=last_result.state,
         stability=last_result.stab,
         difficulty=last_result.diff,
-        next_due_date=last_result.next_due
+        next_due_date=last_result.next_due,
     )
 
-    for i in range(4):  # 4 more successful reviews
+    for _ in range(4):  # 4 more successful reviews
         # Review 1 day after due date to ensure stability increases
         # with O(1) cached state
         review_ts = datetime.datetime.combine(
             last_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC
         ) + datetime.timedelta(days=1)
-        last_result = scheduler.compute_next_state(card, rating, review_ts)  # Keep using Easy
+        last_result = scheduler.compute_next_state(
+            card, rating, review_ts
+        )  # Keep using Easy
 
         card = Card(
             uuid=sample_card_uuid,
@@ -374,17 +436,23 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
             state=last_result.state,
             stability=last_result.stab,
             difficulty=last_result.diff,
-            next_due_date=last_result.next_due
+            next_due_date=last_result.next_due,
         )
 
     mature_stability = last_result.stab
     mature_difficulty = last_result.diff
     # With O(1) cached state and reviewing 1 day late each time, stability should be substantial
-    assert mature_stability > 5.0, f"Expected mature stability > 5.0, got {mature_stability}"
+    assert (
+        mature_stability > 5.0
+    ), f"Expected mature stability > 5.0, got {mature_stability}"
 
     # Now, the user forgets the card (rates 'Again')
-    lapse_review_ts = datetime.datetime.combine(last_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC)
-    lapse_result = scheduler.compute_next_state(card, 1, lapse_review_ts)  # Rating: Again
+    lapse_review_ts = datetime.datetime.combine(
+        last_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    )
+    lapse_result = scheduler.compute_next_state(
+        card, 1, lapse_review_ts
+    )  # Rating: Again
 
     # After a lapse, stability should be significantly reduced.
     assert lapse_result.stab < mature_stability / 2
@@ -412,7 +480,7 @@ def test_compute_next_state_with_unknown_fsrs_state(
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
 
@@ -431,7 +499,8 @@ def test_compute_next_state_with_unknown_fsrs_state(
         scheduler.fsrs_scheduler, "review_card", return_value=mock_return_value
     ):
         with pytest.raises(
-            ValueError, match="Cannot map FSRS state 'SuperLearning' to CardState enum"
+            ValueError,
+            match="Cannot map FSRS state 'SuperLearning' to CardState enum",
         ):
             scheduler.compute_next_state(card, 2, review_ts)
 
@@ -447,10 +516,12 @@ def test_config_impact_on_scheduling():
         deck_name="test",
         front="Q",
         back="A",
-        state=CardState.New
+        state=CardState.New,
     )
     review_ts1 = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
-    initial_result = base_scheduler.compute_next_state(card, 2, review_ts1)  # Good
+    initial_result = base_scheduler.compute_next_state(
+        card, 2, review_ts1
+    )  # Good
 
     card = Card(
         uuid=UUID("a3f4b1d0-c2e8-4a6a-8f9a-3b1c5d7a9e0f"),
@@ -460,9 +531,11 @@ def test_config_impact_on_scheduling():
         state=initial_result.state,
         stability=initial_result.stab,
         difficulty=initial_result.diff,
-        next_due_date=initial_result.next_due
+        next_due_date=initial_result.next_due,
     )
-    review_ts2 = datetime.datetime.combine(initial_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC)
+    review_ts2 = datetime.datetime.combine(
+        initial_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    )
 
     # To test retention, card must be in review state. Use Easy (3) to graduate.
     rating = 3
@@ -505,13 +578,17 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
             state=CardState.Review if num_reviews > 0 else CardState.New,
             stability=10.0 if num_reviews > 0 else None,
             difficulty=5.0 if num_reviews > 0 else None,
-            next_due_date=datetime.date(2024, 1, 1) if num_reviews > 0 else None
+            next_due_date=(
+                datetime.date(2024, 1, 1) if num_reviews > 0 else None
+            ),
         )
 
         review_ts = datetime.datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
 
         start = time.perf_counter()
-        scheduler.compute_next_state(card=card, new_rating=3, review_ts=review_ts)
+        scheduler.compute_next_state(
+            card=card, new_rating=3, review_ts=review_ts
+        )
         end = time.perf_counter()
 
         return end - start

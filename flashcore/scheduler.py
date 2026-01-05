@@ -9,7 +9,7 @@ import logging
 from abc import ABC, abstractmethod
 import datetime
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import ClassVar, Dict, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -88,10 +88,15 @@ class FSRSSchedulerConfig(BaseModel):
         config = FSRSSchedulerConfig(parameters=custom_params, desired_retention=0.95)
     """
 
-    parameters: Tuple[float, ...] = Field(default_factory=lambda: tuple(DEFAULT_PARAMETERS))
+    parameters: Tuple[float, ...] = Field(
+        default_factory=lambda: tuple(DEFAULT_PARAMETERS)
+    )
     desired_retention: float = DEFAULT_DESIRED_RETENTION
     learning_steps: Tuple[datetime.timedelta, ...] = Field(
-        default_factory=lambda: (datetime.timedelta(minutes=1), datetime.timedelta(minutes=10))
+        default_factory=lambda: (
+            datetime.timedelta(minutes=1),
+            datetime.timedelta(minutes=10),
+        )
     )
     relearning_steps: Tuple[datetime.timedelta, ...] = Field(
         default_factory=lambda: (datetime.timedelta(minutes=10),)
@@ -105,14 +110,14 @@ class FSRS_Scheduler(BaseScheduler):
     This scheduler uses the py-fsrs library to determine card states and next review dates.
     """
 
-    REVIEW_TYPE_MAP = {
+    REVIEW_TYPE_MAP: ClassVar[Dict[str, str]] = {
         "new": "learn",
         "learning": "learn",
         "review": "review",
         "relearning": "relearn",
     }
 
-    RATING_MAP = {
+    RATING_MAP: ClassVar[Dict[int, FSRSRating]] = {
         1: FSRSRating.Again,
         2: FSRSRating.Hard,
         3: FSRSRating.Good,
@@ -171,10 +176,14 @@ class FSRS_Scheduler(BaseScheduler):
             return ts.astimezone(datetime.timezone.utc)
         return ts
 
-    def _map_flashcore_rating_to_fsrs(self, flashcore_rating: int) -> FSRSRating:
+    def _map_flashcore_rating_to_fsrs(
+        self, flashcore_rating: int
+    ) -> FSRSRating:
         """Maps flashcore rating (1-4) to FSRSRating and validates."""
         if not (1 <= flashcore_rating <= 4):
-            raise ValueError(f"Invalid rating: {flashcore_rating}. Must be 1-4 (1=Again, 2=Hard, 3=Good, 4=Easy).")
+            raise ValueError(
+                f"Invalid rating: {flashcore_rating}. Must be 1-4 (1=Again, 2=Hard, 3=Good, 4=Easy)."
+            )
 
         return self.RATING_MAP[flashcore_rating]
 
@@ -197,7 +206,7 @@ class FSRS_Scheduler(BaseScheduler):
                 fsrs_card.due = datetime.datetime.combine(
                     card.next_due_date,
                     datetime.time(0, 0, 0),
-                    tzinfo=datetime.timezone.utc
+                    tzinfo=datetime.timezone.utc,
                 )
                 # Set last_review to due date for elapsed_days calculation
                 fsrs_card.last_review = fsrs_card.due
@@ -207,7 +216,9 @@ class FSRS_Scheduler(BaseScheduler):
 
         # Manually calculate elapsed_days for the current review.
         if hasattr(fsrs_card, "last_review") and fsrs_card.last_review:
-            elapsed_days = (review_ts.date() - fsrs_card.last_review.date()).days
+            elapsed_days = (
+                review_ts.date() - fsrs_card.last_review.date()
+            ).days
         else:
             # For a new card, there are no elapsed days since a prior review.
             elapsed_days = 0
@@ -215,22 +226,26 @@ class FSRS_Scheduler(BaseScheduler):
         # Now, apply the new review to the final state.
         current_fsrs_rating = self._map_flashcore_rating_to_fsrs(new_rating)
         utc_review_ts = self._ensure_utc(review_ts)
-        updated_fsrs_card, log = self.fsrs_scheduler.review_card(
+        updated_fsrs_card, _log = self.fsrs_scheduler.review_card(
             fsrs_card, current_fsrs_rating, now=utc_review_ts
         )
 
         # Calculate scheduled days based on the new due date.
-        scheduled_days = (updated_fsrs_card.due.date() - utc_review_ts.date()).days
+        scheduled_days = (
+            updated_fsrs_card.due.date() - utc_review_ts.date()
+        ).days
 
         # Map FSRS state string back to our CardState enum
         try:
             new_card_state = CardState[updated_fsrs_card.state.name.title()]
         except KeyError:
-            logger.error(f"Unknown FSRS state: {updated_fsrs_card.state.name}")
-            # Default to Review state or raise a more specific error
-            raise ValueError(
-                f"Cannot map FSRS state '{updated_fsrs_card.state.name}' to CardState enum"
+            logger.exception(
+                f"Unknown FSRS state: {updated_fsrs_card.state.name}"
             )
+            raise ValueError(
+                f"Cannot map FSRS state '{updated_fsrs_card.state.name}' "
+                f"to CardState enum"
+            ) from None
 
         return SchedulerOutput(
             stab=updated_fsrs_card.stability,
@@ -241,5 +256,5 @@ class FSRS_Scheduler(BaseScheduler):
                 state_before_review.name.lower(), "review"
             ),
             elapsed_days=elapsed_days,
-            state=new_card_state
+            state=new_card_state,
         )
