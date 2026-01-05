@@ -226,9 +226,17 @@ class FSRS_Scheduler(BaseScheduler):
         # Now, apply the new review to the final state.
         current_fsrs_rating = self._map_flashcore_rating_to_fsrs(new_rating)
         utc_review_ts = self._ensure_utc(review_ts)
-        updated_fsrs_card, _log = self.fsrs_scheduler.review_card(
-            fsrs_card, current_fsrs_rating, now=utc_review_ts
-        )
+        try:
+            updated_fsrs_card, _log = self.fsrs_scheduler.review_card(
+                fsrs_card, current_fsrs_rating, now=utc_review_ts
+            )
+        except TypeError as err:
+            msg = str(err)
+            if "now" not in msg and "keyword" not in msg:
+                raise
+            updated_fsrs_card, _log = self.fsrs_scheduler.review_card(
+                fsrs_card, current_fsrs_rating, utc_review_ts
+            )
 
         # Calculate scheduled days based on the new due date.
         scheduled_days = (

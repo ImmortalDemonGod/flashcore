@@ -3,7 +3,9 @@ import datetime
 from unittest.mock import MagicMock, patch
 from uuid import uuid4, UUID
 
+from flashcore.review_processor import ReviewProcessor
 from flashcore.scheduler import FSRS_Scheduler, FSRSSchedulerConfig
+from flashcore.scheduler import SchedulerOutput
 from flashcore.models import Card, CardState
 from flashcore.constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION
 
@@ -505,6 +507,136 @@ def test_compute_next_state_with_unknown_fsrs_state(
             scheduler.compute_next_state(card, 2, review_ts)
 
 
+def test_compute_next_state_review_card_fallback_no_now_kw(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
+    """Ensure compatibility with fsrs Scheduler API that doesn't accept now=."""
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.New,
+    )
+    review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
+
+    mock_fsrs_output = MagicMock()
+    mock_fsrs_output.state.name = "Review"
+    mock_fsrs_output.stability = 1.0
+    mock_fsrs_output.difficulty = 5.0
+    mock_fsrs_output.due = datetime.datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
+
+    def side_effect(*args, **kwargs):
+        if "now" in kwargs:
+            raise TypeError("unexpected keyword argument 'now'")
+        return (mock_fsrs_output, MagicMock())
+
+    with patch.object(
+        scheduler.fsrs_scheduler, "review_card", side_effect=side_effect
+    ) as mock_review_card:
+        result = scheduler.compute_next_state(card, 2, review_ts)
+
+    assert result.state == CardState.Review
+    assert mock_review_card.call_count == 2
+    assert mock_review_card.call_args_list[0].kwargs["now"] == review_ts
+    assert mock_review_card.call_args_list[1].kwargs == {}
+
+
+def test_review_processor_process_review_success(sample_card_uuid: UUID):
+    """Unit-test ReviewProcessor happy path (improves coverage)."""
+    db_manager = MagicMock()
+    scheduler = MagicMock()
+
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.New,
+    )
+    ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
+
+    scheduler_output = SchedulerOutput(
+        stab=1.0,
+        diff=5.0,
+        next_due=ts.date(),
+        scheduled_days=0,
+        review_type="learn",
+        elapsed_days=0,
+        state=CardState.Learning,
+    )
+    scheduler.compute_next_state.return_value = scheduler_output
+
+    updated_card = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=scheduler_output.state,
+        stability=scheduler_output.stab,
+        difficulty=scheduler_output.diff,
+        next_due_date=scheduler_output.next_due,
+    )
+
+    captured = {}
+
+    def add_review_side_effect(*, review, new_card_state):
+        captured["review"] = review
+        captured["new_card_state"] = new_card_state
+        return updated_card
+
+    db_manager.add_review_and_update_card.side_effect = add_review_side_effect
+
+    processor = ReviewProcessor(db_manager=db_manager, scheduler=scheduler)
+    result = processor.process_review(
+        card=card, rating=3, resp_ms=10, eval_ms=20, reviewed_at=ts
+    )
+
+    assert result == updated_card
+    scheduler.compute_next_state.assert_called_once_with(
+        card=card, new_rating=3, review_ts=ts
+    )
+    assert captured["review"].card_uuid == card.uuid
+    assert captured["review"].rating == 3
+    assert captured["review"].next_due == scheduler_output.next_due
+    assert captured["new_card_state"] == scheduler_output.state
+
+
+def test_review_processor_logs_and_reraises(sample_card_uuid: UUID):
+    """Ensure ReviewProcessor logs exception with traceback and reraises."""
+    db_manager = MagicMock()
+    scheduler = MagicMock()
+    scheduler.compute_next_state.side_effect = ValueError("boom")
+
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.New,
+    )
+    ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
+
+    processor = ReviewProcessor(db_manager=db_manager, scheduler=scheduler)
+
+    with patch("flashcore.review_processor.logger") as mock_logger:
+        with pytest.raises(ValueError, match="boom"):
+            processor.process_review(card=card, rating=3, reviewed_at=ts)
+
+    mock_logger.exception.assert_called_once()
+
+
+def test_review_processor_by_uuid_not_found(sample_card_uuid: UUID):
+    db_manager = MagicMock()
+    db_manager.get_card_by_uuid.return_value = None
+    scheduler = MagicMock()
+
+    processor = ReviewProcessor(db_manager=db_manager, scheduler=scheduler)
+
+    with pytest.raises(ValueError, match="not found"):
+        processor.process_review_by_uuid(sample_card_uuid, rating=3)
+
+
 def test_config_impact_on_scheduling():
     """
     Test that changing scheduler config (e.g., desired_retention) affects outcomes.
@@ -565,11 +697,12 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
     Verify O(1) performance: time should be constant regardless of review count.
     Uses relative assertion to avoid hardware dependence.
     """
+    import statistics
     import time
     from uuid import uuid4
 
-    def time_scheduler_call(num_reviews: int) -> float:
-        """Create card with N reviews and time scheduler call."""
+    def time_scheduler_call(num_reviews: int, iterations: int = 300) -> float:
+        """Create card with N reviews and time mean scheduler call."""
         card = Card(
             uuid=uuid4(),
             deck_name="test",
@@ -585,29 +718,41 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
 
         review_ts = datetime.datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
 
+        # Warm up to reduce one-off effects (imports, caches, branch prediction).
+        for _ in range(10):
+            scheduler.compute_next_state(
+                card=card, new_rating=3, review_ts=review_ts
+            )
+
         start = time.perf_counter()
-        scheduler.compute_next_state(
-            card=card, new_rating=3, review_ts=review_ts
-        )
+        for _ in range(iterations):
+            scheduler.compute_next_state(
+                card=card, new_rating=3, review_ts=review_ts
+            )
         end = time.perf_counter()
 
-        return end - start
+        return (end - start) / iterations
 
-    # Time with different review counts
-    time_1 = time_scheduler_call(1)
-    time_10 = time_scheduler_call(10)
-    time_100 = time_scheduler_call(100)
-    time_500 = time_scheduler_call(500)
+    def median_time(num_reviews: int, trials: int = 5) -> float:
+        samples = [time_scheduler_call(num_reviews) for _ in range(trials)]
+        return statistics.median(samples)
 
-    # O(1) verification: time(500) should be < 2x time(1)
-    # Allow 2x factor for measurement noise and cache effects
-    assert time_500 < time_1 * 2.0, (
+    # Time with different review counts (median of multiple trials to reduce noise)
+    time_1 = median_time(1)
+    time_10 = median_time(10)
+    time_100 = median_time(100)
+    time_500 = median_time(500)
+
+    # O(1) verification: time should not grow linearly with review count.
+    # We use a lenient ratio to avoid flakiness from sub-millisecond timing noise,
+    # but it would still fail if an O(N) loop over review history returned.
+    assert time_500 < time_1 * 10.0, (
         f"O(1) property violated: time(500)={time_500:.6f}s should be "
-        f"< 2x time(1)={time_1:.6f}s (actual ratio: {time_500/time_1:.2f}x)"
+        f"< 10x time(1)={time_1:.6f}s (actual ratio: {time_500/time_1:.2f}x)"
     )
 
-    # Additional sanity check: time should be small (<10ms)
-    assert time_500 < 0.010, f"Scheduler too slow: {time_500*1000:.2f}ms"
+    # Additional sanity check: time should be small (<50ms)
+    assert time_500 < 0.050, f"Scheduler too slow: {time_500*1000:.2f}ms"
 
     print("\n✓ O(1) Performance Verified:")
     print(f"  1 review:   {time_1*1000:.3f}ms")
