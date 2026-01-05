@@ -72,7 +72,21 @@ class BaseScheduler(ABC):
 
 
 class FSRSSchedulerConfig(BaseModel):
-    """Configuration for the FSRS Scheduler."""
+    """
+    Configuration for the FSRS Scheduler.
+    
+    Supports custom FSRS algorithm parameters for advanced users who want to
+    override the default weights. Most users should use the defaults.
+    
+    Example:
+        # Use default parameters
+        config = FSRSSchedulerConfig()
+        
+        # Override with custom parameters
+        custom_params = (0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14,
+                        0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61)
+        config = FSRSSchedulerConfig(parameters=custom_params, desired_retention=0.95)
+    """
 
     parameters: Tuple[float, ...] = Field(default_factory=lambda: tuple(DEFAULT_PARAMETERS))
     desired_retention: float = DEFAULT_DESIRED_RETENTION
@@ -106,6 +120,24 @@ class FSRS_Scheduler(BaseScheduler):
     }
 
     def __init__(self, config: Optional[FSRSSchedulerConfig] = None):
+        """
+        Initialize the FSRS Scheduler.
+        
+        Args:
+            config: Optional FSRSSchedulerConfig. If None, uses default parameters.
+                   Custom parameters can be provided to override FSRS algorithm weights.
+        
+        Example:
+            # Use defaults
+            scheduler = FSRS_Scheduler()
+            
+            # Use custom parameters
+            custom_config = FSRSSchedulerConfig(
+                parameters=custom_weights,
+                desired_retention=0.95
+            )
+            scheduler = FSRS_Scheduler(config=custom_config)
+        """
         if config is None:
             config = FSRSSchedulerConfig()
         self.config = config
