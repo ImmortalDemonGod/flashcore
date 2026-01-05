@@ -20,6 +20,7 @@ from .constants import (
 
 from fsrs import Card as FSRSCard  # type: ignore
 from fsrs import Rating as FSRSRating  # type: ignore
+from fsrs import State as FSRSState  # type: ignore
 
 try:
     # Newer py-fsrs API (v3+): main scheduler class renamed to FSRS
@@ -152,6 +153,19 @@ class FSRS_Scheduler(BaseScheduler):
         """
         # Start with a fresh card object.
         fsrs_card = FSRSCard()
+
+        # Initialize from cached card state (O(1) instead of O(N) history replay)
+        if card.state != CardState.New:
+            # Map flashcore CardState to FSRS State
+            fsrs_card.stability = card.stability
+            fsrs_card.difficulty = card.difficulty
+            fsrs_card.state = FSRSState(card.state.value)
+            if card.next_due_date:
+                fsrs_card.due = datetime.datetime.combine(
+                    card.next_due_date,
+                    datetime.time(0, 0, 0),
+                    tzinfo=datetime.timezone.utc
+                )
 
         # Capture the state before the new review to determine the review type.
         state_before_review = fsrs_card.state
