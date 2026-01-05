@@ -153,12 +153,6 @@ class FSRS_Scheduler(BaseScheduler):
         # Start with a fresh card object.
         fsrs_card = FSRSCard()
 
-        # Replay the entire review history to build the correct current state.
-        for review in history:
-            rating = self._map_flashcore_rating_to_fsrs(review.rating)
-            ts = self._ensure_utc(review.ts)
-            fsrs_card, _ = self.fsrs_scheduler.review_card(fsrs_card, rating, now=ts)
-
         # Capture the state before the new review to determine the review type.
         state_before_review = fsrs_card.state
 
