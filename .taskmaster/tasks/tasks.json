@@ -283,7 +283,7 @@
         "dependencies": [
           "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -379,7 +379,8 @@
             "testStrategy": "Instantiate scheduler with custom weights and verify PyFSRSScheduler is built with w=custom tuple.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-01-05T17:36:10.836Z"
       },
       {
         "id": "5",
@@ -697,9 +698,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-01-03T04:11:55.464Z",
+      "lastModified": "2026-01-05T17:36:10.906Z",
       "taskCount": 9,
-      "completedCount": 3,
+      "completedCount": 4,
       "tags": [
         "master"
       ]
