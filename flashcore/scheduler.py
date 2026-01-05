@@ -9,7 +9,7 @@ import logging
 from abc import ABC, abstractmethod
 import datetime
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -29,7 +29,7 @@ except ImportError:  # pragma: no cover - fallback for older py-fsrs versions
     # Older py-fsrs API: scheduler class is exposed as Scheduler
     from fsrs import Scheduler as PyFSRSScheduler  # type: ignore
 
-from .models import Card, Review, CardState
+from .models import Card, CardState
 
 logger = logging.getLogger(__name__)
 
@@ -74,14 +74,14 @@ class BaseScheduler(ABC):
 class FSRSSchedulerConfig(BaseModel):
     """
     Configuration for the FSRS Scheduler.
-    
+
     Supports custom FSRS algorithm parameters for advanced users who want to
     override the default weights. Most users should use the defaults.
-    
+
     Example:
         # Use default parameters
         config = FSRSSchedulerConfig()
-        
+
         # Override with custom parameters
         custom_params = (0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14,
                         0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61)
@@ -122,15 +122,15 @@ class FSRS_Scheduler(BaseScheduler):
     def __init__(self, config: Optional[FSRSSchedulerConfig] = None):
         """
         Initialize the FSRS Scheduler.
-        
+
         Args:
             config: Optional FSRSSchedulerConfig. If None, uses default parameters.
                    Custom parameters can be provided to override FSRS algorithm weights.
-        
+
         Example:
             # Use defaults
             scheduler = FSRS_Scheduler()
-            
+
             # Use custom parameters
             custom_config = FSRSSchedulerConfig(
                 parameters=custom_weights,
@@ -152,7 +152,8 @@ class FSRS_Scheduler(BaseScheduler):
                 maximum_interval=self.config.max_interval,
             )
         except TypeError:
-            # Older py-fsrs (v2): Scheduler(parameters, desired_retention, learning_steps, relearning_steps, maximum_interval, enable_fuzzing)
+            # Older py-fsrs (v2): Scheduler(parameters, desired_retention,
+            # learning_steps, relearning_steps, maximum_interval, enable_fuzzing)
             self.fsrs_scheduler = PyFSRSScheduler(
                 tuple(self.config.parameters),
                 self.config.desired_retention,
@@ -181,7 +182,7 @@ class FSRS_Scheduler(BaseScheduler):
         self, card: Card, new_rating: int, review_ts: datetime.datetime
     ) -> SchedulerOutput:
         """
-        Computes the next state of a card by replaying its entire history.
+        Computes the next state of a card using cached state (O(1) performance).
         """
         # Start with a fresh card object.
         fsrs_card = FSRSCard()

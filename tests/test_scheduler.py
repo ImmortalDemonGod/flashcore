@@ -4,11 +4,12 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4, UUID
 
 from flashcore.scheduler import FSRS_Scheduler, FSRSSchedulerConfig
-from flashcore.models import Card, Review, CardState
+from flashcore.models import Card, CardState
 from flashcore.constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION
 
 # Helper to create datetime objects easily
 UTC = datetime.timezone.utc
+
 
 @pytest.fixture
 def scheduler() -> FSRS_Scheduler:
@@ -18,6 +19,7 @@ def scheduler() -> FSRS_Scheduler:
         desired_retention=DEFAULT_DESIRED_RETENTION,
     )
     return FSRS_Scheduler(config=config)
+
 
 @pytest.fixture
 def sample_card_uuid() -> UUID:
@@ -218,7 +220,7 @@ def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
     # Review 1: New card -> Learning state.
     rating1 = 2
     result1 = scheduler.compute_next_state(card, rating1, review_ts_base)
-    
+
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
@@ -234,7 +236,7 @@ def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
     review_ts_2 = datetime.datetime.combine(result1.next_due, datetime.time(10, 0, 0), tzinfo=UTC)
     rating2 = 3
     result2 = scheduler.compute_next_state(card, rating2, review_ts_2)
-    
+
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
@@ -280,7 +282,7 @@ def test_review_early_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
     # Review 1 (New -> Learning)
     rating1 = 2
     res1 = scheduler.compute_next_state(card, rating1, review_ts_base)
-    
+
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
@@ -298,7 +300,7 @@ def test_review_early_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
     res2 = scheduler.compute_next_state(card, rating2, review_ts_2)
     assert res2.state == CardState.Review, "Card should have graduated to Review state."
     assert res2.scheduled_days >= 2, "Graduated card should have an interval >= 2 days."
-    
+
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
@@ -331,7 +333,7 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
     """
     config = FSRSSchedulerConfig()
     scheduler = FSRS_Scheduler(config=config)
-    
+
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
@@ -344,7 +346,7 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
     # Build up a mature card with high stability through several 'Easy' reviews
     rating = 3  # Use Easy
     last_result = scheduler.compute_next_state(card, rating, review_ts)
-    
+
     card = Card(
         uuid=sample_card_uuid,
         deck_name="test",
@@ -357,10 +359,13 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
     )
 
     for i in range(4):  # 4 more successful reviews
-        # Review 1 day after due date to ensure stability increases with O(1) cached state
-        review_ts = datetime.datetime.combine(last_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC) + datetime.timedelta(days=1)
+        # Review 1 day after due date to ensure stability increases
+        # with O(1) cached state
+        review_ts = datetime.datetime.combine(
+            last_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+        ) + datetime.timedelta(days=1)
         last_result = scheduler.compute_next_state(card, rating, review_ts)  # Keep using Easy
-        
+
         card = Card(
             uuid=sample_card_uuid,
             deck_name="test",
@@ -424,7 +429,7 @@ def test_compute_next_state_with_unknown_fsrs_state(
     # We need to patch the scheduler instance's fsrs_scheduler attribute
     with patch.object(
         scheduler.fsrs_scheduler, "review_card", return_value=mock_return_value
-    ) as _mock_review_card:
+    ):
         with pytest.raises(
             ValueError, match="Cannot map FSRS state 'SuperLearning' to CardState enum"
         ):
@@ -489,7 +494,7 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
     """
     import time
     from uuid import uuid4
-    
+
     def time_scheduler_call(num_reviews: int) -> float:
         """Create card with N reviews and time scheduler call."""
         card = Card(
@@ -502,32 +507,32 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
             difficulty=5.0 if num_reviews > 0 else None,
             next_due_date=datetime.date(2024, 1, 1) if num_reviews > 0 else None
         )
-        
+
         review_ts = datetime.datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
-        
+
         start = time.perf_counter()
         scheduler.compute_next_state(card=card, new_rating=3, review_ts=review_ts)
         end = time.perf_counter()
-        
+
         return end - start
-    
+
     # Time with different review counts
     time_1 = time_scheduler_call(1)
     time_10 = time_scheduler_call(10)
     time_100 = time_scheduler_call(100)
     time_500 = time_scheduler_call(500)
-    
+
     # O(1) verification: time(500) should be < 2x time(1)
     # Allow 2x factor for measurement noise and cache effects
     assert time_500 < time_1 * 2.0, (
         f"O(1) property violated: time(500)={time_500:.6f}s should be "
         f"< 2x time(1)={time_1:.6f}s (actual ratio: {time_500/time_1:.2f}x)"
     )
-    
+
     # Additional sanity check: time should be small (<10ms)
     assert time_500 < 0.010, f"Scheduler too slow: {time_500*1000:.2f}ms"
-    
-    print(f"\n✓ O(1) Performance Verified:")
+
+    print("\n✓ O(1) Performance Verified:")
     print(f"  1 review:   {time_1*1000:.3f}ms")
     print(f"  10 reviews:  {time_10*1000:.3f}ms")
     print(f"  100 reviews: {time_100*1000:.3f}ms")
