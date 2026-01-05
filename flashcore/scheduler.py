@@ -126,22 +126,11 @@ class FSRS_Scheduler(BaseScheduler):
 
     def __init__(self, config: Optional[FSRSSchedulerConfig] = None):
         """
-        Initialize the FSRS Scheduler.
-
-        Args:
-            config: Optional FSRSSchedulerConfig. If None, uses default parameters.
-                   Custom parameters can be provided to override FSRS algorithm weights.
-
-        Example:
-            # Use defaults
-            scheduler = FSRS_Scheduler()
-
-            # Use custom parameters
-            custom_config = FSRSSchedulerConfig(
-                parameters=custom_weights,
-                desired_retention=0.95
-            )
-            scheduler = FSRS_Scheduler(config=custom_config)
+        Create an FSRS scheduler configured by the provided FSRSSchedulerConfig.
+        
+        If `config` is None, a default FSRSSchedulerConfig is constructed and used. The configuration controls algorithm parameters such as weights, desired retention, learning and relearning steps, and maximum interval.
+        Parameters:
+            config (Optional[FSRSSchedulerConfig]): Scheduler configuration; when omitted, defaults are applied.
         """
         if config is None:
             config = FSRSSchedulerConfig()
@@ -169,7 +158,15 @@ class FSRS_Scheduler(BaseScheduler):
             )
 
     def _ensure_utc(self, ts: datetime.datetime) -> datetime.datetime:
-        """Ensures the given datetime is UTC. Assumes UTC if naive."""
+        """
+        Normalize a datetime to UTC, treating naive datetimes as already UTC.
+        
+        Parameters:
+            ts (datetime.datetime): The timestamp to normalize. If `ts` is naive (no tzinfo) it is assumed to be in UTC.
+        
+        Returns:
+            datetime.datetime: A timezone-aware `datetime` in UTC representing the same instant as `ts`.
+        """
         if ts.tzinfo is None or ts.tzinfo.utcoffset(ts) is None:
             return ts.replace(tzinfo=datetime.timezone.utc)
         if ts.tzinfo != datetime.timezone.utc:
@@ -179,7 +176,18 @@ class FSRS_Scheduler(BaseScheduler):
     def _map_flashcore_rating_to_fsrs(
         self, flashcore_rating: int
     ) -> FSRSRating:
-        """Maps flashcore rating (1-4) to FSRSRating and validates."""
+        """
+        Map a Flashcore integer rating (1–4) to the corresponding FSRSRating enum.
+        
+        Parameters:
+            flashcore_rating (int): Integer rating where 1=Again, 2=Hard, 3=Good, 4=Easy.
+        
+        Returns:
+            FSRSRating: The FSRSRating that corresponds to the given Flashcore rating.
+        
+        Raises:
+            ValueError: If `flashcore_rating` is not between 1 and 4.
+        """
         if not (1 <= flashcore_rating <= 4):
             raise ValueError(
                 f"Invalid rating: {flashcore_rating}. Must be 1-4 (1=Again, 2=Hard, 3=Good, 4=Easy)."
@@ -191,7 +199,19 @@ class FSRS_Scheduler(BaseScheduler):
         self, card: Card, new_rating: int, review_ts: datetime.datetime
     ) -> SchedulerOutput:
         """
-        Computes the next state of a card using cached state (O(1) performance).
+        Compute the next scheduling state for a card using its cached state, a new rating, and a review timestamp.
+        
+        Parameters:
+            card (Card): Cached card state used to seed the scheduler (stability, difficulty, state, next_due_date).
+            new_rating (int): Flashcore rating (1–4) to apply to the card; must be mappable to an FSRS rating.
+            review_ts (datetime.datetime): Timestamp of the review; will be normalized to UTC.
+        
+        Returns:
+            SchedulerOutput: Updated scheduling result containing stability, difficulty, next_due, scheduled_days,
+            review_type, elapsed_days, and the mapped CardState.
+        
+        Raises:
+            ValueError: If `new_rating` is invalid or if the FSRS state cannot be mapped back to CardState.
         """
         # Start with a fresh card object.
         fsrs_card = FSRSCard()

@@ -45,11 +45,7 @@ class ReviewProcessor:
         self, db_manager: FlashcardDatabase, scheduler: FSRS_Scheduler
     ):
         """
-        Initialize the ReviewProcessor.
-
-        Args:
-            db_manager: Database manager instance for persistence
-            scheduler: FSRS scheduler instance for computing next states
+        Create a ReviewProcessor that uses the provided database manager and scheduler for review persistence and state computation.
         """
         self.db_manager = db_manager
         self.scheduler = scheduler
@@ -64,29 +60,16 @@ class ReviewProcessor:
         session_uuid: Optional[UUID] = None,
     ) -> Card:
         """
-        Process a review submission with consistent logic.
-
-        This method encapsulates all the core review processing steps:
-        1. Handle timestamp (use provided or current time)
-        2. Compute next state using scheduler (O(1) with cached card state)
-        3. Create Review object with all required fields
-        4. Persist to database and update card state
-        5. Return updated card
-
-        Args:
-            card: The card being reviewed
-            rating: User's rating (1-4: Again, Hard, Good, Easy)
-            resp_ms: Response time in milliseconds (time to reveal answer)
-            eval_ms: Evaluation time in milliseconds (time to provide rating)
-            reviewed_at: Review timestamp (defaults to current time)
-            session_uuid: Optional session UUID for analytics (future use)
-
+        Process a review for the given card, persist the Review, and return the updated card state.
+        
+        If `reviewed_at` is not provided, the current UTC timestamp is used.
+        
+        Parameters:
+            rating (int): User rating where 1=Again, 2=Hard, 3=Good, 4=Easy.
+            session_uuid (UUID, optional): Optional session identifier for analytics; may be None.
+        
         Returns:
-            Updated Card object with new state and scheduling information
-
-        Raises:
-            ValueError: If rating is invalid or card data is inconsistent
-            CardOperationError: If database operation fails
+            Card: The card updated with the scheduler's new state, next due date, and persisted review.
         """
         # Step 1: Handle timestamp
         ts = reviewed_at or datetime.now(timezone.utc)
@@ -147,25 +130,21 @@ class ReviewProcessor:
         session_uuid: Optional[UUID] = None,
     ) -> Card:
         """
-        Process a review submission by card UUID.
-
-        This is a convenience method that fetches the card by UUID and then
-        calls process_review(). Useful when you only have the card UUID.
-
-        Args:
-            card_uuid: UUID of the card being reviewed
-            rating: User's rating (1-4: Again, Hard, Good, Easy)
-            resp_ms: Response time in milliseconds
-            eval_ms: Evaluation time in milliseconds
-            reviewed_at: Review timestamp (defaults to current time)
-            session_uuid: Optional session UUID for analytics
-
+        Fetches the Card with the given UUID and processes a review for it.
+        
+        Parameters:
+            card_uuid (UUID): UUID of the card to review.
+            rating (int): User's rating (1-4).
+            resp_ms (int): Response time in milliseconds.
+            eval_ms (int): Evaluation time in milliseconds.
+            reviewed_at (Optional[datetime]): Review timestamp; if omitted, current UTC time is used.
+            session_uuid (Optional[UUID]): Optional session identifier for analytics.
+        
         Returns:
-            Updated Card object
-
+            Card: The updated Card with the new persisted Review and updated scheduling state.
+        
         Raises:
-            ValueError: If card not found or rating invalid
-            CardOperationError: If database operation fails
+            ValueError: If no card with the provided UUID exists.
         """
         # Fetch the card first
         card = self.db_manager.get_card_by_uuid(card_uuid)

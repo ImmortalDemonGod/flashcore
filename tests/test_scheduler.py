@@ -15,7 +15,12 @@ UTC = datetime.timezone.utc
 
 @pytest.fixture
 def scheduler() -> FSRS_Scheduler:
-    """Provides an FSRS_Scheduler instance with default parameters."""
+    """
+    Create an FSRS_Scheduler configured with the module's default parameters and desired retention.
+    
+    Returns:
+        FSRS_Scheduler: Scheduler instance configured with DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION.
+    """
     config = FSRSSchedulerConfig(
         parameters=tuple(DEFAULT_PARAMETERS),
         desired_retention=DEFAULT_DESIRED_RETENTION,
@@ -25,6 +30,12 @@ def scheduler() -> FSRS_Scheduler:
 
 @pytest.fixture
 def sample_card_uuid() -> UUID:
+    """
+    Create a new random UUID for use as a sample card identifier in tests.
+    
+    Returns:
+        UUID: A new version-4 UUID.
+    """
     return uuid4()
 
 
@@ -322,8 +333,16 @@ def test_review_early_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
 
 def test_mature_card_lapse(sample_card_uuid: UUID):
     """
-    Test the effect of forgetting a mature card (rating 'Again').
-    Stability should reset, but difficulty should increase.
+    Verify that a mature card lapses correctly when rated 'Again'.
+    
+    Builds maturity by applying multiple consecutive 'Easy' reviews to increase stability and difficulty, then applies an 'Again' rating and asserts:
+    - stability is reduced to less than half of the mature stability,
+    - difficulty increases,
+    - card state becomes `CardState.Relearning`,
+    - `scheduled_days` equals 0.
+    
+    Parameters:
+        sample_card_uuid (UUID): UUID used to construct the test card.
     """
     config = FSRSSchedulerConfig()
     scheduler = FSRS_Scheduler(config=config)
@@ -459,6 +478,16 @@ def test_compute_next_state_review_card_fallback_no_now_kw(
     mock_fsrs_output.due = datetime.datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
 
     def side_effect(*args, **kwargs):
+        """
+        Simulate an FSRS scheduler side effect that raises if a `now` keyword is provided.
+        
+        When called without a `now` keyword, returns a tuple of the prepared `mock_fsrs_output`
+        and a `MagicMock` placeholder. If `now` appears in kwargs, raises a TypeError
+        matching the signature error produced by older FSRS scheduler implementations.
+        
+        Returns:
+            tuple: `(mock_fsrs_output, MagicMock())` when `now` is not passed.
+        """
         if "now" in kwargs:
             raise TypeError("unexpected keyword argument 'now'")
         return (mock_fsrs_output, MagicMock())
@@ -513,6 +542,16 @@ def test_review_processor_process_review_success(sample_card_uuid: UUID):
     captured = {}
 
     def add_review_side_effect(*, review, new_card_state):
+        """
+        Capture the provided review and new card state into the surrounding `captured` mapping and return `updated_card`.
+        
+        Parameters:
+            review: The review object to capture (stored in `captured["review"]`).
+            new_card_state: The card state to capture (stored in `captured["new_card_state"]`).
+        
+        Returns:
+            updated_card: The preexisting `updated_card` value returned to the caller.
+        """
         captured["review"] = review
         captured["new_card_state"] = new_card_state
         return updated_card
@@ -626,15 +665,27 @@ def test_config_impact_on_scheduling():
 
 def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
     """
-    Verify O(1) performance: time should be constant regardless of review count.
-    Uses relative assertion to avoid hardware dependence.
+    Ensure compute_next_state exhibits amortized constant-time performance regardless of prior review count.
+    
+    Measures median per-call runtime for cards with varying numbers of prior reviews (1, 10, 100, 500) and asserts that the 500-review median is less than 10× the 1-review median and below 50 ms, using repeated calls and warm-up to reduce noise.
     """
     import statistics
     import time
     from uuid import uuid4
 
     def time_scheduler_call(num_reviews: int, iterations: int = 300) -> float:
-        """Create card with N reviews and time mean scheduler call."""
+        """
+        Measure the average execution time per call of scheduler.compute_next_state for a synthetic card with a specified review history.
+        
+        Creates a Card configured as New when num_reviews is 0 or as a Review with preset stability, difficulty, and next_due when num_reviews > 0. Performs a short warm-up of calls to reduce one-off effects, then times `iterations` calls and returns the mean duration.
+        
+        Parameters:
+            num_reviews (int): Number of prior reviews to simulate; affects the created card's state and metadata.
+            iterations (int): Number of timed calls to perform; must be > 0.
+        
+        Returns:
+            float: Average time in seconds per call.
+        """
         card = Card(
             uuid=uuid4(),
             deck_name="test",
@@ -666,6 +717,16 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
         return (end - start) / iterations
 
     def median_time(num_reviews: int, trials: int = 5) -> float:
+        """
+        Compute the median average time (in seconds) per scheduler call measured over several trials.
+        
+        Parameters:
+            num_reviews (int): Number of reviews simulated in each timed call to the scheduler.
+            trials (int): Number of timing trials to run; the median of these trial durations is returned.
+        
+        Returns:
+            float: Median of the measured average time per scheduler call, in seconds.
+        """
         samples = [time_scheduler_call(num_reviews) for _ in range(trials)]
         return statistics.median(samples)
 
