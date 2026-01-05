@@ -28,7 +28,7 @@ except ImportError:  # pragma: no cover - fallback for older py-fsrs versions
     # Older py-fsrs API: scheduler class is exposed as Scheduler
     from fsrs import Scheduler as PyFSRSScheduler  # type: ignore
 
-from .models import Review, CardState
+from .models import Card, Review, CardState
 
 logger = logging.getLogger(__name__)
 
@@ -51,13 +51,13 @@ class BaseScheduler(ABC):
 
     @abstractmethod
     def compute_next_state(
-        self, history: List[Review], new_rating: int, review_ts: datetime.datetime
+        self, card: Card, new_rating: int, review_ts: datetime.datetime
     ) -> SchedulerOutput:
         """
-        Computes the next state of a card based on its review history and a new rating.
+        Computes the next state of a card based on its cached state and a new rating.
 
         Args:
-            history: A list of past Review objects for the card, sorted chronologically.
+            card: The Card object containing cached state (stability, difficulty, state).
             new_rating: The rating given for the current review (1=Again, 2=Hard, 3=Good, 4=Easy).
             review_ts: The UTC timestamp of the current review.
 
@@ -145,7 +145,7 @@ class FSRS_Scheduler(BaseScheduler):
         return self.RATING_MAP[flashcore_rating]
 
     def compute_next_state(
-        self, history: List[Review], new_rating: int, review_ts: datetime.datetime
+        self, card: Card, new_rating: int, review_ts: datetime.datetime
     ) -> SchedulerOutput:
         """
         Computes the next state of a card by replaying its entire history.
