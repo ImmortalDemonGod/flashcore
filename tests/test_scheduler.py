@@ -42,15 +42,15 @@ def test_first_review_new_card(
     )
     review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
 
-    # Rating: Good (2) - should enter the first learning step.
-    rating_good = 2
-    result_good = scheduler.compute_next_state(card, rating_good, review_ts)
+    # Rating: Hard (2) - should enter the first learning step.
+    rating_hard = 2
+    result_hard = scheduler.compute_next_state(card, rating_hard, review_ts)
 
-    assert result_good.state == CardState.Learning
+    assert result_hard.state == CardState.Learning
     assert (
-        result_good.scheduled_days == 0
-    ), "First 'Good' review should be a same-day learning step."
-    assert result_good.next_due == review_ts.date()
+        result_hard.scheduled_days == 0
+    ), "First 'Hard' review should be a same-day learning step."
+    assert result_hard.next_due == review_ts.date()
 
     # Rating: Again (1) - should also enter a learning step.
     rating_again = 1
@@ -61,8 +61,8 @@ def test_first_review_new_card(
         result_again.scheduled_days == 0
     ), "First 'Again' review should be a same-day learning step."
 
-    # Both 'Good' and 'Again' on a new card lead to a 0-day interval (learning step)
-    assert result_again.scheduled_days == result_good.scheduled_days
+    # Both 'Again' and 'Hard' should have same-day learning steps.
+    assert result_again.scheduled_days == result_hard.scheduled_days
 
 
 def test_invalid_rating_input(
@@ -458,7 +458,7 @@ def test_compute_next_state_review_card_fallback_no_now_kw(
     mock_fsrs_output.difficulty = 5.0
     mock_fsrs_output.due = datetime.datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
 
-    def side_effect(*args, **kwargs):
+    def side_effect(*_args, **kwargs):
         if "now" in kwargs:
             raise TypeError("unexpected keyword argument 'now'")
         return (mock_fsrs_output, MagicMock())
