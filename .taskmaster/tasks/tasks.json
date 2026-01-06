@@ -283,7 +283,7 @@
         "dependencies": [
           "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -291,9 +291,10 @@
             "description": "Transfer the scheduler module from HPE_ARCHIVE and update imports to use constants.py.",
             "dependencies": [],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/scheduler.py flashcore/scheduler.py. This contains FSRS_Scheduler and BaseScheduler classes. CRITICAL: Update imports on lines 16-19 from `from cultivation.scripts.flashcore.config import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION` to `from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION`. This reflects the config.py → constants.py rename for clarity.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify file exists at flashcore/scheduler.py. Run 'grep -n \"from.*constants import\" flashcore/scheduler.py' - should find import on line ~16.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:45.701Z"
           },
           {
             "id": 2,
@@ -303,9 +304,10 @@
               "1"
             ],
             "details": "In scheduler.py line 147, change 'def compute_next_state(self, history: List[Review], new_rating: int, review_ts: datetime.datetime)' to 'def compute_next_state(self, card: Card, new_rating: int, review_ts: datetime.datetime)'. Update BaseScheduler abstract method signature too (line 53).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify signature matches: 'grep -A2 \"def compute_next_state\" flashcore/scheduler.py'.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:46.044Z"
           },
           {
             "id": 3,
@@ -315,9 +317,10 @@
               "1"
             ],
             "details": "Execute: cp HPE_ARCHIVE/flashcore/review_processor.py flashcore/review_processor.py. Also port the dependent review/session services used by the CLI: cp HPE_ARCHIVE/flashcore/review_manager.py flashcore/review_manager.py; cp HPE_ARCHIVE/flashcore/session_manager.py flashcore/session_manager.py. CRITICAL: session_manager.py uses DuckDB fetch_df() (requires pandas). When porting, refactor session_manager.py to avoid fetch_df() and pandas usage, mirroring the DB-layer 'no pandas' constraint.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify file exists at flashcore/review_processor.py and contains ReviewProcessor class.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:46.180Z"
           },
           {
             "id": 4,
@@ -327,9 +330,10 @@
               "3"
             ],
             "details": "Delete the history replay logic in compute_next_state: the 'for review in history: ...' loop is the performance bottleneck. Ensure `fsrs_card = FSRSCard()` still exists exactly once in the O(1) implementation (either preserved outside the deleted block or re-added explicitly).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify no 'for review in history' loop exists in compute_next_state method.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:46.197Z"
           },
           {
             "id": 5,
@@ -339,9 +343,10 @@
               "4"
             ],
             "details": "Replace deleted loop with: 'fsrs_card = FSRSCard(); if card.state != CardState.New: fsrs_card.stability = card.stability; fsrs_card.difficulty = card.difficulty; fsrs_card.state = FSRSState(card.state.value); fsrs_card.due = card.next_due_date'. This initializes from cached state (O(1)). Validate that CardState values map correctly to FSRSState values; if they diverge, introduce an explicit CardState->FSRSState mapping function and add a test that covers all CardState variants.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify fsrs_card is initialized from card attributes, not history loop.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:46.226Z"
           },
           {
             "id": 6,
@@ -351,9 +356,10 @@
               "5"
             ],
             "details": "In flashcore/review_processor.py (review_processor.py) line 103, change 'scheduler_output = self.scheduler.compute_next_state(history=review_history, ...)' to 'scheduler_output = self.scheduler.compute_next_state(card=card, ...)'. Remove history parameter.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run tests to verify scheduler integration works with new signature.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:46.249Z"
           },
           {
             "id": 7,
@@ -363,9 +369,10 @@
               "6"
             ],
             "details": "Execute: cp HPE_ARCHIVE/tests/test_scheduler.py tests/test_scheduler.py. Update imports from 'cultivation.scripts.flashcore' to 'flashcore'. CRITICAL: Add new benchmark test 'test_compute_next_state_is_constant_time' that creates cards with 1, 10, 100, 500 reviews and times compute_next_state for each. Prefer a relative assertion to avoid hardware dependence: assert time(500) < 2x time(1) (or similar constant-factor bound). This verifies the O(1) property without relying on absolute millisecond thresholds.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run 'pytest tests/test_scheduler.py -v' - all tests pass. Run benchmark test - verify O(1) performance (constant time regardless of history length).",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:46.261Z"
           },
           {
             "id": 8,
@@ -375,11 +382,13 @@
               "1"
             ],
             "details": "HPE_ARCHIVE FSRS_Scheduler already supports injection via FSRSSchedulerConfig(parameters=..., desired_retention=...). When porting/optimizing, ensure this remains supported and is surfaced to the CLI (Task 6) so users can supply externally-optimized weights without fsrs-optimizer.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Instantiate scheduler with custom weights and verify PyFSRSScheduler is built with w=custom tuple.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-01-05T21:55:46.265Z"
           }
-        ]
+        ],
+        "updatedAt": "2026-01-05T21:55:46.265Z"
       },
       {
         "id": "5",
@@ -697,9 +706,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-01-03T04:11:55.464Z",
+      "lastModified": "2026-01-05T21:55:46.268Z",
       "taskCount": 9,
-      "completedCount": 3,
+      "completedCount": 4,
       "tags": [
         "master"
       ]
