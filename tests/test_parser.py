@@ -14,6 +14,12 @@ from flashcore.yaml_models import YAMLProcessingError
 
 @pytest.fixture
 def assets_dir(tmp_path: Path) -> Path:
+    """
+    Create a temporary assets directory populated with sample media files for tests.
+    
+    Returns:
+        Path: Path to the created assets directory containing "image.png" and a "subfolder" with "audio.mp3".
+    """
     assets = tmp_path / "assets"
     assets.mkdir(parents=True, exist_ok=True)
     (assets / "image.png").write_text("dummy image content")
@@ -23,6 +29,17 @@ def assets_dir(tmp_path: Path) -> Path:
 
 
 def create_yaml_file(base_path: Path, filename: str, content: str) -> Path:
+    """
+    Create a YAML file with the given content at the specified location and return its path.
+    
+    Parameters:
+        base_path (Path): Directory in which to create the file.
+        filename (str): Name of the YAML file to create (can include subpath segments).
+        content (str): Text content to write to the file.
+    
+    Returns:
+        Path: Path to the created file.
+    """
     file_path = base_path / filename
     file_path.write_text(content, encoding="utf-8")
     return file_path
