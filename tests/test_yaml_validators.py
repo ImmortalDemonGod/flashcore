@@ -27,7 +27,17 @@ from flashcore.yaml_models import (
 
 @pytest.fixture
 def mock_context(tmp_path):
-    """Provides a mock _CardProcessingContext for tests."""
+    """
+    Create a mock _CardProcessingContext preconfigured for unit tests.
+    
+    Parameters:
+        tmp_path (Path): Temporary directory to use as the assets_root_directory.
+    
+    Returns:
+        _CardProcessingContext: Context with source_file_path set to "/fake/deck.yaml", card_index 0,
+        card_q_preview "A test question...", assets_root_directory set to `tmp_path`,
+        skip_media_validation False, and skip_secrets_detection False.
+    """
     return _CardProcessingContext(
         source_file_path=Path("/fake/deck.yaml"),
         card_index=0,
