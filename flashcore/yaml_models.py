@@ -147,8 +147,7 @@ DEFAULT_SECRET_PATTERNS = [
 
 # --- Type Aliases for Pydantic v2 Validation ---
 KebabCaseStr = Annotated[
-    str,
-    StringConstraints(pattern=RAW_KEBAB_CASE_PATTERN)
+    str, StringConstraints(pattern=RAW_KEBAB_CASE_PATTERN)
 ]
 
 
