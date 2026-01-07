@@ -164,7 +164,7 @@ def validate_single_media_path(
 ) -> Union[Path, YAMLProcessingError]:
     """Validates a single media path."""
     media_path = Path(media_item_str.strip())
-    if media_path.is_absolute():
+    if media_path.is_absolute() or media_path.drive or media_path.root:
         return YAMLProcessingError(
             file_path=context.source_file_path,
             card_index=context.card_index,
