@@ -246,7 +246,7 @@ cards:
         # The error message comes from Pydantic's validation
         with pytest.raises(
             YAMLProcessingError,
-            match="Validation error in field 'cards.1.q': Field required",
+            match=r"Validation error in field 'cards\.1\.q': Field required",
         ):
             config = YAMLProcessorConfig(
                 source_directory=source_dir,
