@@ -20,6 +20,7 @@ dependencies = [
     "ruamel.yaml>=0.17.0",
     "PyYAML>=6.0.0",
     "bleach>=6.0.0",
+    "tinycss2>=1.2.1",
     "pytz>=2024.1",
     "tomli>=2.0.1; python_version<'3.11'",
 ]
