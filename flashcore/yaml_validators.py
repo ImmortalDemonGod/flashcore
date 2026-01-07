@@ -23,9 +23,22 @@ from .yaml_models import (
 def validate_card_uuid(
     raw_card: _RawYAMLCardEntry, context: _CardProcessingContext
 ) -> Union[uuid.UUID, YAMLProcessingError]:
-    """Validate the raw UUID.
-
-    Returns a UUID object or a YAMLProcessingError.
+    """
+    Determine or generate a UUID for a raw card, validating any provided identifier.
+    
+    If the card supplies a `uuid` value it is preferred; otherwise an `id` value is used for
+    backward compatibility. If neither is present a new UUID is generated. If a provided
+    value cannot be parsed as a UUID a YAMLProcessingError is returned and populated with
+    contextual metadata from `context`.
+    
+    Parameters:
+        raw_card (_RawYAMLCardEntry): The parsed raw card entry containing `uuid` and/or `id`.
+        context (_CardProcessingContext): Processing context used to populate error details
+            (file path, card index, question preview).
+    
+    Returns:
+        uuid.UUID if a valid or newly generated UUID is available, `YAMLProcessingError` if a
+        provided identifier has an invalid UUID format.
     """
     # Check uuid field first (preferred), then fall back to id field
     # for backward compatibility.
@@ -49,7 +62,15 @@ def validate_card_uuid(
 
 
 def sanitize_card_text(raw_card: _RawYAMLCardEntry) -> Tuple[str, str]:
-    """Normalizes and sanitizes card front and back text."""
+    """
+    Normalize and HTML-sanitize the card front and back text.
+    
+    Parameters:
+        raw_card (_RawYAMLCardEntry): Raw card entry containing `q` (front) and `a` (back) text.
+    
+    Returns:
+        Tuple[str, str]: (front_sanitized, back_sanitized) — the trimmed and HTML-sanitized front and back text.
+    """
     front_normalized = raw_card.q.strip()
     back_normalized = raw_card.a.strip()
     front_sanitized = bleach.clean(
@@ -72,7 +93,21 @@ def sanitize_card_text(raw_card: _RawYAMLCardEntry) -> Tuple[str, str]:
 def check_for_secrets(
     front: str, back: str, context: _CardProcessingContext
 ) -> Optional[YAMLProcessingError]:
-    """Scans text for secrets, returning an error if a secret is found."""
+    """
+    Detects potential secret patterns in the card front or back text.
+    
+    If secret detection is disabled via the provided context, no scan is performed.
+    When a pattern matches, returns a YAMLProcessingError populated with the source
+    file, card index, a question snippet, and which field (`q` or `a`) contained the match.
+    
+    Parameters:
+        context (_CardProcessingContext): Provides the skip flag and metadata used to
+            populate any returned YAMLProcessingError.
+    
+    Returns:
+        YAMLProcessingError: Details about the detected secret and affected field, or
+        `None` if no secret pattern was found or detection was skipped.
+    """
     if context.skip_secrets_detection:
         return None
 
@@ -107,7 +142,17 @@ def compile_card_tags(
     deck_tags: Set[str],
     card_tags: Optional[List[str]],
 ) -> Set[str]:
-    """Combines deck-level and card-level tags into a single set."""
+    """
+    Merge deck-level tags with optional card-level tags into a normalized tag set.
+    
+    Card-level tags are stripped of surrounding whitespace and lowercased before being added.
+    Parameters:
+        deck_tags (Set[str]): Base set of tags defined at the deck level.
+        card_tags (Optional[List[str]]): Optional list of tags defined on the card.
+    
+    Returns:
+        Set[str]: Combined set of tags including deck tags and normalized card tags.
+    """
     final_tags = deck_tags.copy()
     if card_tags:
         final_tags.update(tag.strip().lower() for tag in card_tags)
@@ -115,7 +160,17 @@ def compile_card_tags(
 
 
 def _handle_skipped_media_validation(media_paths: List[str]) -> List[Path]:
-    """Converts media paths to Path objects without validation."""
+    """
+    Convert a list of media path strings to Path objects without performing validation.
+    
+    If `media_paths` is not a list, returns an empty list.
+    
+    Parameters:
+        media_paths (List[str]): Iterable of media path strings.
+    
+    Returns:
+        List[Path]: Converted Path objects for each entry in `media_paths`, or an empty list if input is not a list.
+    """
     if not isinstance(media_paths, list):
         return []
     return [Path(p) for p in media_paths]
@@ -125,7 +180,15 @@ def _validate_media_path_list(
     media_paths: List[str],
     context: _CardProcessingContext,
 ) -> Union[List[Path], YAMLProcessingError]:
-    """Iterates through and validates a list of media path strings."""
+    """
+    Validate a list of media path strings and convert them to Path objects.
+    
+    Parameters:
+        media_paths (List[str]): Sequence of media path strings to validate and convert.
+    
+    Returns:
+        Union[List[Path], YAMLProcessingError]: A list of validated Path objects, or a YAMLProcessingError describing the first validation failure.
+    """
     processed_media_paths = []
     for path_str in media_paths:
         result = validate_single_media_path(path_str, context)
@@ -139,7 +202,16 @@ def validate_media_paths(
     media_paths: List[str],
     context: _CardProcessingContext,
 ) -> Union[List[Path], YAMLProcessingError]:
-    """Validates all media paths for a card."""
+    """
+    Validate and resolve a card's media path entries according to the provided processing context.
+    
+    Parameters:
+        media_paths (List[str]): List of media path strings from the card; if media validation is skipped, entries are converted to Path objects without filesystem checks.
+        context (_CardProcessingContext): Processing context that may enable skipping media validation and supplies file/card metadata used in generated YAMLProcessingError instances.
+    
+    Returns:
+        Union[List[Path], YAMLProcessingError]: A list of resolved Path objects when validation succeeds, or a YAMLProcessingError describing the first validation failure.
+    """
     if context.skip_media_validation:
         return _handle_skipped_media_validation(media_paths)
 
@@ -162,7 +234,17 @@ def validate_single_media_path(
     media_item_str: str,
     context: _CardProcessingContext,
 ) -> Union[Path, YAMLProcessingError]:
-    """Validates a single media path."""
+    """
+    Validate a single media path string and ensure it resolves to an existing file inside the assets root.
+    
+    Parameters:
+        media_item_str (str): Raw media path string from the card entry.
+        context (_CardProcessingContext): Processing context containing source file path, card index, assets root directory, skip flag, and preview snippet used to construct error metadata.
+    
+    Returns:
+        Path: Resolved file path (relative to the assets root) when the media path is valid.
+        YAMLProcessingError: Error containing contextual details when the path is absolute, resolves outside the assets root, does not exist, is a directory, or another validation error occurs.
+    """
     media_path = Path(media_item_str.strip())
     if media_path.is_absolute() or media_path.drive or media_path.root:
         return YAMLProcessingError(
@@ -238,7 +320,26 @@ def run_card_validation_pipeline(
     Tuple[uuid.UUID, str, str, Set[str], List[Path]],
     YAMLProcessingError,
 ]:
-    """Run the validation pipeline for a raw card."""
+    """
+    Validate and normalize a single raw card and return its canonical components or a YAMLProcessingError.
+    
+    This runs end-to-end card validation: determine or generate the card UUID, sanitize front and back text, detect secrets (unless skipped by the context), merge deck-level and card-level tags, and validate media paths (unless media validation is skipped).
+    
+    Parameters:
+        raw_card (_RawYAMLCardEntry): The parsed raw card entry to validate.
+        context (_CardProcessingContext): Processing options and metadata that influence validation (for example, flags to skip secret or media validation and assets root paths).
+        deck_tags (Set[str]): Deck-level tags to merge with any card-level tags.
+    
+    Returns:
+        Tuple[uuid.UUID, str, str, Set[str], List[Path]] | YAMLProcessingError:
+            On success, a tuple containing:
+                - UUID: the validated or generated card UUID.
+                - front (str): the sanitized front/question text.
+                - back (str): the sanitized back/answer text.
+                - tags (Set[str]): the merged set of lowercased tags.
+                - media_paths (List[Path]): validated Paths for card media (empty list if none or validation skipped).
+            On failure, a YAMLProcessingError describing the first validation error encountered.
+    """
     uuid_or_error = validate_card_uuid(raw_card, context)
     if isinstance(uuid_or_error, YAMLProcessingError):
         return uuid_or_error
@@ -266,7 +367,18 @@ def validate_directories(
     assets_root_directory: Path,
     skip_media_validation: bool,
 ) -> Optional[YAMLProcessingError]:
-    """Validates that the source and asset directories exist."""
+    """
+    Verify the source directory exists and, unless media validation is skipped, verify the assets root exists.
+    
+    Parameters:
+        source_directory (Path): Path expected to be an existing directory for the YAML source.
+        assets_root_directory (Path): Path expected to be the assets root directory.
+        skip_media_validation (bool): If True, skip checking existence of assets_root_directory.
+    
+    Returns:
+        YAMLProcessingError: Error describing the invalid path when a required directory is missing.
+        None: When all required directory checks pass.
+    """
     if not source_directory.is_dir():
         return YAMLProcessingError(
             source_directory,
@@ -284,7 +396,19 @@ def validate_directories(
 
 
 def extract_deck_name(raw_yaml_content: Dict, file_path: Path) -> str:
-    """Extracts and validates the deck name from the raw YAML content."""
+    """
+    Validate and return the deck name from top-level YAML content.
+    
+    Parameters:
+        raw_yaml_content (Dict): Parsed YAML mapping representing the deck file.
+        file_path (Path): Path to the source YAML file (used for error context).
+    
+    Returns:
+        str: Trimmed deck name.
+    
+    Raises:
+        YAMLProcessingError: If the `deck` field is missing, not a string, or is empty/whitespace only.
+    """
     deck_value = raw_yaml_content.get("deck")
     if deck_value is None:
         raise YAMLProcessingError(
@@ -301,7 +425,19 @@ def extract_deck_name(raw_yaml_content: Dict, file_path: Path) -> str:
 
 
 def extract_deck_tags(raw_yaml_content: Dict, file_path: Path) -> Set[str]:
-    """Extracts and validates deck-level tags from the raw YAML content."""
+    """
+    Return the set of deck-level tags normalized to lowercase and stripped of surrounding whitespace.
+    
+    Parameters:
+        raw_yaml_content (Dict): Parsed top-level YAML mapping that may contain a "tags" key.
+        file_path (Path): Path to the source YAML file used to produce error context.
+    
+    Returns:
+        Set[str]: A set of unique tag strings from `raw_yaml_content["tags"]`, each stripped and lowercased.
+    
+    Raises:
+        YAMLProcessingError: If the `tags` field is present but is not a list.
+    """
     tags = raw_yaml_content.get("tags", [])
     if tags is not None and not isinstance(tags, list):
         raise YAMLProcessingError(
@@ -315,7 +451,19 @@ def extract_deck_tags(raw_yaml_content: Dict, file_path: Path) -> Set[str]:
 
 
 def extract_cards_list(raw_yaml_content: Dict, file_path: Path) -> List[Dict]:
-    """Extracts and validates the list of cards from the raw YAML content."""
+    """
+    Validate and return the top-level list of card entries from parsed YAML content.
+    
+    Parameters:
+        raw_yaml_content (Dict): Parsed YAML document as a mapping.
+        file_path (Path): Path to the source YAML file (used in error reporting).
+    
+    Returns:
+        List[Dict]: The non-empty list of card dictionaries from the top-level 'cards' key.
+    
+    Raises:
+        YAMLProcessingError: If the 'cards' key is missing, is not a list, or the list is empty.
+    """
     if "cards" not in raw_yaml_content or not isinstance(
         raw_yaml_content["cards"],
         list,
@@ -335,7 +483,22 @@ def extract_cards_list(raw_yaml_content: Dict, file_path: Path) -> List[Dict]:
 def validate_deck_and_extract_metadata(
     raw_yaml_content: Dict, file_path: Path
 ) -> Tuple[str, Set[str], List[Dict]]:
-    """Validate deck structure and extract metadata."""
+    """
+    Validate top-level deck fields and return the deck's extracted metadata.
+    
+    Parameters:
+        raw_yaml_content (Dict): Parsed YAML mapping for the deck file.
+        file_path (Path): Path to the source YAML file used for contextual error messages.
+    
+    Returns:
+        Tuple[str, Set[str], List[Dict]]: A tuple containing:
+            - deck_name: The trimmed deck name.
+            - deck_tags: A set of lowercased, stripped deck-level tags.
+            - cards_list: The list of card dictionaries from the deck.
+    
+    Raises:
+        YAMLProcessingError: If the deck name, tags, or cards list fail validation.
+    """
     deck_name = extract_deck_name(raw_yaml_content, file_path)
     deck_tags = extract_deck_tags(raw_yaml_content, file_path)
     cards_list = extract_cards_list(raw_yaml_content, file_path)
@@ -345,7 +508,19 @@ def validate_deck_and_extract_metadata(
 def validate_raw_card_structure(
     card_dict: Dict, idx: int, file_path: Path
 ) -> Union[_RawYAMLCardEntry, YAMLProcessingError]:
-    """Validates the structure of a raw card dict using Pydantic."""
+    """
+    Validate and normalize a single raw card dictionary and return either a validated card model or a YAMLProcessingError.
+    
+    Normalizes legacy keys ('front' -> 'q', 'back' -> 'a') when present, then validates the resulting mapping against the _RawYAMLCardEntry model. If the input is not a mapping or validation fails, returns a YAMLProcessingError that includes the source file path, card index, and a short snippet of the card question when available.
+    
+    Parameters:
+        card_dict (Dict): The raw card entry parsed from YAML.
+        idx (int): Zero-based index of the card within the source file, used for error reporting.
+        file_path (Path): Path to the YAML file being processed, included in any returned error.
+    
+    Returns:
+        Union[_RawYAMLCardEntry, YAMLProcessingError]: A validated _RawYAMLCardEntry on success, or a YAMLProcessingError describing why validation failed.
+    """
     if not isinstance(card_dict, dict):
         return YAMLProcessingError(
             file_path=file_path,
