@@ -3,7 +3,7 @@
 **Task:** #5 - Refactor Parser Layer to be Stateless  
 **Branch:** `feat/task-5-stateless-parser`  
 **Base Commit:** `667ecd2a6a8606a9a94cfd1afa20a890622e90e1` (origin/main)  
-**Head Commit:** `50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1`  
+**Head Commit:** `91c2e33221ff69e4524058b0f56a63a78d9c91a4`  
 **Date:** 2026-01-06
 
 ---
@@ -37,30 +37,30 @@ Task 5 requirements summarized:
 ### Class B (Referential) / Class A (Direct)
 
 #### Claim 1: YAML models ported
-- **Artifact:** `flashcore/yaml_models.py` @ `50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1`
-- https://github.com/ImmortalDemonGod/flashcore/blob/50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1/flashcore/yaml_models.py
+- **Artifact:** `flashcore/yaml_models.py` @ `91c2e33221ff69e4524058b0f56a63a78d9c91a4`
+- https://github.com/ImmortalDemonGod/flashcore/blob/91c2e33221ff69e4524058b0f56a63a78d9c91a4/flashcore/yaml_models.py
 
 #### Claim 2: YAML validators ported
-- **Artifact:** `flashcore/yaml_validators.py` @ `50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1`
-- https://github.com/ImmortalDemonGod/flashcore/blob/50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1/flashcore/yaml_validators.py
+- **Artifact:** `flashcore/yaml_validators.py` @ `91c2e33221ff69e4524058b0f56a63a78d9c91a4`
+- https://github.com/ImmortalDemonGod/flashcore/blob/91c2e33221ff69e4524058b0f56a63a78d9c91a4/flashcore/yaml_validators.py
 
 #### Claim 3: Stateless parser implementation
-- **Artifact:** `flashcore/parser.py` @ `50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1`
-- https://github.com/ImmortalDemonGod/flashcore/blob/50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1/flashcore/parser.py
+- **Artifact:** `flashcore/parser.py` @ `91c2e33221ff69e4524058b0f56a63a78d9c91a4`
+- https://github.com/ImmortalDemonGod/flashcore/blob/91c2e33221ff69e4524058b0f56a63a78d9c91a4/flashcore/parser.py
 
 #### Claim 4: Public exports
-- **Artifact:** `flashcore/__init__.py` @ `50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1`
-- https://github.com/ImmortalDemonGod/flashcore/blob/50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1/flashcore/__init__.py
+- **Artifact:** `flashcore/__init__.py` @ `91c2e33221ff69e4524058b0f56a63a78d9c91a4`
+- https://github.com/ImmortalDemonGod/flashcore/blob/91c2e33221ff69e4524058b0f56a63a78d9c91a4/flashcore/__init__.py
 
 #### Claim 5: Tests migrated and statelessness verified
 - **Artifacts:**
-  - `tests/test_parser.py` @ `50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1`
+  - `tests/test_parser.py` @ `91c2e33221ff69e4524058b0f56a63a78d9c91a4`
     - Includes `test_parser_is_stateless`
-  - `tests/test_yaml_validators.py` @ `50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1`
+  - `tests/test_yaml_validators.py` @ `91c2e33221ff69e4524058b0f56a63a78d9c91a4`
 
 Links:
-- https://github.com/ImmortalDemonGod/flashcore/blob/50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1/tests/test_parser.py
-- https://github.com/ImmortalDemonGod/flashcore/blob/50a8f5e9de9eacd3a5c1c55c9d822a6fcbdbc8c1/tests/test_yaml_validators.py
+- https://github.com/ImmortalDemonGod/flashcore/blob/91c2e33221ff69e4524058b0f56a63a78d9c91a4/tests/test_parser.py
+- https://github.com/ImmortalDemonGod/flashcore/blob/91c2e33221ff69e4524058b0f56a63a78d9c91a4/tests/test_yaml_validators.py
 
 #### Claim 6: Local CI-equivalent checks pass
 - **Commands executed locally (same as CI):**
@@ -113,3 +113,4 @@ Commits on this branch (oldest -> newest):
 - `3ffa0a1` style(parser): black format parser
 - `2d6d467` style(parser): black format yaml_validators
 - `50a8f5e` chore(ci): add types-bleach for mypy
+- `91c2e33` docs(aiv): add verification packet for task 5
