@@ -170,9 +170,9 @@ def validate_single_media_path(
             card_index=context.card_index,
             card_question_snippet=context.card_q_preview,
             field_name="media",
-            message=(
-                "Media path must be relative: '{media_path}'."
-            ).format(media_path=media_path),
+            message=("Media path must be relative: '{media_path}'.").format(
+                media_path=media_path
+            ),
         )
 
     if not context.skip_media_validation:
