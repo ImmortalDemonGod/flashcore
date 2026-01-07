@@ -51,8 +51,7 @@ class YAMLProcessor:
             deck_name = deck_data.deck
             deck_tags = set(deck_data.tags) if deck_data.tags else set()
             cards_list = [
-                card.model_dump(exclude_none=True)
-                for card in deck_data.cards
+                card.model_dump(exclude_none=True) for card in deck_data.cards
             ]
         except ValidationError as e:
             error_details = e.errors()[0]
