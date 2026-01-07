@@ -158,7 +158,7 @@ def _process_file_wrapper(
             raise errors[0]
     except YAMLProcessingError as e:
         if config.fail_fast:
-            raise e
+            raise
         all_errors.append(e)
     except Exception as e:
         err = YAMLProcessingError(
@@ -203,8 +203,10 @@ def load_and_process_flashcard_yamls(
             )
         ]
 
-    yaml_files = sorted(list(config.source_directory.rglob("*.yaml")))
-    yaml_files += sorted(list(config.source_directory.rglob("*.yml")))
+    yaml_files = sorted(
+        list(config.source_directory.rglob("*.yaml"))
+        + list(config.source_directory.rglob("*.yml"))
+    )
 
     logger.info(
         "Found %s YAML files to process in %s",
