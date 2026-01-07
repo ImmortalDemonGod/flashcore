@@ -3,6 +3,7 @@
 from .models import Card, Review, Session, CardState, Rating
 from .constants import DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION
 from .db import FlashcardDatabase
+from .parser import YAMLProcessor, YAMLProcessorConfig
 
 __all__ = [
     "Card",
@@ -13,4 +14,6 @@ __all__ = [
     "DEFAULT_PARAMETERS",
     "DEFAULT_DESIRED_RETENTION",
     "FlashcardDatabase",
+    "YAMLProcessor",
+    "YAMLProcessorConfig",
 ]
