@@ -5,3 +5,4 @@ per-file-ignores =
     flashcore/scheduler.py:E501
     flashcore/review_processor.py:E501
     flashcore/db/database.py:E501
+    flashcore/yaml_validators.py:E501,W293,W292
