@@ -20,7 +20,7 @@ class YAMLProcessor:
     def __init__(self, config: YAMLProcessorConfig):
         """
         Initialize the YAMLProcessor with the provided configuration.
-        
+
         Parameters:
             config (YAMLProcessorConfig): Processor configuration controlling source and assets directories, validation and skip flags, and error-handling behavior; stored on the instance.
         """
@@ -32,13 +32,13 @@ class YAMLProcessor:
     ) -> Tuple[List[Card], List[YAMLProcessingError]]:
         """
         Parse a YAML deck file, validate its top-level structure and deck schema, and convert its cards into Card objects.
-        
+
         Parameters:
             file_path (Path): Path to the YAML deck file to read and process.
-        
+
         Returns:
             Tuple[List[Card], List[YAMLProcessingError]]: A pair where the first element is the list of successfully constructed Card objects from the file, and the second element is a list of YAMLProcessingError instances produced while processing individual cards.
-        
+
         Raises:
             YAMLProcessingError: If the file is missing or unreadable, contains invalid YAML syntax, the top-level YAML value is not a dictionary, or the deck-level schema validation fails (error message includes the specific field path and validation message).
         """
@@ -96,11 +96,11 @@ class YAMLProcessor:
     ) -> Tuple[List[Card], List[YAMLProcessingError]]:
         """
         Convert a list of raw card dictionaries into validated Card objects and collect per-card processing errors.
-        
+
         Parameters:
             cards_list (List[Dict]): Raw card entries parsed from a YAML deck file.
             file_context (_FileProcessingContext): Context containing file- and deck-level metadata used during card processing.
-        
+
         Returns:
             Tuple[List[Card], List[YAMLProcessingError]]: A tuple where the first element is the list of successfully created Card objects and the second element is the list of YAMLProcessingError instances for cards that failed validation or processing.
         """
@@ -127,11 +127,11 @@ class YAMLProcessor:
     ) -> Dict:
         """
         Normalize and enrich a raw card dictionary using the file processing context.
-        
+
         Parameters:
             card_dict (Dict): Raw card mapping parsed from YAML; expected to contain shorthand keys like `id`, `q`, `a`, optional `tags`, and optional `state`.
             file_context (_FileProcessingContext): Per-file metadata (deck name, deck tags, source file path, and skip flags) used to populate and merge card-level fields.
-        
+
         Returns:
             Dict: A transformed card dictionary where:
                 - `id` is renamed to `uuid` (if present).
@@ -169,12 +169,12 @@ class YAMLProcessor:
     ) -> Union[Card, YAMLProcessingError]:
         """
         Validate and convert a single raw card dictionary into a Card or return a YAMLProcessingError describing why conversion failed.
-        
+
         Parameters:
             card_dict (Dict): Raw card data extracted from the YAML file; expected to be a mapping of card fields (e.g., 'q', 'a', 'id', 'tags').
             idx (int): Zero-based index of the card within its source file, used for error reporting.
             file_context (_FileProcessingContext): Context for the file currently being processed (contains file path, deck metadata, and processing flags).
-        
+
         Returns:
             Union[Card, YAMLProcessingError]: A Card object when validation and construction succeed; otherwise a YAMLProcessingError containing the file path, card index, and a short question snippet when available.
         """
@@ -207,16 +207,16 @@ def _process_file_wrapper(
 ) -> None:
     """
     Process a single YAML file with the given processor and aggregate its cards and errors.
-    
+
     Attempts to process file_path via processor.process_file, extending all_cards with any parsed Card objects and all_errors with any YAMLProcessingError results. If config.fail_fast is True, the first encountered YAMLProcessingError (or a synthesized YAMLProcessingError for unexpected exceptions) is raised instead of being appended to all_errors.
-    
+
     Parameters:
         processor (YAMLProcessor): The processor instance used to parse the file.
         file_path (Path): Path to the YAML file being processed.
         config (YAMLProcessorConfig): Configuration that controls processing behavior (notably `fail_fast`).
         all_cards (List[Card]): Mutable list to extend with parsed Card objects from this file.
         all_errors (List[YAMLProcessingError]): Mutable list to extend with YAMLProcessingError instances from this file.
-    
+
     Raises:
         YAMLProcessingError: If `config.fail_fast` is True and a processing error occurs (either a reported YAMLProcessingError or an unexpected exception wrapped as YAMLProcessingError).
     """
@@ -248,10 +248,10 @@ def load_and_process_flashcard_yamls(
 ) -> Tuple[List[Card], List[YAMLProcessingError]]:
     """
     Discover and process all flashcard YAML files under the configured source directory and return collected Card objects and parsing errors.
-    
+
     Parameters:
         config (YAMLProcessorConfig): Configuration that controls source and assets directories, validation skips, and processing options.
-    
+
     Returns:
         Tuple[List[Card], List[YAMLProcessingError]]: A pair where the first element is the list of all successfully created Card objects from all discovered YAML files, and the second element is the list of YAMLProcessingError instances encountered while discovering or processing files.
     """
