@@ -1,94 +1,181 @@
-> [!IMPORTANT]
-> This template is **archived**.  
-> UV can now [generate a sample project](https://docs.astral.sh/uv/guides/projects/#creating-a-new-project)  
-> I recommend using **UV** to bootstrap your peojects.  
-> [Copier](https://github.com/copier-org/copier) is a tools that can bootstrap projects from templates.  
 
+ # Flashcore
 
----
+ [![CI](https://github.com/ImmortalDemonGod/flashcore/actions/workflows/main.yml/badge.svg)](https://github.com/ImmortalDemonGod/flashcore/actions/workflows/main.yml)
+ [![codecov](https://codecov.io/gh/ImmortalDemonGod/flashcore/branch/main/graph/badge.svg)](https://codecov.io/gh/ImmortalDemonGod/flashcore)
+ [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+ [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+ **Flashcore** is a high-performance, local-first Spaced Repetition System (SRS) engine built for developers. It combines the state-of-the-art **FSRS (Free Spaced Repetition Scheduler)** algorithm with a **DuckDB** backend to provide a lightning-fast, dependency-light memory engine.
 
-# Python Project Template
+ Designed using a **Hub-and-Spoke** architecture, Flashcore is a path-agnostic logic library (the "Spoke") intended to be driven by a CLI (the "Hub"). It treats your knowledge base as source code.
 
-A low dependency and really simple to start project template for Python Projects.
+ ---
 
-See also 
-- [Flask-Project-Template](https://github.com/rochacbruno/flask-project-template/) for a full feature Flask project including database, API, admin interface, etc.
-- [FastAPI-Project-Template](https://github.com/rochacbruno/fastapi-project-template/) The base to start an openapi project featuring: SQLModel, Typer, FastAPI, JWT Token Auth, Interactive Shell, Management Commands.
+ ## 🚀 Key Features
 
-### HOW TO USE THIS TEMPLATE
+ - **O(1) scheduler performance**
+   Flashcore computes the next interval from cached card state (no full history replay).
+ - **The "Nuclear Reactor" fix (lightweight deps)**
+   Runtime dependency set is intentionally small (no `torch`, no `transformers`).
+ - **DuckDB backend**
+   A single-file database with fast OLAP-style queries and minimal overhead.
+ - **YAML-first authoring (library support)**
+   Parse cards from human-readable YAML into strongly validated Pydantic models.
+ - **Dependency-injection first**
+   The library requires paths to be provided explicitly at runtime (e.g., database path).
 
-> **DO NOT FORK** this is meant to be used from **[Use this template](https://github.com/rochacbruno/python-project-template/generate)** feature.
+ ---
 
-1. Click on **[Use this template](https://github.com/rochacbruno/python-project-template/generate)**
-3. Give a name to your project  
-   (e.g. `my_awesome_project` recommendation is to use all lowercase and underscores separation for repo names.)
-3. Wait until the first run of CI finishes  
-   (Github Actions will process the template and commit to your new repo)
-4. If you want [codecov](https://about.codecov.io/sign-up/) Reports and Automatic Release to [PyPI](https://pypi.org)  
-  On the new repository `settings->secrets` add your `PYPI_API_TOKEN` and `CODECOV_TOKEN` (get the tokens on respective websites)
-4. Read the file [CONTRIBUTING.md](CONTRIBUTING.md)
-5. Then clone your new project and happy coding!
+ ## ✅ Status
 
-> **NOTE**: **WAIT** until first CI run on github actions before cloning your new project.
+ - **Library**
+   Usable today: `FlashcardDatabase`, `FSRS_Scheduler`, YAML parsing utilities.
+ - **CLI**
+   In progress. The `flashcore` console entrypoint is wired, but the full multi-command CLI workflow (`vet`, `ingest`, `review`, `stats`, etc.) is still being implemented.
 
-### What is included on this template?
+ If you want to see what’s planned next, run:
 
-- 🖼️ Templates for starting multiple application types:
-  * **Basic low dependency** Python program (default) [use this template](https://github.com/rochacbruno/python-project-template/generate)
-  * **Flask** with database, admin interface, restapi and authentication [use this template](https://github.com/rochacbruno/flask-project-template/generate).
-  **or Run `make init` after cloning to generate a new project based on a template.**
-- 📦 A basic [setup.py](setup.py) file to provide installation, packaging and distribution for your project.  
-  Template uses setuptools because it's the de-facto standard for Python packages, you can run `make switch-to-poetry` later if you want.
-- 🤖 A [Makefile](Makefile) with the most useful commands to install, test, lint, format and release your project.
-- 📃 Documentation structure using [mkdocs](http://www.mkdocs.org)
-- 💬 Auto generation of change log using **gitchangelog** to keep a HISTORY.md file automatically based on your commit history on every release.
-- 🐋 A simple [Containerfile](Containerfile) to build a container image for your project.  
-  `Containerfile` is a more open standard for building container images than Dockerfile, you can use buildah or docker with this file.
-- 🧪 Testing structure using [pytest](https://docs.pytest.org/en/latest/)
-- ✅ Code linting using [flake8](https://flake8.pycqa.org/en/latest/)
-- 📊 Code coverage reports using [codecov](https://about.codecov.io/sign-up/)
-- 🛳️ Automatic release to [PyPI](https://pypi.org) using [twine](https://twine.readthedocs.io/en/latest/) and github actions.
-- 🎯 Entry points to execute your program using `python -m <flashcore>` or `$ flashcore` with basic CLI argument parsing.
-- 🔄 Continuous integration using [Github Actions](.github/workflows/) with jobs to lint, test and release your project on Linux, Mac and Windows environments.
+ ```bash
+ task-master list
+ ```
 
-> Curious about architectural decisions on this template? read [ABOUT_THIS_TEMPLATE.md](ABOUT_THIS_TEMPLATE.md)  
-> If you want to contribute to this template please open an [issue](https://github.com/rochacbruno/python-project-template/issues) or fork and send a PULL REQUEST.
+ ---
 
-[❤️ Sponsor this project](https://github.com/sponsors/rochacbruno/)
+ ## 📦 Installation
 
-<!--  DELETE THE LINES ABOVE THIS AND WRITE YOUR PROJECT README BELOW -->
+ Flashcore requires Python 3.10 or higher.
 
----
-# flashcore
+ ```bash
+ git clone https://github.com/ImmortalDemonGod/flashcore.git
+ cd flashcore
+ pip install -e .
+ ```
 
-[![codecov](https://codecov.io/gh/ImmortalDemonGod/flashcore/branch/main/graph/badge.svg?token=flashcore_token_here)](https://codecov.io/gh/ImmortalDemonGod/flashcore)
-[![CI](https://github.com/ImmortalDemonGod/flashcore/actions/workflows/main.yml/badge.svg)](https://github.com/ImmortalDemonGod/flashcore/actions/workflows/main.yml)
+ For development (tests, linting, etc.):
 
-Awesome flashcore created by ImmortalDemonGod
+ ```bash
+ make install
+ ```
 
-## Install it from PyPI
+ ---
 
-```bash
-pip install flashcore
-```
+ ## 🛠️ Programmatic Usage (The Library)
 
-## Usage
+ This example shows the current working public APIs.
 
-```py
-from flashcore import BaseClass
-from flashcore import base_function
+ ```python
+ from datetime import date
 
-BaseClass().base_method()
-base_function()
-```
+ from flashcore import Card, FlashcardDatabase
+ from flashcore.scheduler import FSRS_Scheduler
+ from flashcore.review_processor import ReviewProcessor
 
-```bash
-$ python -m flashcore
-#or
-$ flashcore
-```
+ db = FlashcardDatabase(db_path="./my_study.db")
 
-## Development
+ with db:
+     # 1) Create and upsert a card
+     card = Card(
+         deck_name="Computer Science",
+         front="What is the average complexity of a dict lookup?",
+         back="O(1) on average.",
+     )
+     db.upsert_cards_batch([card])
 
-Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+     # 2) Fetch it back from the DB
+     persisted = db.get_card_by_uuid(card.uuid)
+     assert persisted is not None
+
+     # 3) Submit a review using the O(1) scheduler
+     scheduler = FSRS_Scheduler()
+     processor = ReviewProcessor(db_manager=db, scheduler=scheduler)
+     updated = processor.process_review(card=persisted, rating=3)
+
+     # 4) Ask what’s due
+     due = db.get_due_cards(deck_name="Computer Science", on_date=date.today())
+     print(f"Due today: {len(due)}")
+ ```
+
+ ---
+
+ ## 🗂️ YAML Processing (Current Library Capability)
+
+ Flashcore includes a YAML parsing pipeline you can call directly.
+
+ ```python
+ from pathlib import Path
+
+ from flashcore import YAMLProcessorConfig
+ from flashcore.parser import load_and_process_flashcard_yamls
+
+ config = YAMLProcessorConfig(
+     source_directory=Path("./decks"),
+     assets_root_directory=Path("./assets"),
+ )
+
+ cards, errors = load_and_process_flashcard_yamls(config)
+ print(f"Parsed {len(cards)} cards with {len(errors)} errors")
+ ```
+
+ ---
+
+ ## 💻 CLI Usage (The Hub) — WIP
+
+ The intended workflow cycle will look like this:
+
+ | Step | Command | Description |
+ | :--- | :--- | :--- |
+ | **1. Author** | `vim deck.yaml` | Create cards in YAML (see format below). |
+ | **2. Vet** | `flashcore vet` | Validate structure, check for secrets, and assign stable UUIDs. |
+ | **3. Ingest** | `flashcore ingest` | Sync YAML cards to the DuckDB database without losing history. |
+ | **4. Review** | `flashcore review` | Start an interactive TUI session powered by FSRS. |
+ | **5. Audit** | `flashcore stats` | View retention metrics and deck health. |
+
+ Environment-variable support (e.g., `FLASHCORE_DB`) is planned for the CLI so you can avoid repeating flags.
+
+ ### YAML Card Format
+
+ ```yaml
+ deck: Programming::Python
+ tags: [coding, backend]
+ cards:
+   - q: What is the complexity of a dict lookup?
+     a: O(1) on average.
+   - q: How do you define a decorator?
+     a: |
+       A function that takes another function and extends its behavior:
+       ```python
+       @my_decorator
+       def func(): pass
+       ```
+ ```
+
+ ---
+
+ ## 🏗️ Architecture: Hub-and-Spoke
+
+ Flashcore solves the "Hardcoded Life" problem by separating logic from configuration:
+
+ 1. **The Spoke (`flashcore/`)**
+    The core library. Contains scheduling logic, DB marshalling, and YAML parsing.
+ 2. **The Hub (`flashcore.cli`)**
+    The interface layer (in progress). Accepts user input (flags/env) and injects paths/config into the Spoke.
+
+ ---
+
+ ## 🧪 Development
+
+ ```bash
+ make virtualenv
+ make install
+ make fmt
+ make test
+ ```
+
+ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+
+ ---
+
+ ## 📄 License
+
+ This project is released into the public domain under the [Unlicense](LICENSE). No rights reserved.
