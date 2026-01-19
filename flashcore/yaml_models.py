@@ -173,15 +173,15 @@ class _RawYAMLCardEntry(PydanticBaseModel):
     def validate_state_str(cls, v: Any) -> Any:
         """
         Normalize a CardState value provided as a string to its corresponding enum integer.
-        
+
         If `v` is a string, this attempts a case-insensitive lookup of a CardState member
         (by capitalizing the string) and returns that member's integer value on success.
         If the lookup fails, the original value is returned so downstream validation can
         produce the appropriate error. Non-string inputs are returned unchanged.
-        
+
         Parameters:
             v (Any): The raw value to normalize (may be a string, enum, or other).
-        
+
         Returns:
             Any: The enum member's integer value when conversion succeeds, otherwise the original `v`.
         """
@@ -201,10 +201,10 @@ class _RawYAMLCardEntry(PydanticBaseModel):
     def normalize_tags(cls, v):
         """
         Normalize tag values to lowercase, stripped strings when a list is provided.
-        
+
         Parameters:
             v (Any): The incoming value for the `tags` field; expected to be a list of tag values or another type.
-        
+
         Returns:
             list: If `v` is a list, returns a new list where each string element is trimmed and lowercased, non-string elements are preserved as-is. If `v` is not a list, returns `v` unchanged.
         """
@@ -237,9 +237,9 @@ class YAMLProcessingError(Exception):
     def __str__(self) -> str:
         """
         Format the error into a contextual, human-readable string.
-        
+
         The result includes the source file name and, when present, the card index, a preview of the card question (truncated to 50 characters with an ellipsis when longer), the field name, and a YAML path segment, followed by the underlying error message.
-        
+
         Returns:
             str: A single-line formatted message combining the available context and the error message.
         """
