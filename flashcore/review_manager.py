@@ -9,8 +9,8 @@ from datetime import datetime, timezone, date
 from typing import Dict, List, Optional, Set, Any
 from uuid import UUID, uuid4
 
-from .card import Card
-from .database import FlashcardDatabase
+from .models import Card
+from .db.database import FlashcardDatabase
 from .scheduler import FSRS_Scheduler as FSRS
 from .review_processor import ReviewProcessor
 from .session_manager import SessionManager
