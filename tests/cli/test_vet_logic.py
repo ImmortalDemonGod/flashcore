@@ -39,7 +39,7 @@ def test_vet_logic_clean_files_check_mode(tmp_path: Path, yaml_handler, capsys):
     valid_uuid = str(uuid.uuid4())
     clean_content = {
         "cards": [{"a": "A1", "q": "Q1", "uuid": valid_uuid}],
-        "deck": "Test Deck"
+        "deck": "Test Deck",
     }
     with (tmp_path / "clean.yml").open("w") as f:
         yaml_handler.dump(clean_content, f)
@@ -61,7 +61,7 @@ def test_vet_logic_clean_files_modify_mode(tmp_path: Path, yaml_handler, capsys)
     valid_uuid = str(uuid.uuid4())
     clean_content = {
         "cards": [{"a": "A1", "q": "Q1", "uuid": valid_uuid}],
-        "deck": "Test Deck"
+        "deck": "Test Deck",
     }
     file_path = tmp_path / "clean.yml"
     with file_path.open("w") as f:
@@ -84,7 +84,7 @@ def test_vet_logic_dirty_files_check_mode(tmp_path: Path, yaml_handler, capsys):
     """
     dirty_content = {
         "deck": "Test Deck",
-        "cards": [{"q": "Q1", "a": "A1"}, {"uuid": "", "q": "Q2", "a": "A2"}]
+        "cards": [{"q": "Q1", "a": "A1"}, {"uuid": "", "q": "Q2", "a": "A2"}],
     }
     with (tmp_path / "dirty.yml").open("w") as f:
         yaml_handler.dump(dirty_content, f)
@@ -94,7 +94,10 @@ def test_vet_logic_dirty_files_check_mode(tmp_path: Path, yaml_handler, capsys):
 
     captured = capsys.readouterr()
     assert changes_needed
-    assert "Check failed: Some files need changes. Run without --check to fix." in captured.out
+    assert (
+        "Check failed: Some files need changes. Run without --check to fix."
+        in captured.out
+    )
 
 
 def test_vet_logic_dirty_files_modify_mode(tmp_path: Path, yaml_handler, capsys):
@@ -103,7 +106,7 @@ def test_vet_logic_dirty_files_modify_mode(tmp_path: Path, yaml_handler, capsys)
     """
     dirty_content = {
         "deck": "Test Deck",
-        "cards": [{"q": "Q1", "a": "A1"}, {"uuid": "", "q": "Q2", "a": "A2"}]
+        "cards": [{"q": "Q1", "a": "A1"}, {"uuid": "", "q": "Q2", "a": "A2"}],
     }
     file_path = tmp_path / "dirty.yml"
     with file_path.open("w") as f:
