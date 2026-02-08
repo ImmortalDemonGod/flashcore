@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 
 runner = CliRunner()
 
+
 def test_review_function_direct_call(tmp_path):
     """Tests the 'review' function's logic by calling it directly."""
     deck_name = "MyTestDeck"
@@ -16,10 +17,10 @@ def test_review_function_direct_call(tmp_path):
 
     # Patch targets now point to the _review_logic module
     with (
-        patch('flashcore.cli._review_logic.FlashcardDatabase') as mock_db,
-        patch('flashcore.cli._review_logic.FSRS_Scheduler') as mock_scheduler,
-        patch('flashcore.cli._review_logic.ReviewSessionManager') as mock_manager,
-        patch('flashcore.cli._review_logic.start_review_flow') as mock_start_flow
+        patch("flashcore.cli._review_logic.FlashcardDatabase") as mock_db,
+        patch("flashcore.cli._review_logic.FSRS_Scheduler") as mock_scheduler,
+        patch("flashcore.cli._review_logic.ReviewSessionManager") as mock_manager,
+        patch("flashcore.cli._review_logic.start_review_flow") as mock_start_flow,
     ):
         mock_db_instance = mock_db.return_value
 
@@ -37,6 +38,7 @@ def test_review_function_direct_call(tmp_path):
         )
         mock_start_flow.assert_called_once_with(mock_manager.return_value, tags=None)
 
+
 def test_review_cli_smoke_test_direct_invoke(tmp_path):
     """
     Tests that the 'review' CLI command correctly invokes the underlying logic.
@@ -45,14 +47,15 @@ def test_review_cli_smoke_test_direct_invoke(tmp_path):
     db_path = tmp_path / "test.db"
 
     # We patch the logic function to isolate the CLI layer for this test.
-    with patch('flashcore.cli.main.review_logic') as mock_review_logic:
+    with patch("flashcore.cli.main.review_logic") as mock_review_logic:
         # Invoke the CLI command using the Typer test runner
         result = runner.invoke(
             app,
             [
                 "review",
                 deck_name,
-                "--db", str(db_path),
+                "--db",
+                str(db_path),
             ],
         )
 
@@ -80,4 +83,3 @@ def test_review_cli_smoke_test_direct_invoke(tmp_path):
 #     has been moved into the FlashcardDatabase class itself.
 #     """
 #     pass
-
