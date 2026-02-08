@@ -492,3 +492,194 @@ class TestReviewSessionManagerIntegration:
 
 
 # More test classes and methods will follow for other functionalities...
+
+
+class TestReviewManagerCoverageGaps:
+    """Tests targeting specific uncovered lines in review_manager.py."""
+
+    def test_initialize_session_with_tags(
+        self, mock_db, mock_scheduler, sample_card_data
+    ):
+        """Test initialize_session logs tags when provided."""
+        card = Card(**sample_card_data)
+        mock_db.get_due_cards.return_value = [card]
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        manager.initialize_session(tags=["math", "science"])
+        mock_db.get_due_cards.assert_called_once()
+
+    def test_session_analytics_start_failure(self, mock_db, mock_scheduler):
+        """Test that session analytics failure in initialize_session doesn't crash."""
+        mock_db.get_due_cards.return_value = []
+        mock_db.create_session.side_effect = RuntimeError("DB error")
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        manager.initialize_session()
+        assert manager._session_started is False
+
+    def test_record_session_analytics_failure(
+        self, mock_db, mock_scheduler, sample_card_data
+    ):
+        """Test that session analytics recording failure doesn't crash submit_review."""
+        card = Card(**sample_card_data)
+        mock_db.get_due_cards.return_value = [card]
+        mock_db.get_card_by_uuid.return_value = card
+        mock_db.get_reviews_for_card.return_value = []
+        mock_db.add_review_and_update_card.return_value = card
+
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        manager.initialize_session()
+        manager._session_started = True
+        mock_db.update_session.side_effect = RuntimeError("Analytics failure")
+
+        result = manager.submit_review(
+            card_uuid=card.uuid,
+            rating=3,
+            resp_ms=1000,
+            eval_ms=500,
+        )
+        assert result is not None
+
+    def test_get_session_stats_with_analytics(
+        self, mock_db, mock_scheduler, sample_card_data
+    ):
+        """Test get_session_stats includes analytics when session started."""
+        card = Card(**sample_card_data)
+        mock_db.get_due_cards.return_value = [card]
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        manager.initialize_session()
+        manager._session_started = True
+
+        mock_session_manager = MagicMock()
+        mock_session_manager.get_current_session_stats.return_value = {
+            "duration_seconds": 120,
+            "average_response_time_ms": 1500,
+        }
+        manager.session_manager = mock_session_manager
+
+        stats = manager.get_session_stats()
+        assert "total_cards" in stats
+        assert "duration_seconds" in stats
+
+    def test_get_session_stats_analytics_failure(
+        self, mock_db, mock_scheduler, sample_card_data
+    ):
+        """Test get_session_stats handles analytics failure gracefully."""
+        card = Card(**sample_card_data)
+        mock_db.get_due_cards.return_value = [card]
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        manager.initialize_session()
+        manager._session_started = True
+
+        mock_session_manager = MagicMock()
+        mock_session_manager.get_current_session_stats.side_effect = RuntimeError(
+            "fail"
+        )
+        manager.session_manager = mock_session_manager
+
+        stats = manager.get_session_stats()
+        assert "total_cards" in stats
+
+    def test_end_session_with_insights_no_session(self, mock_db, mock_scheduler):
+        """Test end_session_with_insights when no session is active."""
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        result = manager.end_session_with_insights()
+        assert "error" in result
+
+    def test_end_session_with_insights_success(self, mock_db, mock_scheduler):
+        """Test end_session_with_insights returns full insight data."""
+        from flashcore.session_manager import SessionInsights
+
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        manager._session_started = True
+
+        mock_session = MagicMock()
+        mock_session.session_uuid = uuid.uuid4()
+        mock_session.total_duration_ms = 600000
+        mock_session.cards_reviewed = 10
+        mock_session.decks_accessed = {"Math"}
+        mock_session.deck_switches = 1
+        mock_session.interruptions = 0
+
+        mock_insights = SessionInsights(
+            cards_per_minute=1.0,
+            average_response_time_ms=1000,
+            median_response_time_ms=900,
+            accuracy_percentage=80.0,
+            total_review_time_ms=10000,
+            deck_switch_efficiency=90.0,
+            interruption_impact=0.0,
+            focus_score=100.0,
+            improvement_rate=0.0,
+            learning_velocity=0.8,
+            retention_score=80.0,
+            fatigue_detected=False,
+            optimal_session_length=30,
+            peak_performance_time=None,
+            recommendations=["Keep it up!"],
+            achievements=["Perfect focus!"],
+            alerts=[],
+            vs_last_session={},
+            vs_average={},
+            trend_direction="stable",
+        )
+
+        mock_session_manager = MagicMock()
+        mock_session_manager.end_session.return_value = mock_session
+        mock_session_manager.generate_session_insights.return_value = mock_insights
+        manager.session_manager = mock_session_manager
+
+        result = manager.end_session_with_insights()
+        assert "session" in result
+        assert "insights" in result
+        assert result["insights"]["performance"]["cards_per_minute"] == 1.0
+
+    def test_end_session_with_insights_failure(self, mock_db, mock_scheduler):
+        """Test end_session_with_insights handles exception gracefully."""
+        manager = ReviewSessionManager(
+            db_manager=mock_db,
+            scheduler=mock_scheduler,
+            user_uuid=uuid.uuid4(),
+            deck_name="Test Deck",
+        )
+        manager._session_started = True
+
+        mock_session_manager = MagicMock()
+        mock_session_manager.end_session.side_effect = RuntimeError("DB crash")
+        manager.session_manager = mock_session_manager
+
+        result = manager.end_session_with_insights()
+        assert "error" in result
