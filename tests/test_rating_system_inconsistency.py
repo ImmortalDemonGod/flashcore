@@ -37,7 +37,7 @@ class TestRatingSystemInconsistency:
             deck_name="Test Deck",
             front="What is 2+2?",
             back="4",
-            tags={"math"}
+            tags={"math"},
         )
 
     @pytest.fixture
@@ -76,7 +76,7 @@ class TestRatingSystemInconsistency:
                 deck_name="Test Deck",
                 front=f"Test Question {i}",
                 back=f"Test Answer {i}",
-                tags={"test"}
+                tags={"test"},
             )
             in_memory_db.upsert_cards_batch([test_card])
 
@@ -89,17 +89,23 @@ class TestRatingSystemInconsistency:
                 diff=5.0,
                 next_due=date.today(),
                 elapsed_days_at_review=0,
-                scheduled_days_interval=1
+                scheduled_days_interval=1,
             )
 
             # This should work without validation errors
-            updated_card = in_memory_db.add_review_and_update_card(review, CardState.Review)
+            updated_card = in_memory_db.add_review_and_update_card(
+                review, CardState.Review
+            )
             assert updated_card is not None
 
             # Verify the rating was stored correctly
             stored_reviews = in_memory_db.get_reviews_for_card(test_card.uuid)
-            assert len(stored_reviews) == 1, f"Expected 1 review, got {len(stored_reviews)}"
-            assert stored_reviews[0].rating == db_rating, f"Expected rating {db_rating}, got {stored_reviews[0].rating}"
+            assert (
+                len(stored_reviews) == 1
+            ), f"Expected 1 review, got {len(stored_reviews)}"
+            assert (
+                stored_reviews[0].rating == db_rating
+            ), f"Expected rating {db_rating}, got {stored_reviews[0].rating}"
 
     def test_scheduler_handles_unified_rating_scale(self, scheduler):
         """Test that scheduler now only handles the unified 1-4 rating scale."""
@@ -110,7 +116,9 @@ class TestRatingSystemInconsistency:
         for rating, expected_name in zip(valid_ratings, expected_fsrs_ratings):
             fsrs_rating = scheduler._map_flashcore_rating_to_fsrs(rating)
             assert fsrs_rating is not None, f"Scheduler should handle rating {rating}"
-            assert fsrs_rating.name == expected_name, f"Rating {rating} should map to {expected_name}"
+            assert (
+                fsrs_rating.name == expected_name
+            ), f"Rating {rating} should map to {expected_name}"
 
         # Test that old UI ratings (0-3) are now rejected
         old_ui_ratings = [0, -1, 5, 10]
@@ -128,17 +136,14 @@ class TestRatingSystemInconsistency:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name=sample_card.deck_name
+            deck_name=sample_card.deck_name,
         )
         manager.initialize_session()
 
         # Submit review with unified rating (1-4)
         rating = 3  # Good
         updated_card = manager.submit_review(
-            card_uuid=sample_card.uuid,
-            rating=rating,
-            resp_ms=1000,
-            eval_ms=500
+            card_uuid=sample_card.uuid, rating=rating, resp_ms=1000, eval_ms=500
         )
 
         # Verify the review was stored with the same rating (no conversion)
@@ -148,7 +153,9 @@ class TestRatingSystemInconsistency:
         # No conversion needed - rating should be stored as-is
         assert stored_reviews[0].rating == rating
 
-    def test_review_all_logic_uses_unified_rating_scale(self, in_memory_db, sample_card):
+    def test_review_all_logic_uses_unified_rating_scale(
+        self, in_memory_db, sample_card
+    ):
         """Test that review-all logic now uses the unified 1-4 rating scale."""
         # Insert card
         in_memory_db.upsert_cards_batch([sample_card])
@@ -161,7 +168,7 @@ class TestRatingSystemInconsistency:
             card=sample_card,
             rating=rating,
             resp_ms=1500,
-            eval_ms=800
+            eval_ms=800,
         )
 
         # Verify the review was stored with the same rating (no conversion)
@@ -186,15 +193,12 @@ class TestRatingSystemInconsistency:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name=sample_card.deck_name
+            deck_name=sample_card.deck_name,
         )
         manager.initialize_session()
 
         manager.submit_review(
-            card_uuid=sample_card.uuid,
-            rating=rating,
-            resp_ms=1000,
-            eval_ms=500
+            card_uuid=sample_card.uuid, rating=rating, resp_ms=1000, eval_ms=500
         )
 
         # Create a second card for the second review
@@ -203,7 +207,7 @@ class TestRatingSystemInconsistency:
             deck_name="Test Deck",
             front="What is 3+3?",
             back="6",
-            tags={"math"}
+            tags={"math"},
         )
         in_memory_db.upsert_cards_batch([sample_card2])
 
@@ -214,7 +218,7 @@ class TestRatingSystemInconsistency:
             card=sample_card2,
             rating=rating,
             resp_ms=1000,
-            eval_ms=500
+            eval_ms=500,
         )
 
         # Both reviews should have the same rating (no conversion needed)
@@ -291,20 +295,10 @@ class TestRatingSystemDocumentation:
     def test_current_rating_scale_mapping(self):
         """Document the current rating scale mappings."""
         # UI Scale (0-3):
-        ui_scale = {
-            0: "Again",
-            1: "Hard",
-            2: "Good",
-            3: "Easy"
-        }
+        ui_scale = {0: "Again", 1: "Hard", 2: "Good", 3: "Easy"}
 
         # DB Scale (1-4):
-        db_scale = {
-            1: "Again",
-            2: "Hard",
-            3: "Good",
-            4: "Easy"
-        }
+        db_scale = {1: "Again", 2: "Hard", 3: "Good", 4: "Easy"}
 
         # Conversion formula: DB = UI + 1
         for ui_rating, meaning in ui_scale.items():
@@ -323,7 +317,7 @@ class TestRatingSystemDocumentation:
             FSRSRating.Again: "Again",
             FSRSRating.Hard: "Hard",
             FSRSRating.Good: "Good",
-            FSRSRating.Easy: "Easy"
+            FSRSRating.Easy: "Easy",
         }
 
         # The FSRS library doesn't care about our internal numbering
