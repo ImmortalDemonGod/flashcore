@@ -551,6 +551,7 @@ def main():
         app()
     except Exception as e:
         console.print(f"[bold red]UNEXPECTED ERROR: {e}[/bold red]")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
