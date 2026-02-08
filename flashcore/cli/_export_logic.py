@@ -44,6 +44,8 @@ def export_to_markdown(db: FlashcardDatabase, output_dir: Path) -> None:
         safe_deck_name = "".join(
             c for c in deck_name if c.isalnum() or c in (" ", "_")
         ).rstrip()
+        if not safe_deck_name:
+            safe_deck_name = "unnamed_deck"
         file_path = output_dir / f"{safe_deck_name}.md"
 
         try:
