@@ -15,3 +15,16 @@ per-file-ignores =
     flashcore/cli/_review_all_logic.py:E501
     flashcore/cli/_vet_logic.py:E501
     flashcore/cli/_export_logic.py:E501
+    tests/cli/test_main.py:E501
+    tests/cli/test_export_logic.py:E501
+    tests/cli/test_flashcards_cli.py:E501
+    tests/cli/test_review_all_logic.py:E501
+    tests/cli/test_review_ui.py:E501
+    tests/cli/test_vet_logic.py:E501
+    tests/test_rating_system_inconsistency.py:E501
+    tests/test_review_logic_duplication.py:E501
+    tests/test_session_analytics_gaps.py:E501
+    tests/test_review_processor.py:E501
+    tests/test_review_manager.py:E501
+    tests/test_session_manager.py:E501
+    tests/test_session_model.py:E501
