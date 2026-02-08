@@ -148,3 +148,52 @@ def test_vet_logic_ignores_invalid_yaml_structure(tmp_path: Path):
 
     assert not changes_needed
     assert original_mtime == new_mtime
+
+
+def test_vet_card_with_invalid_uuid(tmp_path):
+    """Test that cards with invalid UUID format get a new UUID assigned."""
+    yaml_content = (
+        "deck: Test Deck\n"
+        "cards:\n"
+        "  - q: What is 1+1?\n"
+        "    a: '2'\n"
+        "    uuid: not-a-valid-uuid\n"
+    )
+    file_path = tmp_path / "invalid_uuid.yml"
+    file_path.write_text(yaml_content)
+
+    files = list(tmp_path.glob("*.yml"))
+    changes_needed = vet_logic(files_to_process=files, check=False)
+    assert changes_needed is True
+
+
+def test_vet_file_processing_exception(tmp_path):
+    """Test _process_single_file catches internal exceptions gracefully."""
+    file_path = tmp_path / "bad.yml"
+    file_path.write_text("deck: Test\ncards:\n  - q: Q\n    a: A\n")
+
+    from unittest.mock import patch
+
+    with patch(
+        "flashcore.cli._vet_logic.copy.deepcopy",
+        side_effect=RuntimeError("deepcopy fail"),
+    ):
+        result = vet_logic(files_to_process=[file_path], check=False)
+    assert result is True
+
+
+def test_vet_source_dir_none():
+    """Test vet_logic with no files and no source_dir returns False."""
+    result = vet_logic(files_to_process=None, source_dir=None, check=False)
+    assert result is False
+
+
+def test_vet_non_validation_error(tmp_path):
+    """Test that non-ValidationError exceptions during card vetting are handled."""
+    yaml_content = "deck: Test Deck\n" "cards:\n" "  - q: null\n" "    a: null\n"
+    file_path = tmp_path / "null_cards.yml"
+    file_path.write_text(yaml_content)
+
+    files = list(tmp_path.glob("*.yml"))
+    result = vet_logic(files_to_process=files, check=True)
+    assert isinstance(result, bool)
