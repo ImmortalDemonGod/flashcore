@@ -35,6 +35,7 @@ class SessionInsights:
     Provides quantitative metrics, trend analysis, and actionable recommendations
     based on session performance and historical comparisons.
     """
+
     # Performance Metrics
     cards_per_minute: float
     average_response_time_ms: float
@@ -44,17 +45,17 @@ class SessionInsights:
 
     # Efficiency Metrics
     deck_switch_efficiency: float  # Lower is better
-    interruption_impact: float     # Percentage impact on performance
-    focus_score: float             # 0-100, higher is better
+    interruption_impact: float  # Percentage impact on performance
+    focus_score: float  # 0-100, higher is better
 
     # Learning Progress
-    improvement_rate: float        # Compared to recent sessions
-    learning_velocity: float       # Cards mastered per session
-    retention_score: float         # Based on review outcomes
+    improvement_rate: float  # Compared to recent sessions
+    learning_velocity: float  # Cards mastered per session
+    retention_score: float  # Based on review outcomes
 
     # Attention Patterns
     fatigue_detected: bool
-    optimal_session_length: int    # Recommended duration in minutes
+    optimal_session_length: int  # Recommended duration in minutes
     peak_performance_time: Optional[str]  # Time of day for best performance
 
     # Recommendations
@@ -64,8 +65,8 @@ class SessionInsights:
 
     # Comparisons
     vs_last_session: Dict[str, float]  # Percentage changes
-    vs_average: Dict[str, float]       # Compared to user average
-    trend_direction: str               # "improving", "stable", "declining"
+    vs_average: Dict[str, float]  # Compared to user average
+    trend_direction: str  # "improving", "stable", "declining"
 
 
 class SessionManager:
@@ -85,7 +86,9 @@ class SessionManager:
     review workflows like ReviewSessionManager and review-all logic.
     """
 
-    def __init__(self, db_manager: FlashcardDatabase, user_id: Optional[str] = None):
+    def __init__(
+        self, db_manager: FlashcardDatabase, user_id: Optional[str] = None
+    ):
         """
         Initialize the SessionManager.
 
@@ -112,7 +115,7 @@ class SessionManager:
         self,
         device_type: Optional[str] = None,
         platform: Optional[str] = None,
-        session_uuid: Optional[UUID] = None
+        session_uuid: Optional[UUID] = None,
     ) -> Session:
         """
         Start a new review session with comprehensive tracking.
@@ -129,14 +132,16 @@ class SessionManager:
             ValueError: If a session is already active
         """
         if self.current_session is not None:
-            raise ValueError("A session is already active. End the current session first.")
+            raise ValueError(
+                "A session is already active. End the current session first."
+            )
 
         # Create new session
         self.current_session = Session(
             session_uuid=session_uuid or uuid4(),
             user_id=self.user_id,
             device_type=device_type,
-            platform=platform or "cli"
+            platform=platform or "cli",
         )
 
         # Initialize tracking
@@ -153,7 +158,9 @@ class SessionManager:
 
         # Persist to database
         try:
-            self.current_session = self.db_manager.create_session(self.current_session)
+            self.current_session = self.db_manager.create_session(
+                self.current_session
+            )
             logger.info(f"Started session {self.current_session.session_uuid}")
             return self.current_session
 
@@ -167,7 +174,7 @@ class SessionManager:
         card: Card,
         rating: int,
         response_time_ms: int,
-        evaluation_time_ms: int = 0
+        evaluation_time_ms: int = 0,
     ) -> None:
         """
         Record a card review with real-time analytics tracking.
@@ -188,12 +195,16 @@ class SessionManager:
 
         # Detect interruptions (gaps > 2 minutes since last activity)
         if self.last_activity_time:
-            time_since_last = (current_time - self.last_activity_time).total_seconds()
+            time_since_last = (
+                current_time - self.last_activity_time
+            ).total_seconds()
             if time_since_last > 120:  # 2 minutes
                 self.record_interruption()
 
         # Track deck access patterns
-        previous_deck = self.deck_access_order[-1] if self.deck_access_order else None
+        previous_deck = (
+            self.deck_access_order[-1] if self.deck_access_order else None
+        )
 
         if card.deck_name not in self.deck_access_order:
             self.deck_access_order.append(card.deck_name)
@@ -216,8 +227,12 @@ class SessionManager:
 
         # Update session in database
         try:
-            self.current_session = self.db_manager.update_session(self.current_session)
-            logger.debug(f"Recorded review for card {card.uuid} in session {self.current_session.session_uuid}")
+            self.current_session = self.db_manager.update_session(
+                self.current_session
+            )
+            logger.debug(
+                f"Recorded review for card {card.uuid} in session {self.current_session.session_uuid}"
+            )
 
         except Exception as e:
             logger.error(f"Failed to update session after card review: {e}")
@@ -236,8 +251,12 @@ class SessionManager:
         self.interruption_timestamps.append(datetime.now(timezone.utc))
 
         try:
-            self.current_session = self.db_manager.update_session(self.current_session)
-            logger.debug(f"Recorded interruption in session {self.current_session.session_uuid}")
+            self.current_session = self.db_manager.update_session(
+                self.current_session
+            )
+            logger.debug(
+                f"Recorded interruption in session {self.current_session.session_uuid}"
+            )
 
         except Exception as e:
             logger.error(f"Failed to update session after interruption: {e}")
@@ -273,7 +292,9 @@ class SessionManager:
 
         # Calculate pause duration
         pause_duration = datetime.now(timezone.utc) - self.pause_start_time
-        self.total_pause_duration_ms += int(pause_duration.total_seconds() * 1000)
+        self.total_pause_duration_ms += int(
+            pause_duration.total_seconds() * 1000
+        )
 
         self.pause_start_time = None
         self.last_activity_time = datetime.now(timezone.utc)
@@ -299,7 +320,9 @@ class SessionManager:
 
         # Calculate final duration (excluding pauses)
         end_time = datetime.now(timezone.utc)
-        total_duration_ms = int((end_time - self.session_start_time).total_seconds() * 1000)
+        total_duration_ms = int(
+            (end_time - self.session_start_time).total_seconds() * 1000
+        )
         active_duration_ms = total_duration_ms - self.total_pause_duration_ms
 
         # Update session with final data
@@ -308,7 +331,9 @@ class SessionManager:
 
         # Persist final session state
         try:
-            completed_session = self.db_manager.update_session(self.current_session)
+            completed_session = self.db_manager.update_session(
+                self.current_session
+            )
             logger.info(
                 f"Ended session {completed_session.session_uuid}. "
                 f"Duration: {active_duration_ms/1000:.1f}s, "
@@ -341,7 +366,9 @@ class SessionManager:
             raise ValueError("No active session. Start a session first.")
 
         current_time = datetime.now(timezone.utc)
-        elapsed_ms = int((current_time - self.session_start_time).total_seconds() * 1000)
+        elapsed_ms = int(
+            (current_time - self.session_start_time).total_seconds() * 1000
+        )
         active_ms = elapsed_ms - self.total_pause_duration_ms
 
         stats = {
@@ -351,9 +378,15 @@ class SessionManager:
             "decks_accessed": list(self.current_session.decks_accessed),
             "deck_switches": self.current_session.deck_switches,
             "interruptions": self.current_session.interruptions,
-            "cards_per_minute": (self.current_session.cards_reviewed / (active_ms / 60000)) if active_ms > 0 else 0,
-            "average_response_time_ms": mean(self.response_times) if self.response_times else 0,
-            "is_paused": self.pause_start_time is not None
+            "cards_per_minute": (
+                (self.current_session.cards_reviewed / (active_ms / 60000))
+                if active_ms > 0
+                else 0
+            ),
+            "average_response_time_ms": (
+                mean(self.response_times) if self.response_times else 0
+            ),
+            "is_paused": self.pause_start_time is not None,
         }
 
         return stats
@@ -383,17 +416,27 @@ class SessionManager:
         reviews = self._get_session_reviews(session_uuid)
 
         # Calculate performance metrics
-        performance_metrics = self._calculate_performance_metrics(session, reviews)
+        performance_metrics = self._calculate_performance_metrics(
+            session, reviews
+        )
 
         # Get historical context
-        historical_sessions = self._get_user_sessions(session.user_id, limit=10)
-        comparisons = self._calculate_session_comparisons(session, historical_sessions)
+        historical_sessions = self._get_user_sessions(
+            session.user_id, limit=10
+        )
+        comparisons = self._calculate_session_comparisons(
+            session, historical_sessions
+        )
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(session, reviews, comparisons)
+        recommendations = self._generate_recommendations(
+            session, reviews, comparisons
+        )
 
         # Detect achievements
-        achievements = self._detect_achievements(session, reviews, historical_sessions)
+        achievements = self._detect_achievements(
+            session, reviews, historical_sessions
+        )
 
         # Generate alerts
         alerts = self._generate_alerts(session, reviews, comparisons)
@@ -405,7 +448,7 @@ class SessionManager:
             alerts=alerts,
             vs_last_session=comparisons.get("vs_last_session", {}),
             vs_average=comparisons.get("vs_average", {}),
-            trend_direction=comparisons.get("trend_direction", "stable")
+            trend_direction=comparisons.get("trend_direction", "stable"),
         )
 
     def _get_session_reviews(self, session_uuid: UUID) -> List[Review]:
@@ -431,7 +474,9 @@ class SessionManager:
             # If no reviews found by session_uuid, try to get reviews by timeframe
             if not rows and session.start_ts and session.end_ts:
                 sql = "SELECT * FROM reviews WHERE ts >= $1 AND ts <= $2 ORDER BY ts ASC;"
-                rows = _fetch_as_dicts(conn, sql, (session.start_ts, session.end_ts))
+                rows = _fetch_as_dicts(
+                    conn, sql, (session.start_ts, session.end_ts)
+                )
 
             if not rows:
                 return []
@@ -440,25 +485,33 @@ class SessionManager:
             reviews = []
             for row in rows:
                 # Handle UUID conversion safely
-                card_uuid = row['card_uuid'] if isinstance(row['card_uuid'], UUID) else UUID(row['card_uuid'])
+                card_uuid = (
+                    row["card_uuid"]
+                    if isinstance(row["card_uuid"], UUID)
+                    else UUID(row["card_uuid"])
+                )
                 sess_uuid = None
-                if row['session_uuid']:
-                    sess_uuid = row['session_uuid'] if isinstance(row['session_uuid'], UUID) else UUID(row['session_uuid'])
+                if row["session_uuid"]:
+                    sess_uuid = (
+                        row["session_uuid"]
+                        if isinstance(row["session_uuid"], UUID)
+                        else UUID(row["session_uuid"])
+                    )
 
                 review = Review(
                     card_uuid=card_uuid,
                     session_uuid=sess_uuid,
-                    ts=row['ts'],
-                    rating=row['rating'],
-                    resp_ms=row['resp_ms'],
-                    eval_ms=row['eval_ms'],
-                    stab_before=row['stab_before'],
-                    stab_after=row['stab_after'],
-                    diff=row['diff'],
-                    next_due=row['next_due'],
-                    elapsed_days_at_review=row['elapsed_days_at_review'],
-                    scheduled_days_interval=row['scheduled_days_interval'],
-                    review_type=row['review_type']
+                    ts=row["ts"],
+                    rating=row["rating"],
+                    resp_ms=row["resp_ms"],
+                    eval_ms=row["eval_ms"],
+                    stab_before=row["stab_before"],
+                    stab_after=row["stab_after"],
+                    diff=row["diff"],
+                    next_due=row["next_due"],
+                    elapsed_days_at_review=row["elapsed_days_at_review"],
+                    scheduled_days_interval=row["scheduled_days_interval"],
+                    review_type=row["review_type"],
                 )
                 reviews.append(review)
 
@@ -468,7 +521,9 @@ class SessionManager:
             logger.error(f"Failed to get session reviews: {e}")
             return []
 
-    def _calculate_performance_metrics(self, session: Session, reviews: List[Review]) -> Dict[str, Any]:
+    def _calculate_performance_metrics(
+        self, session: Session, reviews: List[Review]
+    ) -> Dict[str, Any]:
         """Calculate performance metrics for a session."""
         if not reviews:
             return {
@@ -485,7 +540,7 @@ class SessionManager:
                 "retention_score": 0.0,
                 "fatigue_detected": False,
                 "optimal_session_length": 30,
-                "peak_performance_time": None
+                "peak_performance_time": None,
             }
 
         # Basic metrics
@@ -493,7 +548,11 @@ class SessionManager:
         ratings = [r.rating for r in reviews]
 
         duration_minutes = (session.total_duration_ms or 0) / 60000
-        cards_per_minute = session.cards_reviewed / duration_minutes if duration_minutes > 0 else 0
+        cards_per_minute = (
+            session.cards_reviewed / duration_minutes
+            if duration_minutes > 0
+            else 0
+        )
 
         avg_response_time = mean(response_times) if response_times else 0
         median_response_time = median(response_times) if response_times else 0
@@ -510,8 +569,8 @@ class SessionManager:
         # Fatigue detection (increasing response times over session)
         fatigue_detected = False
         if len(response_times) >= 5:
-            first_half = response_times[:len(response_times)//2]
-            second_half = response_times[len(response_times)//2:]
+            first_half = response_times[: len(response_times) // 2]
+            second_half = response_times[len(response_times) // 2 :]
             if mean(second_half) > mean(first_half) * 1.3:
                 fatigue_detected = True
 
@@ -521,58 +580,93 @@ class SessionManager:
             "median_response_time_ms": round(median_response_time, 0),
             "accuracy_percentage": round(accuracy, 1),
             "total_review_time_ms": sum(response_times),
-            "deck_switch_efficiency": round(100 - (session.deck_switches * 10), 1),
+            "deck_switch_efficiency": round(
+                100 - (session.deck_switches * 10), 1
+            ),
             "interruption_impact": round(session.interruptions * 5, 1),
             "focus_score": round(focus_score, 1),
             "improvement_rate": 0.0,  # Would need historical comparison
-            "learning_velocity": round(good_ratings / duration_minutes if duration_minutes > 0 else 0, 2),
+            "learning_velocity": round(
+                good_ratings / duration_minutes if duration_minutes > 0 else 0,
+                2,
+            ),
             "retention_score": round(accuracy, 1),
             "fatigue_detected": fatigue_detected,
             "optimal_session_length": 30,  # Default recommendation
-            "peak_performance_time": None
+            "peak_performance_time": None,
         }
 
-    def _get_user_sessions(self, user_id: Optional[str], limit: int = 10) -> List[Session]:
+    def _get_user_sessions(
+        self, user_id: Optional[str], limit: int = 10
+    ) -> List[Session]:
         """Get recent sessions for a user."""
         try:
-            return self.db_manager.get_recent_sessions(user_id=user_id, limit=limit)
+            return self.db_manager.get_recent_sessions(
+                user_id=user_id, limit=limit
+            )
         except Exception as e:
             logger.error(f"Failed to get user sessions: {e}")
             return []
 
-    def _calculate_session_comparisons(self, session: Session, historical_sessions: List[Session]) -> Dict[str, Any]:
+    def _calculate_session_comparisons(
+        self, session: Session, historical_sessions: List[Session]
+    ) -> Dict[str, Any]:
         """Calculate comparisons with historical sessions."""
         if len(historical_sessions) < 2:
             return {
                 "vs_last_session": {},
                 "vs_average": {},
-                "trend_direction": "stable"
+                "trend_direction": "stable",
             }
 
         # Compare with last session
-        last_session = historical_sessions[1] if len(historical_sessions) > 1 else None
+        last_session = (
+            historical_sessions[1] if len(historical_sessions) > 1 else None
+        )
         vs_last = {}
 
         if last_session:
             if last_session.cards_reviewed > 0:
-                cards_change = ((session.cards_reviewed - last_session.cards_reviewed) / last_session.cards_reviewed) * 100
+                cards_change = (
+                    (session.cards_reviewed - last_session.cards_reviewed)
+                    / last_session.cards_reviewed
+                ) * 100
                 vs_last["cards_reviewed"] = round(cards_change, 1)
 
-            if last_session.total_duration_ms and last_session.total_duration_ms > 0:
-                duration_change = ((session.total_duration_ms - last_session.total_duration_ms) / last_session.total_duration_ms) * 100
+            if (
+                last_session.total_duration_ms
+                and last_session.total_duration_ms > 0
+            ):
+                duration_change = (
+                    (
+                        session.total_duration_ms
+                        - last_session.total_duration_ms
+                    )
+                    / last_session.total_duration_ms
+                ) * 100
                 vs_last["duration"] = round(duration_change, 1)
 
         # Compare with average
         avg_cards = mean([s.cards_reviewed for s in historical_sessions[1:]])
-        avg_duration = mean([s.total_duration_ms for s in historical_sessions[1:] if s.total_duration_ms])
+        avg_duration = mean(
+            [
+                s.total_duration_ms
+                for s in historical_sessions[1:]
+                if s.total_duration_ms
+            ]
+        )
 
         vs_average = {}
         if avg_cards > 0:
-            cards_vs_avg = ((session.cards_reviewed - avg_cards) / avg_cards) * 100
+            cards_vs_avg = (
+                (session.cards_reviewed - avg_cards) / avg_cards
+            ) * 100
             vs_average["cards_reviewed"] = round(cards_vs_avg, 1)
 
         if avg_duration > 0:
-            duration_vs_avg = ((session.total_duration_ms - avg_duration) / avg_duration) * 100
+            duration_vs_avg = (
+                (session.total_duration_ms - avg_duration) / avg_duration
+            ) * 100
             vs_average["duration"] = round(duration_vs_avg, 1)
 
         # Determine trend
@@ -590,38 +684,64 @@ class SessionManager:
         return {
             "vs_last_session": vs_last,
             "vs_average": vs_average,
-            "trend_direction": trend
+            "trend_direction": trend,
         }
 
-    def _generate_recommendations(self, session: Session, reviews: List[Review], comparisons: Dict[str, Any]) -> List[str]:
+    def _generate_recommendations(
+        self,
+        session: Session,
+        reviews: List[Review],
+        comparisons: Dict[str, Any],
+    ) -> List[str]:
         """Generate actionable recommendations based on session analysis."""
         recommendations = []
 
         # Duration recommendations
-        if session.total_duration_ms and session.total_duration_ms > 3600000:  # > 1 hour
-            recommendations.append("Consider shorter sessions (30-45 minutes) to maintain focus and retention.")
-        elif session.total_duration_ms and session.total_duration_ms < 600000:  # < 10 minutes
-            recommendations.append("Try longer sessions (15-30 minutes) for better learning consolidation.")
+        if (
+            session.total_duration_ms and session.total_duration_ms > 3600000
+        ):  # > 1 hour
+            recommendations.append(
+                "Consider shorter sessions (30-45 minutes) to maintain focus and retention."
+            )
+        elif (
+            session.total_duration_ms and session.total_duration_ms < 600000
+        ):  # < 10 minutes
+            recommendations.append(
+                "Try longer sessions (15-30 minutes) for better learning consolidation."
+            )
 
         # Interruption recommendations
         if session.interruptions > 2:
-            recommendations.append("Find a quieter environment to reduce interruptions and improve focus.")
+            recommendations.append(
+                "Find a quieter environment to reduce interruptions and improve focus."
+            )
 
         # Deck switching recommendations
         if session.deck_switches > 3:
-            recommendations.append("Focus on one deck at a time to improve learning efficiency.")
+            recommendations.append(
+                "Focus on one deck at a time to improve learning efficiency."
+            )
 
         # Performance recommendations
         if reviews:
             avg_rating = mean([r.rating for r in reviews])
             if avg_rating < 2.5:
-                recommendations.append("Consider reviewing cards more frequently to improve retention.")
+                recommendations.append(
+                    "Consider reviewing cards more frequently to improve retention."
+                )
             elif avg_rating > 3.5:
-                recommendations.append("You're doing great! Consider adding more challenging cards.")
+                recommendations.append(
+                    "You're doing great! Consider adding more challenging cards."
+                )
 
         return recommendations
 
-    def _detect_achievements(self, session: Session, reviews: List[Review], historical_sessions: List[Session]) -> List[str]:
+    def _detect_achievements(
+        self,
+        session: Session,
+        reviews: List[Review],
+        historical_sessions: List[Session],
+    ) -> List[str]:
         """Detect achievements and positive milestones."""
         achievements = []
 
@@ -646,25 +766,38 @@ class SessionManager:
         if duration_minutes > 0:
             cards_per_minute = session.cards_reviewed / duration_minutes
             if cards_per_minute > 1.0:
-                achievements.append("⚡ High efficiency - over 1 card per minute!")
+                achievements.append(
+                    "⚡ High efficiency - over 1 card per minute!"
+                )
 
         return achievements
 
-    def _generate_alerts(self, session: Session, reviews: List[Review], comparisons: Dict[str, Any]) -> List[str]:
+    def _generate_alerts(
+        self,
+        session: Session,
+        reviews: List[Review],
+        comparisons: Dict[str, Any],
+    ) -> List[str]:
         """Generate alerts for concerning patterns."""
         alerts = []
 
         # Performance decline alerts
         vs_last = comparisons.get("vs_last_session", {})
         if vs_last.get("cards_reviewed", 0) < -50:
-            alerts.append("⚠️ Significant decrease in cards reviewed compared to last session.")
+            alerts.append(
+                "⚠️ Significant decrease in cards reviewed compared to last session."
+            )
 
         # Fatigue alerts
         if session.interruptions > 5:
-            alerts.append("⚠️ High number of interruptions detected - consider taking a break.")
+            alerts.append(
+                "⚠️ High number of interruptions detected - consider taking a break."
+            )
 
         # Trend alerts
         if comparisons.get("trend_direction") == "declining":
-            alerts.append("📉 Performance trend is declining - consider adjusting study schedule.")
+            alerts.append(
+                "📉 Performance trend is declining - consider adjusting study schedule."
+            )
 
         return alerts
