@@ -306,7 +306,7 @@ class TestReviewProcessor:
         # Handle NaN values properly
         import math
         if sample_card.stability is None:
-            assert math.isnan(review.stab_before) or review.stab_before is None
+            assert review.stab_before is None or math.isnan(review.stab_before)
         else:
             assert review.stab_before == sample_card.stability
         assert review.stab_after == mock_scheduler_output.stab
