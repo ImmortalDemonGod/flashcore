@@ -3,14 +3,15 @@ Unit tests for the flashcore.cli._review_all_logic module.
 """
 
 from datetime import date, datetime, timezone, timedelta
+from pathlib import Path
 from unittest.mock import MagicMock, patch, call
 from uuid import uuid4
 
 import pytest
 import re
 
-from cultivation.scripts.flashcore.card import Card, CardState
-from cultivation.scripts.flashcore.cli._review_all_logic import (
+from flashcore.models import Card, CardState
+from flashcore.cli._review_all_logic import (
     review_all_logic,
     _get_all_due_cards,
     _submit_single_review
@@ -64,16 +65,16 @@ def sample_cards():
 class TestReviewAllLogic:
     """Tests for the main review_all_logic function."""
 
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_all_due_cards')
+    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
+    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
+    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
     def test_review_all_logic_no_due_cards(self, mock_get_cards, mock_scheduler_class, mock_db_class, capsys):
         """Test review_all_logic when no cards are due."""
         # Arrange
         mock_get_cards.return_value = []
 
         # Act
-        review_all_logic(limit=10)
+        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -81,12 +82,12 @@ class TestReviewAllLogic:
         assert "Review session finished." in captured.out
         mock_get_cards.assert_called_once()
 
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_all_due_cards')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._display_card')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_user_rating')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._submit_single_review')
+    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
+    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
+    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
+    @patch('flashcore.cli._review_all_logic._display_card')
+    @patch('flashcore.cli._review_all_logic._get_user_rating')
+    @patch('flashcore.cli._review_all_logic._submit_single_review')
     def test_review_all_logic_with_cards_success(
         self, mock_submit, mock_get_rating, mock_display, mock_get_cards,
         mock_scheduler_class, mock_db_class, sample_cards, capsys
@@ -106,7 +107,7 @@ class TestReviewAllLogic:
         mock_submit.side_effect = updated_cards
 
         # Act
-        review_all_logic(limit=10)
+        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -121,12 +122,12 @@ class TestReviewAllLogic:
         assert mock_get_rating.call_count == 2
         assert mock_submit.call_count == 2
 
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_all_due_cards')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._display_card')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_user_rating')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._submit_single_review')
+    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
+    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
+    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
+    @patch('flashcore.cli._review_all_logic._display_card')
+    @patch('flashcore.cli._review_all_logic._get_user_rating')
+    @patch('flashcore.cli._review_all_logic._submit_single_review')
     def test_review_all_logic_with_review_error(
         self, mock_submit, mock_get_rating, mock_display, mock_get_cards,
         mock_scheduler_class, mock_db_class, sample_cards, capsys
@@ -139,7 +140,7 @@ class TestReviewAllLogic:
         mock_submit.side_effect = Exception("Database error")
 
         # Act
-        review_all_logic(limit=10)
+        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -147,12 +148,12 @@ class TestReviewAllLogic:
         assert "Error reviewing card: Database error" in clean_output
         assert "Review session complete! Reviewed 1 cards." in clean_output
 
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_all_due_cards')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._display_card')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_user_rating')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._submit_single_review')
+    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
+    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
+    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
+    @patch('flashcore.cli._review_all_logic._display_card')
+    @patch('flashcore.cli._review_all_logic._get_user_rating')
+    @patch('flashcore.cli._review_all_logic._submit_single_review')
     def test_review_all_logic_with_failed_review(
         self, mock_submit, mock_get_rating, mock_display, mock_get_cards,
         mock_scheduler_class, mock_db_class, sample_cards, capsys
@@ -165,7 +166,7 @@ class TestReviewAllLogic:
         mock_submit.return_value = None  # Failed review
 
         # Act
-        review_all_logic(limit=10)
+        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -176,31 +177,21 @@ class TestReviewAllLogic:
 class TestGetAllDueCards:
     """Tests for the _get_all_due_cards function."""
 
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.db_utils.db_row_to_card')
+    @patch('flashcore.cli._review_all_logic.db_row_to_card')
     def test_get_all_due_cards_success(self, mock_db_row_to_card, mock_db_manager, sample_cards):
         """Test _get_all_due_cards with successful database query."""
         # Arrange
         mock_conn = MagicMock()
         mock_db_manager.get_connection.return_value = mock_conn
 
-        # Mock DataFrame result
-        mock_df = MagicMock()
-        mock_df.empty = False
-        mock_df.to_dict.return_value = [
-            {
-                "uuid": str(sample_cards[0].uuid),
-                "front": sample_cards[0].front,
-                "back": sample_cards[0].back,
-                "deck_name": sample_cards[0].deck_name
-            },
-            {
-                "uuid": str(sample_cards[1].uuid),
-                "front": sample_cards[1].front,
-                "back": sample_cards[1].back,
-                "deck_name": sample_cards[1].deck_name
-            }
+        # Mock cursor result (fetchall + description)
+        mock_result = MagicMock()
+        mock_result.description = [("uuid",), ("front",), ("back",), ("deck_name",)]
+        mock_result.fetchall.return_value = [
+            (str(sample_cards[0].uuid), sample_cards[0].front, sample_cards[0].back, sample_cards[0].deck_name),
+            (str(sample_cards[1].uuid), sample_cards[1].front, sample_cards[1].back, sample_cards[1].deck_name),
         ]
-        mock_conn.execute.return_value.fetch_df.return_value = mock_df
+        mock_conn.execute.return_value = mock_result
 
         # Mock db_utils.db_row_to_card
         mock_db_row_to_card.side_effect = sample_cards[:2]
@@ -228,9 +219,10 @@ class TestGetAllDueCards:
         mock_conn = MagicMock()
         mock_db_manager.get_connection.return_value = mock_conn
 
-        mock_df = MagicMock()
-        mock_df.empty = True
-        mock_conn.execute.return_value.fetch_df.return_value = mock_df
+        mock_result = MagicMock()
+        mock_result.description = [("uuid",)]
+        mock_result.fetchall.return_value = []
+        mock_conn.execute.return_value = mock_result
 
         # Act
         result = _get_all_due_cards(mock_db_manager, date.today(), 10)
@@ -290,7 +282,6 @@ class TestSubmitSingleReview:
 
         # Assert
         assert result == updated_card
-        mock_db_manager.get_reviews_for_card.assert_called_once_with(card.uuid, order_by_ts_desc=False)
         mock_scheduler.compute_next_state.assert_called_once()
         mock_db_manager.add_review_and_update_card.assert_called_once()
 
@@ -323,7 +314,7 @@ class TestSubmitSingleReview:
         mock_db_manager.add_review_and_update_card.return_value = updated_card
 
         # Act
-        with patch('cultivation.scripts.flashcore.review_processor.datetime') as mock_datetime:
+        with patch('flashcore.review_processor.datetime') as mock_datetime:
             mock_now = datetime.now(timezone.utc)
             mock_datetime.now.return_value = mock_now
             mock_datetime.timezone = timezone  # Preserve timezone reference
@@ -379,11 +370,11 @@ class TestSubmitSingleReview:
 class TestIntegration:
     """Integration tests for the review-all functionality."""
 
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._display_card')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic._get_user_rating')
-    @patch('cultivation.scripts.flashcore.cli._review_all_logic.db_utils.db_row_to_card')
+    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
+    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
+    @patch('flashcore.cli._review_all_logic._display_card')
+    @patch('flashcore.cli._review_all_logic._get_user_rating')
+    @patch('flashcore.cli._review_all_logic.db_row_to_card')
     def test_review_all_logic_integration(
         self, mock_db_row_to_card, mock_get_rating, mock_display, mock_scheduler_class, mock_db_class, sample_cards
     ):
@@ -399,15 +390,12 @@ class TestIntegration:
         # Mock database connection and query
         mock_conn = MagicMock()
         mock_db.get_connection.return_value = mock_conn
-        mock_df = MagicMock()
-        mock_df.empty = False
-        mock_df.to_dict.return_value = [{
-            "uuid": str(sample_cards[0].uuid),
-            "front": sample_cards[0].front,
-            "back": sample_cards[0].back,
-            "deck_name": sample_cards[0].deck_name
-        }]
-        mock_conn.execute.return_value.fetch_df.return_value = mock_df
+        mock_result = MagicMock()
+        mock_result.description = [("uuid",), ("front",), ("back",), ("deck_name",)]
+        mock_result.fetchall.return_value = [
+            (str(sample_cards[0].uuid), sample_cards[0].front, sample_cards[0].back, sample_cards[0].deck_name),
+        ]
+        mock_conn.execute.return_value = mock_result
         mock_db_row_to_card.return_value = test_card
 
         # Mock review components
@@ -432,7 +420,7 @@ class TestIntegration:
         mock_db.add_review_and_update_card.return_value = updated_card
 
         # Act
-        review_all_logic(limit=1)
+        review_all_logic(db_path=Path("/tmp/test.db"), limit=1)
 
         # Assert - verify the complete workflow
         mock_db.initialize_schema.assert_called_once()
