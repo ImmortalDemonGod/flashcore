@@ -38,7 +38,7 @@ class TestReviewLogicDuplication:
             deck_name="Test Deck",
             front="What is 2+2?",
             back="4",
-            tags={"math"}
+            tags={"math"},
         )
 
     @pytest.fixture
@@ -51,7 +51,7 @@ class TestReviewLogicDuplication:
             scheduled_days=1,
             review_type="learn",
             elapsed_days=0,
-            state=CardState.Learning
+            state=CardState.Learning,
         )
 
     def test_both_methods_have_identical_core_logic(self, in_memory_db, sample_card):
@@ -70,7 +70,7 @@ class TestReviewLogicDuplication:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name=sample_card.deck_name
+            deck_name=sample_card.deck_name,
         )
         manager.initialize_session()
 
@@ -79,7 +79,7 @@ class TestReviewLogicDuplication:
             rating=rating,
             resp_ms=resp_ms,
             eval_ms=eval_ms,
-            reviewed_at=review_ts
+            reviewed_at=review_ts,
         )
 
         # Get the review created by method 1
@@ -91,7 +91,7 @@ class TestReviewLogicDuplication:
             deck_name="Test Deck",
             front="What is 2+2?",
             back="4",
-            tags={"math"}
+            tags={"math"},
         )
         in_memory_db.upsert_cards_batch([sample_card2])
 
@@ -103,7 +103,7 @@ class TestReviewLogicDuplication:
             rating=rating,
             resp_ms=resp_ms,
             eval_ms=eval_ms,
-            reviewed_at=review_ts
+            reviewed_at=review_ts,
         )
 
         # Get the review created by method 2
@@ -124,6 +124,7 @@ class TestReviewLogicDuplication:
 
         # Handle NaN values properly
         import math
+
         if review1.stab_before is None and review2.stab_before is None:
             pass  # Both None, good
         elif math.isnan(review1.stab_before) and math.isnan(review2.stab_before):
@@ -155,7 +156,7 @@ class TestReviewLogicDuplication:
             "3. Call scheduler.compute_next_state()",
             "4. Create Review object with scheduler output",
             "5. Call db.add_review_and_update_card()",
-            "6. Return updated card"
+            "6. Return updated card",
         ]
 
         # Both methods have identical parameters (except session management):
@@ -163,7 +164,7 @@ class TestReviewLogicDuplication:
             "rating: int",
             "resp_ms: int",
             "eval_ms: int",
-            "reviewed_at: Optional[datetime]"
+            "reviewed_at: Optional[datetime]",
         ]
 
         # Both methods create identical Review objects with same fields:
@@ -179,7 +180,7 @@ class TestReviewLogicDuplication:
             "next_due",
             "elapsed_days_at_review",
             "scheduled_days_interval",
-            "review_type"
+            "review_type",
         ]
 
         # This test passes to document the duplication
@@ -209,15 +210,12 @@ class TestReviewLogicDuplication:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name=sample_card.deck_name
+            deck_name=sample_card.deck_name,
         )
         manager.initialize_session()
 
         updated_card1 = manager.submit_review(
-            card_uuid=sample_card.uuid,
-            rating=3,
-            resp_ms=1000,
-            eval_ms=500
+            card_uuid=sample_card.uuid, rating=3, resp_ms=1000, eval_ms=500
         )
 
         review1 = in_memory_db.get_reviews_for_card(sample_card.uuid)[0]
@@ -228,7 +226,7 @@ class TestReviewLogicDuplication:
             deck_name="Test Deck",
             front="What is 3+3?",
             back="6",
-            tags={"math"}
+            tags={"math"},
         )
         in_memory_db.upsert_cards_batch([sample_card2])
 
@@ -239,7 +237,7 @@ class TestReviewLogicDuplication:
             card=sample_card2,
             rating=3,
             resp_ms=1000,
-            eval_ms=500
+            eval_ms=500,
         )
 
         review2 = in_memory_db.get_reviews_for_card(sample_card2.uuid)[0]
@@ -251,7 +249,7 @@ class TestReviewLogicDuplication:
         # standalone reviews don't
 
         assert review1.session_uuid is not None  # Fixed! Now has session UUID
-        assert review2.session_uuid is None      # Correct! No session for review-all
+        assert review2.session_uuid is None  # Correct! No session for review-all
 
         # This test documents that the maintenance hazard has been FIXED
         # by consolidating the logic into a shared ReviewProcessor service
@@ -274,10 +272,10 @@ class TestReviewLogicConsolidationRequirements:
                 "resp_ms: int = 0",
                 "eval_ms: int = 0",
                 "reviewed_at: Optional[datetime] = None",
-                "session_uuid: Optional[UUID] = None"  # For future session tracking
+                "session_uuid: Optional[UUID] = None",  # For future session tracking
             ],
             "return_type": "Card",
-            "raises": ["ValueError", "CardOperationError"]
+            "raises": ["ValueError", "CardOperationError"],
         }
 
         # The service should encapsulate all the common logic:
@@ -287,13 +285,13 @@ class TestReviewLogicConsolidationRequirements:
             "Scheduler computation",
             "Review object creation",
             "Database persistence",
-            "Error handling"
+            "Error handling",
         ]
 
         # Both existing methods should become thin wrappers:
         wrapper_responsibilities = [
             "ReviewSessionManager: Session management + call ReviewProcessor",
-            "_submit_single_review: Direct call to ReviewProcessor"
+            "_submit_single_review: Direct call to ReviewProcessor",
         ]
 
         # Verify requirements are well-defined
@@ -311,7 +309,7 @@ class TestReviewLogicConsolidationRequirements:
             "Return values identical",
             "Error handling identical",
             "Database operations identical",
-            "All existing tests pass"
+            "All existing tests pass",
         ]
 
         # No breaking changes allowed:
@@ -319,7 +317,7 @@ class TestReviewLogicConsolidationRequirements:
             "Method signature changes",
             "Return type changes",
             "Exception type changes",
-            "Behavioral changes"
+            "Behavioral changes",
         ]
 
         assert len(compatibility_requirements) == 6
@@ -332,7 +330,7 @@ class TestReviewLogicConsolidationRequirements:
             "Single place to add session_uuid parameter",
             "Single place to link reviews to sessions",
             "Consistent session handling across all review workflows",
-            "Easy to add session analytics"
+            "Easy to add session analytics",
         ]
 
         # This addresses Issue 3 (Unused Session Analytics) preparation:
@@ -340,7 +338,7 @@ class TestReviewLogicConsolidationRequirements:
             "ReviewProcessor accepts optional session_uuid",
             "ReviewProcessor passes session_uuid to Review creation",
             "Both review workflows can easily provide session_uuid",
-            "Foundation for session-level analytics"
+            "Foundation for session-level analytics",
         ]
 
         assert len(session_integration_goals) == 4
