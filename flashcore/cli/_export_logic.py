@@ -6,8 +6,8 @@ import logging
 from pathlib import Path
 from collections import defaultdict
 
-from ..database import FlashcardDatabase
-from ..card import Card
+from flashcore.db.database import FlashcardDatabase
+from flashcore.models import Card
 
 logger = logging.getLogger(__name__)
 
