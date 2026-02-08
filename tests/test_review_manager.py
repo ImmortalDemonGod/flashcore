@@ -19,7 +19,14 @@ from flashcore.review_manager import ReviewSessionManager
 
 @pytest.fixture
 def mock_db() -> MagicMock:
-    """Provides a MagicMock for FlashcardDatabase."""
+    """
+    Create a MagicMock preconfigured to mimic a FlashcardDatabase for tests.
+    
+    The mock exposes a CardOperationError attribute and sensible default return values for common database methods used in tests (empty lists or None), and provides a MagicMock for add_review_and_update_card.
+    
+    Returns:
+        MagicMock: A MagicMock with the FlashcardDatabase spec and configured defaults.
+    """
     db = MagicMock(spec=FlashcardDatabase)
     db.CardOperationError = CardOperationError
     db.get_due_cards.return_value = []
@@ -48,6 +55,17 @@ def mock_scheduler() -> MagicMock:
 
 @pytest.fixture
 def sample_card_data() -> dict:
+    """
+    Provide a sample card data dictionary for tests.
+    
+    Returns:
+        dict: A dictionary representing a sample flashcard with keys:
+            - uuid (UUID): Randomly generated UUID for the card.
+            - deck_name (str): Name of the deck ("Test Deck").
+            - front (str): Front text of the card ("Test Front").
+            - back (str): Back text of the card ("Test Back").
+            - added_at (datetime): UTC timestamp set to 30 days before now.
+    """
     return {
         "uuid": uuid.uuid4(),
         "deck_name": "Test Deck",
@@ -59,6 +77,15 @@ def sample_card_data() -> dict:
 
 @pytest.fixture
 def sample_card(sample_card_data: dict) -> Card:
+    """
+    Create a Card instance from a mapping of card fields.
+    
+    Parameters:
+        sample_card_data (dict): Dictionary containing card attributes (e.g., "uuid", "deck_name", "front", "back", "added_at") used to construct the Card.
+    
+    Returns:
+        Card: A Card object populated with values from `sample_card_data`.
+    """
     return Card(**sample_card_data)
 
 
@@ -77,7 +104,12 @@ def review_manager(
 
 @pytest.fixture
 def in_memory_db() -> FlashcardDatabase:
-    """Provides an in-memory FlashcardDatabase instance for integration tests."""
+    """
+    Create a FlashcardDatabase backed by an in-memory SQLite database for integration tests.
+    
+    Returns:
+        FlashcardDatabase: A database instance using ":memory:" with its schema initialized.
+    """
     db = FlashcardDatabase(db_path=":memory:")
     db.initialize_schema()
     return db

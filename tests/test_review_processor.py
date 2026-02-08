@@ -22,7 +22,12 @@ class TestReviewProcessor:
 
     @pytest.fixture
     def in_memory_db(self):
-        """Create an in-memory database for testing."""
+        """
+        Create and initialize an in-memory FlashcardDatabase for use in tests.
+        
+        Returns:
+            FlashcardDatabase: An initialized database instance backed by an in-memory SQLite store.
+        """
         db = FlashcardDatabase(":memory:")
         db.initialize_schema()
         return db
@@ -40,7 +45,12 @@ class TestReviewProcessor:
 
     @pytest.fixture
     def mock_scheduler_output(self):
-        """Create a mock scheduler output."""
+        """
+        Constructs a SchedulerOutput used in tests with fixed, predictable values.
+        
+        Returns:
+            SchedulerOutput: An instance with stab=2.5, diff=5.0, next_due set to the current date, scheduled_days=1, review_type="learn", elapsed_days=0, and state=CardState.Learning.
+        """
         return SchedulerOutput(
             stab=2.5,
             diff=5.0,
@@ -341,7 +351,12 @@ class TestReviewProcessorIntegration:
 
     @pytest.fixture
     def in_memory_db(self):
-        """Create an in-memory database for testing."""
+        """
+        Create and initialize an in-memory FlashcardDatabase for use in tests.
+        
+        Returns:
+            FlashcardDatabase: An initialized database instance backed by an in-memory SQLite store.
+        """
         db = FlashcardDatabase(":memory:")
         db.initialize_schema()
         return db

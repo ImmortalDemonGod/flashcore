@@ -21,19 +21,37 @@ class TestSessionManager:
 
     @pytest.fixture
     def in_memory_db(self):
-        """Create an in-memory database for testing."""
+        """
+        Create and initialize an in-memory FlashcardDatabase for use in tests.
+        
+        Returns:
+            FlashcardDatabase: an in-memory database instance with its schema initialized.
+        """
         db = FlashcardDatabase(":memory:")
         db.initialize_schema()
         return db
 
     @pytest.fixture
     def session_manager(self, in_memory_db):
-        """Create a SessionManager instance for testing."""
+        """
+        Create a SessionManager configured with the provided in-memory database for testing.
+        
+        Parameters:
+            in_memory_db: An initialized in-memory FlashcardDatabase instance to back the SessionManager.
+        
+        Returns:
+            session_manager (SessionManager): A SessionManager bound to `in_memory_db` and using the test user_id "test_user".
+        """
         return SessionManager(in_memory_db, user_id="test_user")
 
     @pytest.fixture
     def sample_cards(self):
-        """Create sample cards for testing."""
+        """
+        Create a small list of sample flashcards for tests.
+        
+        Returns:
+            list[Card]: Three Card instances in the "Math" deck (UUIDs generated), with fronts like "What is 1+1?" and corresponding backs ("2"), each tagged with "math" and "basic".
+        """
         return [
             Card(
                 uuid=uuid4(),
@@ -377,14 +395,27 @@ class TestSessionManagerIntegration:
 
     @pytest.fixture
     def in_memory_db(self):
-        """Create an in-memory database for testing."""
+        """
+        Create and initialize an in-memory FlashcardDatabase for use in tests.
+        
+        Returns:
+            FlashcardDatabase: an in-memory database instance with its schema initialized.
+        """
         db = FlashcardDatabase(":memory:")
         db.initialize_schema()
         return db
 
     @pytest.fixture
     def session_manager(self, in_memory_db):
-        """Create a SessionManager instance for testing."""
+        """
+        Create a SessionManager configured for integration tests.
+        
+        Parameters:
+            in_memory_db: An initialized in-memory FlashcardDatabase fixture used for persistence during tests.
+        
+        Returns:
+            SessionManager: A SessionManager instance bound to the provided database and the test user_id "integration_test_user".
+        """
         return SessionManager(in_memory_db, user_id="integration_test_user")
 
     def test_end_to_end_session_workflow(self, session_manager):
@@ -526,7 +557,11 @@ class TestSessionManagerIntegration:
         assert manager.current_session.cards_reviewed == 1
 
     def test_record_interruption_db_error_continues(self, in_memory_db):
-        """Test that record_interruption logs error but doesn't crash on DB failure."""
+        """
+        Ensure recording an interruption increments the in-memory interruption counter even if the database update raises an error.
+        
+        Starts a session, simulates a database failure when persisting the session update, calls `record_interruption`, and verifies `current_session.interruptions` increments to 1.
+        """
         manager = SessionManager(in_memory_db, user_id="test_user")
         manager.start_session()
         with patch.object(

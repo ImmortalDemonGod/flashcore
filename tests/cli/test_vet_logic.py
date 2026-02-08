@@ -8,7 +8,15 @@ from flashcore.cli._vet_logic import vet_logic
 
 @pytest.fixture
 def yaml_handler():
-    """Provides a configured ruamel.yaml instance."""
+    """
+    Create and return a configured ruamel.yaml.YAML instance.
+    
+    The returned YAML instance preserves quotes and uses an indentation of 2 for mappings,
+    4 for sequences, and an offset of 2 to produce consistently formatted YAML.
+    
+    Returns:
+        yaml (ruamel.yaml.YAML): Configured YAML processor instance.
+    """
     yaml = YAML()
     yaml.preserve_quotes = True
     yaml.indent(mapping=2, sequence=4, offset=2)
@@ -32,7 +40,9 @@ def test_vet_logic_no_yaml_files(tmp_path: Path, capsys):
 
 def test_vet_logic_clean_files_check_mode(tmp_path: Path, yaml_handler, capsys):
     """
-    Tests that vet_logic in --check mode correctly identifies clean files.
+    Verify that vet_logic reports no changes and indicates all files are clean when given a properly formatted YAML file in check mode.
+    
+    Creates a YAML file containing a single card whose keys are alphabetically ordered and include a valid UUID, runs vet_logic with check=True, and asserts that no changes are needed and the captured output contains "All files are clean".
     """
     # Keys must be sorted alphabetically for the file to be considered "clean"
     # Use a valid UUID format and sort card keys alphabetically (a, q, uuid)

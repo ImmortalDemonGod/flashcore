@@ -14,12 +14,16 @@ logger = logging.getLogger(__name__)
 
 def export_to_markdown(db: FlashcardDatabase, output_dir: Path) -> None:
     """
-    Exports all flashcards from the database to Markdown files.
-    Each deck is saved as a separate file in the output directory.
-
-    Args:
-        db: An initialized FlashcardDatabase instance.
-        output_dir: The directory where Markdown files will be saved.
+    Export all flashcards from the database into Markdown files, one file per deck, saved under output_dir.
+    
+    Creates the output directory if missing (raises IOError on failure). For each deck a Markdown file named from a sanitized deck name is written containing a header with the deck name and entries for each card (cards are written sorted by front; tags, if present, are written sorted alphabetically). File write errors for individual decks are logged and do not stop the overall export.
+    
+    Parameters:
+        db (FlashcardDatabase): Source database from which to retrieve flashcards.
+        output_dir (Path): Destination directory for generated Markdown files.
+    
+    Raises:
+        IOError: If the output directory cannot be created.
     """
     logger.info(f"Starting Markdown export to directory: {output_dir}")
 

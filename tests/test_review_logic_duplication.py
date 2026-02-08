@@ -23,14 +23,24 @@ class TestReviewLogicDuplication:
 
     @pytest.fixture
     def in_memory_db(self):
-        """Create an in-memory database for testing."""
+        """
+        Create and initialize an in-memory FlashcardDatabase for use in tests.
+        
+        Returns:
+            FlashcardDatabase: a database instance connected to an in-memory SQLite store with its schema initialized.
+        """
         db = FlashcardDatabase(":memory:")
         db.initialize_schema()
         return db
 
     @pytest.fixture
     def sample_card(self):
-        """Create a sample card for testing."""
+        """
+        Create a sample flashcard used in tests.
+        
+        Returns:
+            Card: A Card instance with a generated UUID, deck_name "Test Deck", front "What is 2+2?", back "4", and tags {"math"}.
+        """
         return Card(
             uuid=uuid4(),
             deck_name="Test Deck",
@@ -41,7 +51,12 @@ class TestReviewLogicDuplication:
 
     @pytest.fixture
     def mock_scheduler_output(self):
-        """Create a mock scheduler output."""
+        """
+        Provide a SchedulerOutput with preset fields for tests.
+        
+        Returns:
+            SchedulerOutput: instance with stab=2.5, diff=5.0, next_due set to date.today(), scheduled_days=1, review_type="learn", elapsed_days=0, and state=CardState.Learning
+        """
         return SchedulerOutput(
             stab=2.5,
             diff=5.0,
@@ -257,7 +272,11 @@ class TestReviewLogicConsolidationRequirements:
     """Test that defines requirements for the consolidated review logic."""
 
     def test_shared_service_interface_requirements(self):
-        """Test that defines the interface requirements for the shared review service."""
+        """
+        Define and verify the required interface and responsibilities for a consolidated ReviewProcessor service.
+        
+        Asserts that a canonical interface is specified (class name, method name, parameters, return type, and raised exceptions), that the service will encapsulate the expected review-processing responsibilities, and that existing callsites become thin wrappers delegating to the service.
+        """
         # The shared service should have this interface:
         required_interface = {
             "class_name": "ReviewProcessor",

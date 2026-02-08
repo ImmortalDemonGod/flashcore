@@ -15,13 +15,26 @@ from flashcore.db.database import FlashcardDatabase
 
 @pytest.fixture
 def mock_db():
-    """Fixture for a mocked FlashcardDatabase."""
+    """
+    Pytest fixture that provides a MagicMock constrained to the FlashcardDatabase interface.
+    
+    Returns:
+        MagicMock: A mock object with the spec of `FlashcardDatabase`, suitable for configuring database call expectations in tests.
+    """
     return MagicMock(spec=FlashcardDatabase)
 
 
 @pytest.fixture
 def sample_cards():
-    """Fixture for a list of sample Card objects."""
+    """
+    Provide a list of sample Card objects used by tests.
+    
+    Returns:
+        list[Card]: Three Card instances in deterministic order:
+            - Card(front="Q1", back="A1", deck_name="Deck 1", tags={"tag1", "tag2"})
+            - Card(front="Q3", back="A3", deck_name="Deck 2")
+            - Card(front="Q2", back="A2", deck_name="Deck 1", tags={"tag3"})
+    """
     return [
         Card(front="Q1", back="A1", deck_name="Deck 1", tags={"tag1", "tag2"}),
         Card(front="Q3", back="A3", deck_name="Deck 2"),
@@ -100,6 +113,20 @@ def test_export_to_markdown_file_write_error(mock_db, sample_cards, tmp_path, ca
     original_open = open
 
     def mock_open(file, *args, **kwargs):
+        """
+        Simulate an `open` that fails with a disk-full error for files whose path contains "Deck 2".
+        
+        Parameters:
+            file (str | os.PathLike): Path or filename to open. If the string form contains "Deck 2", an IOError is raised.
+            *args: Positional arguments forwarded to the original `open`.
+            **kwargs: Keyword arguments forwarded to the original `open`.
+        
+        Returns:
+            file object: The file object returned by the original `open` when no simulated error occurs.
+        
+        Raises:
+            IOError: With message "Disk full" when "Deck 2" appears in the provided file path.
+        """
         if "Deck 2" in str(file):
             raise IOError("Disk full")
         return original_open(file, *args, **kwargs)

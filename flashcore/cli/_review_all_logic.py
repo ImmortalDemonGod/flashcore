@@ -20,11 +20,13 @@ console = Console()
 
 def review_all_logic(db_path: Path, limit: int = 50):
     """
-    Core logic for reviewing all due cards across all decks.
-
-    Args:
-        db_path: Path to the database file (DI, no defaults).
-        limit: Maximum number of cards to review in this session.
+    Run a unified review session for all cards due on the local date, up to a specified limit.
+    
+    Opens the flashcard database, fetches due cards across all decks, presents a per-deck summary, iterates through each due card to collect a user rating, submits each review, and prints per-card and session-level results.
+    
+    Parameters:
+        db_path (Path): Filesystem path to the flashcard database file.
+        limit (int): Maximum number of due cards to include in this review session.
     """
     with FlashcardDatabase(db_path=db_path) as db_manager:
         db_manager.initialize_schema()
@@ -105,15 +107,17 @@ def _get_all_due_cards(
     db_manager: FlashcardDatabase, on_date: date, limit: int
 ) -> List[Card]:
     """
-    Get all due cards across all decks, sorted by priority.
-
-    Args:
-        db_manager: Database manager instance
-        on_date: Date to check for due cards
-        limit: Maximum number of cards to return
-
+    Retrieve due flashcards across all decks up to the specified limit.
+    
+    Cards are prioritized with never-reviewed cards first, then by oldest next-due date, grouped by deck, and finally by the card's added time.
+    
+    Parameters:
+        db_manager (FlashcardDatabase): Database manager providing a connection to fetch cards.
+        on_date (date): Date to test card due status (cards with next_due_date on or before this date are due; NULL counts as due).
+        limit (int): Maximum number of cards to return.
+    
     Returns:
-        List of due cards sorted by priority (oldest due first, then by deck)
+        List[Card]: A list of due Card objects ordered by priority. Returns an empty list if no cards match or if an error occurs while fetching.
     """
     conn = db_manager.get_connection()
 
@@ -156,21 +160,17 @@ def _submit_single_review(
     reviewed_at: Optional[datetime] = None,
 ) -> Optional[Card]:
     """
-    Submit a review for a single card without using ReviewSessionManager.
-
-    This function now uses the shared ReviewProcessor for consistent logic.
-
-    Args:
-        db_manager: Database manager instance
-        scheduler: FSRS scheduler instance
-        card: Card being reviewed
-        rating: User's rating (1-4: Again, Hard, Good, Easy)
-        resp_ms: Response time in milliseconds (time to reveal answer)
-        eval_ms: Evaluation time in milliseconds (time to provide rating)
-        reviewed_at: Review timestamp (defaults to now)
-
+    Process and submit a single card review using the shared ReviewProcessor.
+    
+    Parameters:
+        card (Card): The card being reviewed.
+        rating (int): User's rating where 1=Again, 2=Hard, 3=Good, 4=Easy.
+        resp_ms (int): Time in milliseconds to reveal the answer.
+        eval_ms (int): Time in milliseconds to provide the rating.
+        reviewed_at (Optional[datetime]): Timestamp of the review; if omitted, the processor will use the current time.
+    
     Returns:
-        Updated card or None if error
+        Optional[Card]: The updated Card on success, or `None` if an error occurred.
     """
     try:
         # Use the shared review processor for consistent logic

@@ -24,14 +24,24 @@ class TestRatingSystemInconsistency:
 
     @pytest.fixture
     def in_memory_db(self):
-        """Create an in-memory database for testing."""
+        """
+        Create an in-memory FlashcardDatabase with its schema initialized for testing.
+        
+        Returns:
+            FlashcardDatabase: A database instance backed by an in-memory SQLite database with the schema created.
+        """
         db = FlashcardDatabase(":memory:")
         db.initialize_schema()
         return db
 
     @pytest.fixture
     def sample_card(self):
-        """Create a sample card for testing."""
+        """
+        Create and return a sample Card populated with predictable test data.
+        
+        Returns:
+            Card: A Card with a generated UUID, deck "Test Deck", front "What is 2+2?", back "4", and tags {"math"}.
+        """
         return Card(
             uuid=uuid4(),
             deck_name="Test Deck",
@@ -42,7 +52,12 @@ class TestRatingSystemInconsistency:
 
     @pytest.fixture
     def scheduler(self):
-        """Create a scheduler for testing."""
+        """
+        Create an FSRS_Scheduler instance for use in tests.
+        
+        Returns:
+            FSRS_Scheduler: A new scheduler instance configured for testing.
+        """
         return FSRS_Scheduler()
 
     def test_ui_rating_scale_is_1_to_4_after_fix(self):
@@ -235,7 +250,11 @@ class TestRatingSystemInconsistency:
         # This test verifies the fix: unified rating scale, no conversion needed
 
     def test_scheduler_rating_mapping_clarity_after_fix(self, scheduler):
-        """Test that scheduler rating mapping is now clear and unambiguous."""
+        """
+        Verifies the scheduler maps the unified 1–4 rating scale to FSRS rating names unambiguously and rejects invalid values.
+        
+        Asserts that 1 maps to "Again", 2 to "Hard", 3 to "Good", and 4 to "Easy". Also asserts that an out-of-range value (0) raises a ValueError.
+        """
         # After the fix, the scheduler only handles one scale (1-4)
         # This eliminates the previous ambiguity
 
