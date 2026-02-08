@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 from ruamel.yaml import YAML
 
-from cultivation.scripts.flashcore.cli._vet_logic import vet_logic
+from flashcore.cli._vet_logic import vet_logic
 
 
 @pytest.fixture
