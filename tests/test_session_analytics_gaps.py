@@ -13,15 +13,13 @@ This test suite exposes the gaps and defines requirements for full session analy
 """
 
 import pytest
-from datetime import datetime, timezone, timedelta, date
+from datetime import datetime, timezone
 from uuid import uuid4
-from unittest.mock import MagicMock, patch
 
-from flashcore.models import Card, Session, CardState
+from flashcore.models import Card, Session
 from flashcore.db.database import FlashcardDatabase
 from flashcore.scheduler import FSRS_Scheduler
 from flashcore.review_manager import ReviewSessionManager
-from flashcore.cli._review_all_logic import _submit_single_review
 
 
 class TestSessionAnalyticsGaps:
@@ -149,7 +147,6 @@ class TestSessionAnalyticsGaps:
         )
 
         # GAP: No session start tracking
-        start_time = datetime.now(timezone.utc)
         manager.initialize_session()
 
         # GAP: No session end tracking
@@ -246,7 +243,7 @@ class TestSessionAnalyticsGaps:
             platform="cli",
         )
 
-        created_session = in_memory_db.create_session(session)
+        in_memory_db.create_session(session)
 
         # GAP: No session insights generation
         # Should provide insights like:
