@@ -1,6 +1,7 @@
 """
 Logic for the 'vet' subcommand, which validates and cleans flashcard YAML files.
 """
+
 import uuid
 import copy
 from io import StringIO
@@ -46,7 +47,9 @@ def _validate_and_normalize_card(
         mapped_card_dict.pop("uuid")
 
     # 2.5. Convert string UUID to UUID object if present
-    if "uuid" in mapped_card_dict and isinstance(mapped_card_dict["uuid"], str):
+    if "uuid" in mapped_card_dict and isinstance(
+        mapped_card_dict["uuid"], str
+    ):
         try:
             mapped_card_dict["uuid"] = uuid.UUID(mapped_card_dict["uuid"])
         except ValueError:
@@ -82,7 +85,9 @@ def _validate_and_process_cards(
     validation_error_found = False
     for i, raw_card_dict in enumerate(raw_cards):
         try:
-            processed_card = _validate_and_normalize_card(raw_card_dict, deck_name)
+            processed_card = _validate_and_normalize_card(
+                raw_card_dict, deck_name
+            )
             vetted_cards.append(processed_card)
         except (ValidationError, TypeError) as e:
             console.print(
@@ -102,9 +107,12 @@ def _validate_and_process_cards(
 
 def _sort_and_format_data(data: Dict[str, Any]) -> str:
     """Sorts cards and top-level keys, and returns the formatted YAML string."""
+
     def normalize_front(card: Dict[str, Any]) -> str:
         # Handle both 'q' and 'front' for robustness during sorting
-        return " ".join(str(card.get("q", card.get("front", ""))).lower().split())
+        return " ".join(
+            str(card.get("q", card.get("front", ""))).lower().split()
+        )
 
     if "cards" in data:
         data["cards"].sort(key=normalize_front)
@@ -123,15 +131,15 @@ def _process_single_file(file_path: Path, check: bool) -> Tuple[bool, bool]:
         data = yaml.load(original_content)
 
         if not isinstance(data, dict) or "cards" not in data:
-            console.print(f"[yellow]Skipping {file_path.name}: Invalid format.[/yellow]")
+            console.print(
+                f"[yellow]Skipping {file_path.name}: Invalid format.[/yellow]"
+            )
             return False, False
 
         deck_name = data.get("deck", "Default Deck")
 
         vetted_cards, validation_error_found = _validate_and_process_cards(
-            data.get("cards", []),
-            deck_name,
-            file_path
+            data.get("cards", []), deck_name, file_path
         )
 
         if validation_error_found:
@@ -146,15 +154,18 @@ def _process_single_file(file_path: Path, check: bool) -> Tuple[bool, bool]:
         if made_change and not check:
             file_path.write_text(new_content, encoding="utf-8")
 
-
         return made_change, validation_error_found
 
     except Exception as e:
-        console.print(f"[bold red]Error processing {file_path.name}: {e}[/bold red]")
+        console.print(
+            f"[bold red]Error processing {file_path.name}: {e}[/bold red]"
+        )
         return False, True
 
 
-def _report_vet_summary(any_dirty: bool, any_errors: bool, check: bool) -> None:
+def _report_vet_summary(
+    any_dirty: bool, any_errors: bool, check: bool
+) -> None:
     """Prints a final summary message after vetting all files."""
     if any_errors:
         console.print(
@@ -198,7 +209,9 @@ def vet_logic(
     """
     if files_to_process is None:
         if source_dir is None:
-            console.print("[bold red]Error: --source-dir is required when no files are specified.[/bold red]")
+            console.print(
+                "[bold red]Error: --source-dir is required when no files are specified.[/bold red]"
+            )
             return False
         files = sorted(
             list(source_dir.glob("*.yml")) + list(source_dir.glob("*.yaml"))
@@ -225,7 +238,9 @@ def vet_logic(
             if check:
                 console.print(f"[yellow]! Dirty: {file_path.name}[/yellow]")
             else:
-                console.print(f"[green]File formatted successfully: {file_path.name}[/green]")
+                console.print(
+                    f"[green]File formatted successfully: {file_path.name}[/green]"
+                )
 
     _report_vet_summary(any_dirty, any_errors, check)
 
