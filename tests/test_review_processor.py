@@ -10,11 +10,11 @@ from datetime import datetime, timezone, date
 from uuid import uuid4
 from unittest.mock import MagicMock, patch
 
-from cultivation.scripts.flashcore.card import Card, CardState
-from cultivation.scripts.flashcore.database import FlashcardDatabase
-from cultivation.scripts.flashcore.exceptions import CardOperationError
-from cultivation.scripts.flashcore.scheduler import FSRS_Scheduler, SchedulerOutput
-from cultivation.scripts.flashcore.review_processor import ReviewProcessor
+from flashcore.models import Card, CardState
+from flashcore.db.database import FlashcardDatabase
+from flashcore.exceptions import CardOperationError
+from flashcore.scheduler import FSRS_Scheduler, SchedulerOutput
+from flashcore.review_processor import ReviewProcessor
 
 
 class TestReviewProcessor:
