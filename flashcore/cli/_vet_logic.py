@@ -11,8 +11,7 @@ from pydantic import ValidationError
 from rich.console import Console
 from ruamel.yaml import YAML
 
-from cultivation.scripts.flashcore.card import Card
-from cultivation.scripts.flashcore.config import settings
+from flashcore.models import Card
 
 
 console = Console()
@@ -183,13 +182,24 @@ def _report_vet_summary(any_dirty: bool, any_errors: bool, check: bool) -> None:
             )
 
 
-def vet_logic(check: bool, files_to_process: Optional[List[Path]] = None) -> bool:
+def vet_logic(
+    check: bool,
+    files_to_process: Optional[List[Path]] = None,
+    source_dir: Optional[Path] = None,
+) -> bool:
     """
     Main logic for the 'vet' command.
     Validates, formats, sorts, and adds UUIDs to flashcard YAML files.
+
+    Args:
+        check: If True, run in check-only mode without modifying files.
+        files_to_process: Optional explicit list of files to vet.
+        source_dir: Directory to search for YAML files when files_to_process is None.
     """
     if files_to_process is None:
-        source_dir = Path(settings.yaml_source_dir)
+        if source_dir is None:
+            console.print("[bold red]Error: --source-dir is required when no files are specified.[/bold red]")
+            return False
         files = sorted(
             list(source_dir.glob("*.yml")) + list(source_dir.glob("*.yaml"))
         )
