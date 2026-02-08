@@ -36,7 +36,9 @@ def review_all_logic(db_path: Path, limit: int = 50):
     all_due_cards = _get_all_due_cards(db_manager, today, limit)
 
     if not all_due_cards:
-        console.print("[bold yellow]No cards are due for review across any deck.[/bold yellow]")
+        console.print(
+            "[bold yellow]No cards are due for review across any deck.[/bold yellow]"
+        )
         console.print("[bold cyan]Review session finished.[/bold cyan]")
         return
 
@@ -46,7 +48,9 @@ def review_all_logic(db_path: Path, limit: int = 50):
         deck_counts[card.deck_name] = deck_counts.get(card.deck_name, 0) + 1
 
     # Show summary
-    console.print(f"[bold green]Found {len(all_due_cards)} due cards across {len(deck_counts)} decks:[/bold green]")
+    console.print(
+        f"[bold green]Found {len(all_due_cards)} due cards across {len(deck_counts)} decks:[/bold green]"
+    )
     for deck_name, count in deck_counts.items():
         console.print(f"  • [cyan]{deck_name}[/cyan]: {count} cards")
     console.print()
@@ -57,7 +61,9 @@ def review_all_logic(db_path: Path, limit: int = 50):
         reviewed_count += 1
 
         # Display progress with deck context
-        console.rule(f"[bold]Card {reviewed_count} of {len(all_due_cards)} • [cyan]{card.deck_name}[/cyan][/bold]")
+        console.rule(
+            f"[bold]Card {reviewed_count} of {len(all_due_cards)} • [cyan]{card.deck_name}[/cyan][/bold]"
+        )
 
         resp_ms = _display_card(card)
         rating, eval_ms = _get_user_rating()
@@ -70,26 +76,34 @@ def review_all_logic(db_path: Path, limit: int = 50):
                 card=card,
                 rating=rating,
                 resp_ms=resp_ms,
-                eval_ms=eval_ms
+                eval_ms=eval_ms,
             )
 
             if updated_card and updated_card.next_due_date:
-                days_until_due = (updated_card.next_due_date - date.today()).days
-                due_date_str = updated_card.next_due_date.strftime('%Y-%m-%d')
+                days_until_due = (
+                    updated_card.next_due_date - date.today()
+                ).days
+                due_date_str = updated_card.next_due_date.strftime("%Y-%m-%d")
                 console.print(
                     f"[green]Reviewed.[/green] Next due in [bold]{days_until_due} days[/bold] on {due_date_str}."
                 )
             else:
-                console.print("[bold red]Error submitting review. Card will be reviewed again later.[/bold red]")
+                console.print(
+                    "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
+                )
         except Exception as e:
             console.print(f"[bold red]Error reviewing card: {e}[/bold red]")
 
         console.print("")  # Add spacing
 
-    console.print(f"[bold green]Review session complete! Reviewed {reviewed_count} cards.[/bold green]")
+    console.print(
+        f"[bold green]Review session complete! Reviewed {reviewed_count} cards.[/bold green]"
+    )
 
 
-def _get_all_due_cards(db_manager: FlashcardDatabase, on_date: date, limit: int) -> List[Card]:
+def _get_all_due_cards(
+    db_manager: FlashcardDatabase, on_date: date, limit: int
+) -> List[Card]:
     """
     Get all due cards across all decks, sorted by priority.
 
@@ -139,7 +153,7 @@ def _submit_single_review(
     rating: int,
     resp_ms: int = 0,
     eval_ms: int = 0,
-    reviewed_at: Optional[datetime] = None
+    reviewed_at: Optional[datetime] = None,
 ) -> Optional[Card]:
     """
     Submit a review for a single card without using ReviewSessionManager.
@@ -168,7 +182,7 @@ def _submit_single_review(
             resp_ms=resp_ms,
             eval_ms=eval_ms,
             reviewed_at=reviewed_at,
-            session_uuid=None  # No session for review-all workflow
+            session_uuid=None,  # No session for review-all workflow
         )
 
         return updated_card
