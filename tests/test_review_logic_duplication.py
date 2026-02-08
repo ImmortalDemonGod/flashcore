@@ -11,9 +11,7 @@ This creates maintenance hazards and violates DRY principle.
 import pytest
 from datetime import datetime, timezone, date
 from uuid import uuid4
-from unittest.mock import MagicMock, patch
-
-from flashcore.models import Card, Review, CardState
+from flashcore.models import Card, CardState
 from flashcore.db.database import FlashcardDatabase
 from flashcore.scheduler import FSRS_Scheduler, SchedulerOutput
 from flashcore.review_manager import ReviewSessionManager
@@ -214,7 +212,7 @@ class TestReviewLogicDuplication:
         )
         manager.initialize_session()
 
-        updated_card1 = manager.submit_review(
+        manager.submit_review(
             card_uuid=sample_card.uuid, rating=3, resp_ms=1000, eval_ms=500
         )
 
@@ -231,7 +229,7 @@ class TestReviewLogicDuplication:
         in_memory_db.upsert_cards_batch([sample_card2])
 
         # Method 2: Creates reviews without session_uuid (inconsistent!)
-        updated_card2 = _submit_single_review(
+        _submit_single_review(
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             card=sample_card2,
