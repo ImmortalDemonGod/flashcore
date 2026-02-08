@@ -57,7 +57,7 @@ def test_start_review_flow_with_one_card(mock_manager: MagicMock, capsys):
     mock_manager.submit_review.return_value = mock_updated_card
 
     # Act & Assert
-    with patch('rich.console.Console.input', side_effect=["", "3"]):
+    with patch("rich.console.Console.input", side_effect=["", "3"]):
         start_review_flow(mock_manager)
 
     captured = capsys.readouterr()
@@ -68,7 +68,7 @@ def test_start_review_flow_with_one_card(mock_manager: MagicMock, capsys):
     assert "What is the capital of France?" in output
     assert "Paris" in output
     assert "Next due in 3 days" in output
-    assert next_due.strftime('%Y-%m-%d') in output
+    assert next_due.strftime("%Y-%m-%d") in output
     assert "Review session finished." in output
 
     # Assert: Check for correct method calls
@@ -98,7 +98,7 @@ def test_start_review_flow_invalid_rating_input(mock_manager: MagicMock, capsys)
 
     # Act
     # Simulate user pressing Enter, then entering 'abc', then '5', then a valid '2'
-    with patch('rich.console.Console.input', side_effect=["", "abc", "5", "2"]):
+    with patch("rich.console.Console.input", side_effect=["", "abc", "5", "2"]):
         start_review_flow(mock_manager)
 
     # Assert
