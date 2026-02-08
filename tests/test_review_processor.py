@@ -6,7 +6,7 @@ previously duplicated between ReviewSessionManager and _review_all_logic.py.
 """
 
 import pytest
-from datetime import datetime, timezone, date
+from datetime import datetime, timedelta, timezone, date
 from uuid import uuid4
 from unittest.mock import MagicMock, patch
 
