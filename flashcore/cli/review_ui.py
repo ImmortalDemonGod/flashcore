@@ -35,7 +35,9 @@ def _get_user_rating() -> tuple[int, int]:
                     "[bold red]Invalid rating. Please enter a number between 1 and 4.[/bold red]"
                 )
         except (ValueError, TypeError):
-            console.print("[bold red]Invalid input. Please enter a number.[/bold red]")
+            console.print(
+                "[bold red]Invalid input. Please enter a number.[/bold red]"
+            )
 
 
 def _display_card(card: Card) -> int:
@@ -51,7 +53,9 @@ def _display_card(card: Card) -> int:
     return int((end_time - start_time) * 1000)
 
 
-def start_review_flow(manager: ReviewSessionManager, tags: Optional[List[str]] = None) -> None:
+def start_review_flow(
+    manager: ReviewSessionManager, tags: Optional[List[str]] = None
+) -> None:
     """
     Manages the command-line review session flow.
 
@@ -64,30 +68,39 @@ def start_review_flow(manager: ReviewSessionManager, tags: Optional[List[str]] =
 
     due_cards_count = len(manager.review_queue)
     if due_cards_count == 0:
-        console.print("[bold yellow]No cards are due for review.[/bold yellow]")
+        console.print(
+            "[bold yellow]No cards are due for review.[/bold yellow]"
+        )
         console.print("[bold cyan]Review session finished.[/bold cyan]")
         return
 
     reviewed_count = 0
     while (card := manager.get_next_card()) is not None:
         reviewed_count += 1
-        console.rule(f"[bold]Card {reviewed_count} of {due_cards_count}[/bold]")
+        console.rule(
+            f"[bold]Card {reviewed_count} of {due_cards_count}[/bold]"
+        )
 
         resp_ms = _display_card(card)
         rating, eval_ms = _get_user_rating()
 
         updated_card = manager.submit_review(
-            card_uuid=card.uuid, rating=rating, resp_ms=resp_ms, eval_ms=eval_ms
+            card_uuid=card.uuid,
+            rating=rating,
+            resp_ms=resp_ms,
+            eval_ms=eval_ms,
         )
 
         if updated_card and updated_card.next_due_date:
             days_until_due = (updated_card.next_due_date - date.today()).days
-            due_date_str = updated_card.next_due_date.strftime('%Y-%m-%d')
+            due_date_str = updated_card.next_due_date.strftime("%Y-%m-%d")
             console.print(
                 f"[green]Reviewed.[/green] Next due in [bold]{days_until_due} days[/bold] on {due_date_str}."
             )
         else:
-            console.print("[bold red]Error submitting review. Card will be reviewed again later.[/bold red]")
-        console.print("") # Add a blank line for spacing
+            console.print(
+                "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
+            )
+        console.print("")  # Add a blank line for spacing
 
     console.print("[bold cyan]Review session finished. Well done![/bold cyan]")
