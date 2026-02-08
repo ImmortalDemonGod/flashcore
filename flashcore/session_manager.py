@@ -20,8 +20,8 @@ from uuid import UUID, uuid4
 from statistics import mean, median
 from dataclasses import dataclass
 
-from .card import Session, Card, Review
-from .database import FlashcardDatabase
+from .models import Session, Card, Review
+from .db.database import FlashcardDatabase
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -418,30 +418,36 @@ class SessionManager:
         try:
             conn = self.db_manager.get_connection()
 
+            def _fetch_as_dicts(connection, query, params):
+                """Execute query and return list of dicts using cursor.description."""
+                result = connection.execute(query, params)
+                cols = [desc[0] for desc in result.description]
+                return [dict(zip(cols, row)) for row in result.fetchall()]
+
             # First try to get reviews by session_uuid (if they were linked)
             sql = "SELECT * FROM reviews WHERE session_uuid = $1 ORDER BY ts ASC;"
-            result_df = conn.execute(sql, (session_uuid,)).fetch_df()
+            rows = _fetch_as_dicts(conn, sql, (session_uuid,))
 
             # If no reviews found by session_uuid, try to get reviews by timeframe
-            if result_df.empty and session.start_ts and session.end_ts:
+            if not rows and session.start_ts and session.end_ts:
                 sql = "SELECT * FROM reviews WHERE ts >= $1 AND ts <= $2 ORDER BY ts ASC;"
-                result_df = conn.execute(sql, (session.start_ts, session.end_ts)).fetch_df()
+                rows = _fetch_as_dicts(conn, sql, (session.start_ts, session.end_ts))
 
-            if result_df.empty:
+            if not rows:
                 return []
 
-            # Convert to Review objects (simplified)
+            # Convert to Review objects
             reviews = []
-            for _, row in result_df.iterrows():
+            for row in rows:
                 # Handle UUID conversion safely
                 card_uuid = row['card_uuid'] if isinstance(row['card_uuid'], UUID) else UUID(row['card_uuid'])
-                session_uuid = None
+                sess_uuid = None
                 if row['session_uuid']:
-                    session_uuid = row['session_uuid'] if isinstance(row['session_uuid'], UUID) else UUID(row['session_uuid'])
+                    sess_uuid = row['session_uuid'] if isinstance(row['session_uuid'], UUID) else UUID(row['session_uuid'])
 
                 review = Review(
                     card_uuid=card_uuid,
-                    session_uuid=session_uuid,
+                    session_uuid=sess_uuid,
                     ts=row['ts'],
                     rating=row['rating'],
                     resp_ms=row['resp_ms'],
