@@ -8,9 +8,9 @@ from uuid import uuid4
 
 import pytest
 
-from cultivation.scripts.flashcore.card import Card
-from cultivation.scripts.flashcore.cli.review_ui import start_review_flow
-from cultivation.scripts.flashcore.review_manager import ReviewSessionManager
+from flashcore.models import Card
+from flashcore.cli.review_ui import start_review_flow
+from flashcore.review_manager import ReviewSessionManager
 
 
 @pytest.fixture
