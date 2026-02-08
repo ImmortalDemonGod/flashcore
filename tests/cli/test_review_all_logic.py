@@ -14,14 +14,14 @@ from flashcore.models import Card, CardState
 from flashcore.cli._review_all_logic import (
     review_all_logic,
     _get_all_due_cards,
-    _submit_single_review
+    _submit_single_review,
 )
 
 
 def strip_ansi_codes(text: str) -> str:
     """Remove ANSI color codes from text for test assertions."""
-    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
-    return ansi_escape.sub('', text)
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+    return ansi_escape.sub("", text)
 
 
 @pytest.fixture
@@ -56,7 +56,7 @@ def sample_cards():
             last_review_id=None,
             next_due_date=None,
             stability=None,
-            difficulty=None
+            difficulty=None,
         )
         cards.append(card)
     return cards
@@ -65,10 +65,12 @@ def sample_cards():
 class TestReviewAllLogic:
     """Tests for the main review_all_logic function."""
 
-    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
-    def test_review_all_logic_no_due_cards(self, mock_get_cards, mock_scheduler_class, mock_db_class, capsys):
+    @patch("flashcore.cli._review_all_logic.FlashcardDatabase")
+    @patch("flashcore.cli._review_all_logic.FSRS_Scheduler")
+    @patch("flashcore.cli._review_all_logic._get_all_due_cards")
+    def test_review_all_logic_no_due_cards(
+        self, mock_get_cards, mock_scheduler_class, mock_db_class, capsys
+    ):
         """Test review_all_logic when no cards are due."""
         # Arrange
         mock_get_cards.return_value = []
@@ -82,15 +84,22 @@ class TestReviewAllLogic:
         assert "Review session finished." in captured.out
         mock_get_cards.assert_called_once()
 
-    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
-    @patch('flashcore.cli._review_all_logic._display_card')
-    @patch('flashcore.cli._review_all_logic._get_user_rating')
-    @patch('flashcore.cli._review_all_logic._submit_single_review')
+    @patch("flashcore.cli._review_all_logic.FlashcardDatabase")
+    @patch("flashcore.cli._review_all_logic.FSRS_Scheduler")
+    @patch("flashcore.cli._review_all_logic._get_all_due_cards")
+    @patch("flashcore.cli._review_all_logic._display_card")
+    @patch("flashcore.cli._review_all_logic._get_user_rating")
+    @patch("flashcore.cli._review_all_logic._submit_single_review")
     def test_review_all_logic_with_cards_success(
-        self, mock_submit, mock_get_rating, mock_display, mock_get_cards,
-        mock_scheduler_class, mock_db_class, sample_cards, capsys
+        self,
+        mock_submit,
+        mock_get_rating,
+        mock_display,
+        mock_get_cards,
+        mock_scheduler_class,
+        mock_db_class,
+        sample_cards,
+        capsys,
     ):
         """Test review_all_logic with successful card reviews."""
         # Arrange
@@ -122,15 +131,22 @@ class TestReviewAllLogic:
         assert mock_get_rating.call_count == 2
         assert mock_submit.call_count == 2
 
-    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
-    @patch('flashcore.cli._review_all_logic._display_card')
-    @patch('flashcore.cli._review_all_logic._get_user_rating')
-    @patch('flashcore.cli._review_all_logic._submit_single_review')
+    @patch("flashcore.cli._review_all_logic.FlashcardDatabase")
+    @patch("flashcore.cli._review_all_logic.FSRS_Scheduler")
+    @patch("flashcore.cli._review_all_logic._get_all_due_cards")
+    @patch("flashcore.cli._review_all_logic._display_card")
+    @patch("flashcore.cli._review_all_logic._get_user_rating")
+    @patch("flashcore.cli._review_all_logic._submit_single_review")
     def test_review_all_logic_with_review_error(
-        self, mock_submit, mock_get_rating, mock_display, mock_get_cards,
-        mock_scheduler_class, mock_db_class, sample_cards, capsys
+        self,
+        mock_submit,
+        mock_get_rating,
+        mock_display,
+        mock_get_cards,
+        mock_scheduler_class,
+        mock_db_class,
+        sample_cards,
+        capsys,
     ):
         """Test review_all_logic when review submission fails."""
         # Arrange
@@ -148,15 +164,22 @@ class TestReviewAllLogic:
         assert "Error reviewing card: Database error" in clean_output
         assert "Review session complete! Reviewed 1 cards." in clean_output
 
-    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('flashcore.cli._review_all_logic._get_all_due_cards')
-    @patch('flashcore.cli._review_all_logic._display_card')
-    @patch('flashcore.cli._review_all_logic._get_user_rating')
-    @patch('flashcore.cli._review_all_logic._submit_single_review')
+    @patch("flashcore.cli._review_all_logic.FlashcardDatabase")
+    @patch("flashcore.cli._review_all_logic.FSRS_Scheduler")
+    @patch("flashcore.cli._review_all_logic._get_all_due_cards")
+    @patch("flashcore.cli._review_all_logic._display_card")
+    @patch("flashcore.cli._review_all_logic._get_user_rating")
+    @patch("flashcore.cli._review_all_logic._submit_single_review")
     def test_review_all_logic_with_failed_review(
-        self, mock_submit, mock_get_rating, mock_display, mock_get_cards,
-        mock_scheduler_class, mock_db_class, sample_cards, capsys
+        self,
+        mock_submit,
+        mock_get_rating,
+        mock_display,
+        mock_get_cards,
+        mock_scheduler_class,
+        mock_db_class,
+        sample_cards,
+        capsys,
     ):
         """Test review_all_logic when review returns None (failed)."""
         # Arrange
@@ -171,14 +194,19 @@ class TestReviewAllLogic:
         # Assert
         captured = capsys.readouterr()
         clean_output = strip_ansi_codes(captured.out)
-        assert "Error submitting review. Card will be reviewed again later." in clean_output
+        assert (
+            "Error submitting review. Card will be reviewed again later."
+            in clean_output
+        )
 
 
 class TestGetAllDueCards:
     """Tests for the _get_all_due_cards function."""
 
-    @patch('flashcore.cli._review_all_logic.db_row_to_card')
-    def test_get_all_due_cards_success(self, mock_db_row_to_card, mock_db_manager, sample_cards):
+    @patch("flashcore.cli._review_all_logic.db_row_to_card")
+    def test_get_all_due_cards_success(
+        self, mock_db_row_to_card, mock_db_manager, sample_cards
+    ):
         """Test _get_all_due_cards with successful database query."""
         # Arrange
         mock_conn = MagicMock()
@@ -188,8 +216,18 @@ class TestGetAllDueCards:
         mock_result = MagicMock()
         mock_result.description = [("uuid",), ("front",), ("back",), ("deck_name",)]
         mock_result.fetchall.return_value = [
-            (str(sample_cards[0].uuid), sample_cards[0].front, sample_cards[0].back, sample_cards[0].deck_name),
-            (str(sample_cards[1].uuid), sample_cards[1].front, sample_cards[1].back, sample_cards[1].deck_name),
+            (
+                str(sample_cards[0].uuid),
+                sample_cards[0].front,
+                sample_cards[0].back,
+                sample_cards[0].deck_name,
+            ),
+            (
+                str(sample_cards[1].uuid),
+                sample_cards[1].front,
+                sample_cards[1].back,
+                sample_cards[1].deck_name,
+            ),
         ]
         mock_conn.execute.return_value = mock_result
 
@@ -249,7 +287,9 @@ class TestGetAllDueCards:
 class TestSubmitSingleReview:
     """Tests for the _submit_single_review function."""
 
-    def test_submit_single_review_success(self, mock_db_manager, mock_scheduler, sample_cards):
+    def test_submit_single_review_success(
+        self, mock_db_manager, mock_scheduler, sample_cards
+    ):
         """Test _submit_single_review with successful review submission."""
         # Arrange
         card = sample_cards[0]
@@ -277,7 +317,13 @@ class TestSubmitSingleReview:
 
         # Act
         result = _submit_single_review(
-            mock_db_manager, mock_scheduler, card, rating, resp_ms, eval_ms=1000, reviewed_at=review_ts
+            mock_db_manager,
+            mock_scheduler,
+            card,
+            rating,
+            resp_ms,
+            eval_ms=1000,
+            reviewed_at=review_ts,
         )
 
         # Assert
@@ -287,14 +333,16 @@ class TestSubmitSingleReview:
 
         # Verify review object creation
         call_args = mock_db_manager.add_review_and_update_card.call_args
-        review = call_args[1]['review']
+        review = call_args[1]["review"]
         assert review.card_uuid == card.uuid
         assert review.rating == rating  # Unified 1-4 rating scale, no conversion needed
         assert review.resp_ms == resp_ms
         assert review.eval_ms == 1000
         assert review.ts == review_ts
 
-    def test_submit_single_review_default_timestamp(self, mock_db_manager, mock_scheduler, sample_cards):
+    def test_submit_single_review_default_timestamp(
+        self, mock_db_manager, mock_scheduler, sample_cards
+    ):
         """Test _submit_single_review with default timestamp."""
         # Arrange
         card = sample_cards[0]
@@ -314,7 +362,7 @@ class TestSubmitSingleReview:
         mock_db_manager.add_review_and_update_card.return_value = updated_card
 
         # Act
-        with patch('flashcore.review_processor.datetime') as mock_datetime:
+        with patch("flashcore.review_processor.datetime") as mock_datetime:
             mock_now = datetime.now(timezone.utc)
             mock_datetime.now.return_value = mock_now
             mock_datetime.timezone = timezone  # Preserve timezone reference
@@ -325,7 +373,9 @@ class TestSubmitSingleReview:
         assert result == updated_card
         mock_datetime.now.assert_called_once_with(timezone.utc)
 
-    def test_submit_single_review_database_error(self, mock_db_manager, mock_scheduler, sample_cards, capsys):
+    def test_submit_single_review_database_error(
+        self, mock_db_manager, mock_scheduler, sample_cards, capsys
+    ):
         """Test _submit_single_review with database error."""
         # Arrange
         card = sample_cards[0]
@@ -341,7 +391,9 @@ class TestSubmitSingleReview:
         mock_scheduler_output.review_type = "learn"
         mock_scheduler.compute_next_state.return_value = mock_scheduler_output
 
-        mock_db_manager.add_review_and_update_card.side_effect = Exception("Database error")
+        mock_db_manager.add_review_and_update_card.side_effect = Exception(
+            "Database error"
+        )
 
         # Act
         result = _submit_single_review(mock_db_manager, mock_scheduler, card, 2)
@@ -351,7 +403,9 @@ class TestSubmitSingleReview:
         captured = capsys.readouterr()
         assert "Error submitting review: Database error" in captured.out
 
-    def test_submit_single_review_scheduler_error(self, mock_db_manager, mock_scheduler, sample_cards, capsys):
+    def test_submit_single_review_scheduler_error(
+        self, mock_db_manager, mock_scheduler, sample_cards, capsys
+    ):
         """Test _submit_single_review with scheduler error."""
         # Arrange
         card = sample_cards[0]
@@ -370,13 +424,19 @@ class TestSubmitSingleReview:
 class TestIntegration:
     """Integration tests for the review-all functionality."""
 
-    @patch('flashcore.cli._review_all_logic.FlashcardDatabase')
-    @patch('flashcore.cli._review_all_logic.FSRS_Scheduler')
-    @patch('flashcore.cli._review_all_logic._display_card')
-    @patch('flashcore.cli._review_all_logic._get_user_rating')
-    @patch('flashcore.cli._review_all_logic.db_row_to_card')
+    @patch("flashcore.cli._review_all_logic.FlashcardDatabase")
+    @patch("flashcore.cli._review_all_logic.FSRS_Scheduler")
+    @patch("flashcore.cli._review_all_logic._display_card")
+    @patch("flashcore.cli._review_all_logic._get_user_rating")
+    @patch("flashcore.cli._review_all_logic.db_row_to_card")
     def test_review_all_logic_integration(
-        self, mock_db_row_to_card, mock_get_rating, mock_display, mock_scheduler_class, mock_db_class, sample_cards
+        self,
+        mock_db_row_to_card,
+        mock_get_rating,
+        mock_display,
+        mock_scheduler_class,
+        mock_db_class,
+        sample_cards,
     ):
         """Integration test for the complete review-all workflow."""
         # Arrange
@@ -393,7 +453,12 @@ class TestIntegration:
         mock_result = MagicMock()
         mock_result.description = [("uuid",), ("front",), ("back",), ("deck_name",)]
         mock_result.fetchall.return_value = [
-            (str(sample_cards[0].uuid), sample_cards[0].front, sample_cards[0].back, sample_cards[0].deck_name),
+            (
+                str(sample_cards[0].uuid),
+                sample_cards[0].front,
+                sample_cards[0].back,
+                sample_cards[0].deck_name,
+            ),
         ]
         mock_conn.execute.return_value = mock_result
         mock_db_row_to_card.return_value = test_card
