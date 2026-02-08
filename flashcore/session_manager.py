@@ -90,11 +90,11 @@ class SessionManager:
         self, db_manager: FlashcardDatabase, user_id: Optional[str] = None
     ):
         """
-        Initialize the SessionManager.
-
-        Args:
-            db_manager: Database manager instance for persistence
-            user_id: Optional user identifier for multi-user support
+        Create a SessionManager to manage review session lifecycle, real-time tracking, persistence, and analytics for a single user.
+        
+        Parameters:
+            db_manager (FlashcardDatabase): Database manager used to persist and retrieve sessions, reviews, and related records.
+            user_id (Optional[str]): Optional identifier for the user whose sessions will be managed; when omitted, session operations are user-agnostic.
         """
         self.db_manager = db_manager
         self.user_id = user_id
@@ -118,18 +118,18 @@ class SessionManager:
         session_uuid: Optional[UUID] = None,
     ) -> Session:
         """
-        Start a new review session with comprehensive tracking.
-
-        Args:
-            device_type: Type of device (desktop, mobile, tablet)
-            platform: Platform used (cli, web, mobile_app)
-            session_uuid: Optional existing session UUID (for integration)
-
+        Start and initialize a new review session and persist it to the database.
+        
+        Parameters:
+            device_type (Optional[str]): Device category, e.g., "desktop", "mobile", or "tablet".
+            platform (Optional[str]): Client platform, e.g., "cli", "web", or "mobile_app". Defaults to "cli" when not provided.
+            session_uuid (Optional[UUID]): Use an existing session UUID when integrating with external systems; otherwise a new UUID is generated.
+        
         Returns:
-            Created Session object
-
+            Session: The created and persisted Session object.
+        
         Raises:
-            ValueError: If a session is already active
+            ValueError: If a session is already active.
         """
         if self.current_session is not None:
             raise ValueError(
@@ -177,16 +177,16 @@ class SessionManager:
         evaluation_time_ms: int = 0,
     ) -> None:
         """
-        Record a card review with real-time analytics tracking.
-
-        Args:
-            card: Card that was reviewed
-            rating: User's rating (1-4)
-            response_time_ms: Time to reveal answer
-            evaluation_time_ms: Time to provide rating
-
+        Record a card review and update the active session's analytics, deck-access state, and persistence.
+        
+        Parameters:
+            card (Card): The reviewed card.
+            rating (int): User's rating from 1 to 4, where higher indicates better recall.
+            response_time_ms (int): Milliseconds taken to reveal the answer.
+            evaluation_time_ms (int): Milliseconds taken to provide the rating (optional).
+        
         Raises:
-            ValueError: If no active session
+            ValueError: If there is no active session.
         """
         if self.current_session is None:
             raise ValueError("No active session. Start a session first.")
@@ -239,10 +239,12 @@ class SessionManager:
 
     def record_interruption(self) -> None:
         """
-        Record an interruption in the current session.
-
+        Record an interruption for the active session and persist the update.
+        
+        Appends the current UTC timestamp to the session's interruption history and updates the session in the database.
+        
         Raises:
-            ValueError: If no active session
+            ValueError: If there is no active session.
         """
         if self.current_session is None:
             raise ValueError("No active session. Start a session first.")
@@ -263,10 +265,12 @@ class SessionManager:
 
     def pause_session(self) -> None:
         """
-        Pause the current session, stopping time tracking.
-
+        Pause the active session and halt accrual of active session time.
+        
+        Marks the current session as paused by recording the pause start timestamp so active elapsed time is not incremented until the session is resumed.
+        
         Raises:
-            ValueError: If no active session or session already paused
+            ValueError: If there is no active session or the session is already paused.
         """
         if self.current_session is None:
             raise ValueError("No active session. Start a session first.")
@@ -279,10 +283,14 @@ class SessionManager:
 
     def resume_session(self) -> None:
         """
-        Resume a paused session, continuing time tracking.
-
+        Resume a paused session and update session timing state.
+        
+        Clears the paused state, adds the paused interval to the session's accumulated pause duration,
+        and refreshes the session's last activity timestamp.
+        
         Raises:
-            ValueError: If no active session or session not paused
+            ValueError: If there is no active session.
+            ValueError: If the session is not currently paused.
         """
         if self.current_session is None:
             raise ValueError("No active session. Start a session first.")
@@ -354,13 +362,22 @@ class SessionManager:
 
     def get_current_session_stats(self) -> Dict[str, Any]:
         """
-        Get real-time statistics for the current session.
-
+        Return current real-time metrics for the active session.
+        
         Returns:
-            Dictionary with current session metrics
-
+            stats (dict): Dictionary containing current session metrics:
+                - `session_uuid` (str): UUID of the active session.
+                - `elapsed_time_ms` (int): Active elapsed time in milliseconds (excluding paused duration).
+                - `cards_reviewed` (int): Number of cards reviewed in this session.
+                - `decks_accessed` (List[str]): Ordered list of deck identifiers accessed during the session.
+                - `deck_switches` (int): Number of times the user switched between decks.
+                - `interruptions` (int): Count of interruptions recorded during the session.
+                - `cards_per_minute` (float): Throughput measured as cards reviewed per minute.
+                - `average_response_time_ms` (float): Mean response time in milliseconds for reviewed cards.
+                - `is_paused` (bool): Whether the session is currently paused.
+        
         Raises:
-            ValueError: If no active session
+            ValueError: If there is no active session.
         """
         if self.current_session is None:
             raise ValueError("No active session. Start a session first.")
@@ -393,16 +410,18 @@ class SessionManager:
 
     def generate_session_insights(self, session_uuid: UUID) -> SessionInsights:
         """
-        Generate comprehensive insights for a completed session.
-
-        Args:
-            session_uuid: UUID of the session to analyze
-
+        Produce comprehensive analytics and recommendations for a completed review session.
+        
+        Retrieves the session and its associated reviews, computes performance metrics, historical comparisons, recommendations, achievements, and alerts, and returns a populated SessionInsights object.
+        
+        Parameters:
+            session_uuid (UUID): UUID of the completed session to analyze.
+        
         Returns:
-            SessionInsights object with comprehensive analytics
-
+            SessionInsights: Object containing performance metrics, efficiency and learning metrics, recommendations, achievements, alerts, and cross-session comparisons.
+        
         Raises:
-            ValueError: If session not found
+            ValueError: If the session is not found or the session is still active.
         """
         # Get session from database
         session = self.db_manager.get_session_by_uuid(session_uuid)
@@ -452,7 +471,15 @@ class SessionManager:
         )
 
     def _get_session_reviews(self, session_uuid: UUID) -> List[Review]:
-        """Get all reviews for a specific session."""
+        """
+        Retrieve all Review objects associated with a completed session, falling back to the session's time window when reviews are not directly linked.
+        
+        Parameters:
+            session_uuid (UUID): UUID of the session to fetch reviews for.
+        
+        Returns:
+            List[Review]: List of reviews ordered by timestamp. Returns an empty list if the session is not found, no reviews exist for the session, or an error occurs while querying the database.
+        """
         # Get the session to find its timeframe
         session = self.db_manager.get_session_by_uuid(session_uuid)
         if not session:
@@ -462,7 +489,17 @@ class SessionManager:
             conn = self.db_manager.get_connection()
 
             def _fetch_as_dicts(connection, query, params):
-                """Execute query and return list of dicts using cursor.description."""
+                """
+                Execute a SQL query and return result rows as a list of dictionaries keyed by column name.
+                
+                Parameters:
+                    connection: A DB-API connection or cursor-like object with an `execute(query, params)` method and a `description` attribute on the returned cursor.
+                    query (str): The SQL query to execute.
+                    params: Sequence or mapping of parameters to bind to the query.
+                
+                Returns:
+                    List[dict]: A list where each item is a dictionary mapping column names to their corresponding row values.
+                """
                 result = connection.execute(query, params)
                 cols = [desc[0] for desc in result.description]
                 return [dict(zip(cols, row)) for row in result.fetchall()]
@@ -524,7 +561,30 @@ class SessionManager:
     def _calculate_performance_metrics(
         self, session: Session, reviews: List[Review]
     ) -> Dict[str, Any]:
-        """Calculate performance metrics for a session."""
+        """
+        Compute a set of performance and learning metrics derived from a completed session's reviews.
+        
+        Parameters:
+            session (Session): The completed session record providing timing, counts, interruptions, and deck-switch data.
+            reviews (List[Review]): List of review records from the session; used to derive response times and ratings.
+        
+        Returns:
+            Dict[str, Any]: Mapping of metric names to values:
+                - cards_per_minute (float): Average cards reviewed per minute during the session.
+                - average_response_time_ms (int): Mean response time in milliseconds.
+                - median_response_time_ms (int): Median response time in milliseconds.
+                - accuracy_percentage (float): Percentage of reviews rated as "good" or "easy".
+                - total_review_time_ms (int): Sum of response times (ms) across reviews.
+                - deck_switch_efficiency (float): Heuristic efficiency score penalizing frequent deck switches (0-100).
+                - interruption_impact (float): Heuristic impact score proportional to interruption count.
+                - focus_score (float): Composite focus score (0-100) derived from interruptions and deck switches.
+                - improvement_rate (float): Placeholder for improvement vs historical data (0.0 when unavailable).
+                - learning_velocity (float): Rate of "good" ratings per minute.
+                - retention_score (float): Alias of accuracy percentage rounded for retention estimation.
+                - fatigue_detected (bool): True if later response times indicate performance decline.
+                - optimal_session_length (int): Recommended session length in minutes (default heuristic).
+                - peak_performance_time (Optional[Any]): Placeholder for detected peak time within session, or None.
+        """
         if not reviews:
             return {
                 "cards_per_minute": 0.0,
@@ -599,7 +659,16 @@ class SessionManager:
     def _get_user_sessions(
         self, user_id: Optional[str], limit: int = 10
     ) -> List[Session]:
-        """Get recent sessions for a user."""
+        """
+        Return recent Session objects retrieved from the database, filtered by user when provided.
+        
+        Parameters:
+            user_id (Optional[str]): User identifier to filter sessions. If `None`, no user filter is applied.
+            limit (int): Maximum number of sessions to return (default 10).
+        
+        Returns:
+            List[Session]: A list of Session objects; returns an empty list on error or if no sessions are found.
+        """
         try:
             return self.db_manager.get_recent_sessions(
                 user_id=user_id, limit=limit
@@ -611,7 +680,17 @@ class SessionManager:
     def _calculate_session_comparisons(
         self, session: Session, historical_sessions: List[Session]
     ) -> Dict[str, Any]:
-        """Calculate comparisons with historical sessions."""
+        """
+        Compute comparative metrics between a completed session and a set of historical sessions.
+        
+        Returns a dictionary with three keys:
+        - `vs_last_session`: percentage change versus the most recent previous session (keys may include `cards_reviewed` and `duration`, values are percentages rounded to 0.1).
+        - `vs_average`: percentage change versus the average of the provided historical sessions (keys may include `cards_reviewed` and `duration`, values are percentages rounded to 0.1).
+        - `trend_direction`: one of `"improving"`, `"declining"`, or `"stable"` indicating short-term trend in `cards_reviewed` across the recent historical sessions.
+        
+        Returns:
+            dict: Comparison results keyed by `vs_last_session`, `vs_average`, and `trend_direction`.
+        """
         if len(historical_sessions) < 2:
             return {
                 "vs_last_session": {},
@@ -741,7 +820,17 @@ class SessionManager:
         reviews: List[Review],
         historical_sessions: List[Session],
     ) -> List[str]:
-        """Detect achievements and positive milestones."""
+        """
+        Identify and return achievement badges and milestone messages for a completed session.
+        
+        Parameters:
+            session (Session): The completed session to evaluate for milestones (cards reviewed, interruptions, durations).
+            reviews (List[Review]): Reviews from the session; used for potential content-based achievements.
+            historical_sessions (List[Session]): Recent past sessions for detecting streaks and consistency.
+        
+        Returns:
+            List[str]: A list of human-readable achievement strings (emoji + description) awarded for the session.
+        """
         achievements = []
 
         # Cards reviewed milestones
@@ -777,7 +866,17 @@ class SessionManager:
         reviews: List[Review],
         comparisons: Dict[str, Any],
     ) -> List[str]:
-        """Generate alerts for concerning patterns."""
+        """
+        Create human-readable alert messages for concerning session patterns.
+        
+        Parameters:
+            session (Session): The completed session to evaluate (contains counts like interruptions).
+            reviews (List[Review]): Reviews from the session used to infer performance patterns.
+            comparisons (Dict[str, Any]): Precomputed comparison metrics (e.g., `vs_last_session`, `trend_direction`) used to detect relative declines.
+        
+        Returns:
+            List[str]: A list of alert strings describing detected issues (empty if no alerts).
+        """
         alerts = []
 
         # Performance decline alerts

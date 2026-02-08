@@ -38,13 +38,18 @@ class ReviewSessionManager:
         deck_name: str,
     ):
         """
-        Initializes the ReviewSessionManager.
-
-        Args:
-            db_manager: An instance of DatabaseManager to interact with the database.
-            scheduler: An instance of a scheduling algorithm (e.g., FSRS).
-            user_uuid: The UUID of the user conducting the review.
-            deck_name: The name of the deck being reviewed.
+        Create a ReviewSessionManager for a user's deck and prepare a new review session context.
+        
+        Parameters:
+            db_manager (FlashcardDatabase): Database interface used to load and persist cards and session data.
+            scheduler (FSRS): Scheduling engine used to compute card due dates and spacing.
+            user_uuid (UUID): Identifier of the user who will perform the review session.
+            deck_name (str): Name of the deck to review.
+        
+        Notes:
+            Initializes session-specific state including `session_uuid`, `review_queue`, `current_session_card_uuids`,
+            `session_start_time`, a shared `review_processor`, and a `session_manager` for analytics. The `_session_started`
+            flag is initialized to False.
         """
         self.db = db_manager
         self.scheduler = scheduler
@@ -68,11 +73,13 @@ class ReviewSessionManager:
         self, limit: int = 20, tags: Optional[List[str]] = None
     ) -> None:
         """
-        Initializes the review session by fetching due cards from the database.
-
-        Args:
-            limit: The maximum number of cards to fetch for the session.
-            tags: Optional list of tags to filter cards by.
+        Initialize a review session: start analytics (if not started), fetch due cards for today, and populate the session queue.
+        
+        Starts session analytics if not already active, then fetches due cards for the manager's deck (optionally filtered by `tags`) limited by `limit`, sorts them by `modified_at`, and stores them in `self.review_queue` and `self.current_session_card_uuids`.
+        
+        Parameters:
+            limit (int): Maximum number of cards to include in the session.
+            tags (Optional[List[str]]): Optional list of tags to filter which cards are fetched.
         """
         logger.info(
             f"Initializing review session {self.session_uuid} for user {self.user_uuid} and deck '{self.deck_name}'"
@@ -136,10 +143,10 @@ class ReviewSessionManager:
 
     def _remove_card_from_queue(self, card_uuid: UUID) -> None:
         """
-        Removes a card from the review queue.
-
-        Args:
-            card_uuid: The UUID of the card to remove.
+        Remove a card with the given UUID from the session's review queue.
+        
+        Parameters:
+            card_uuid (UUID): UUID of the card to remove from the queue.
         """
         self.review_queue = [
             card for card in self.review_queue if card.uuid != card_uuid
@@ -154,21 +161,20 @@ class ReviewSessionManager:
         eval_ms: int = 0,
     ) -> Card:
         """
-        Submits a review for a card, updates its state, and schedules the next review.
-
-        Args:
-            card_uuid: The UUID of the card being reviewed.
-            rating: The user's rating of the card (e.g., Again, Hard, Good, Easy).
-            reviewed_at: The timestamp of the review. Defaults to now.
-            resp_ms: The response time in milliseconds (time to reveal answer).
-            eval_ms: The evaluation time in milliseconds (time to provide rating).
-
+        Submit a review for a card in the current session and update the card's state and next scheduled review.
+        
+        Parameters:
+            card_uuid (UUID): UUID of the card to review.
+            rating (int): User's rating for the review (e.g., Again, Hard, Good, Easy).
+            reviewed_at (Optional[datetime]): Timestamp when the review occurred; defaults to now when omitted.
+            resp_ms (int): Time in milliseconds from showing the card to revealing the answer.
+            eval_ms (int): Time in milliseconds taken to decide and submit the rating.
+        
         Returns:
-            The updated Card object.
-
+            Card: The updated Card object reflecting the processed review.
+        
         Raises:
-            ValueError: If the card is not in the current session.
-            CardOperationError: If there's an issue with the database update.
+            ValueError: If the specified card is not part of the current review session.
         """
         # Validate that the card is in the current session
         card = self._get_card_from_queue(card_uuid)
@@ -211,10 +217,13 @@ class ReviewSessionManager:
 
     def get_session_stats(self) -> Dict[str, int]:
         """
-        Returns statistics for the current review session.
-
+        Provide aggregated statistics for the active review session.
+        
         Returns:
-            A dictionary with session statistics.
+            dict: Mapping containing session statistics:
+                - "total_cards" (int): Number of cards that were initially in the session.
+                - "reviewed_cards" (int): Number of cards reviewed so far.
+                Additional keys may be present when session analytics are active; those metrics (e.g., performance or timing statistics) are merged into the returned dictionary.
         """
         total_cards = len(self.current_session_card_uuids)
         reviewed_cards = total_cards - len(self.review_queue)
@@ -238,10 +247,33 @@ class ReviewSessionManager:
 
     def end_session_with_insights(self) -> Dict[str, Any]:
         """
-        End the current session and generate comprehensive insights.
-
+        End the active review session and produce a structured summary with analytics-driven insights.
+        
+        If a session is active, ends analytics tracking, compiles a session summary (uuid, duration, reviewed cards, decks accessed, deck switches, interruptions) and an insights block containing performance metrics, recommendations, achievements, alerts, and comparisons. If no session is active or an error occurs, returns an error description.
+        
         Returns:
-            Dictionary containing session summary and insights
+            dict: On success, a dictionary with keys:
+                - "session": dict with keys:
+                    - "uuid" (str): Session UUID.
+                    - "duration_ms" (int): Total session duration in milliseconds.
+                    - "cards_reviewed" (int): Number of cards reviewed in the session.
+                    - "decks_accessed" (List[str]): Deck names accessed during the session.
+                    - "deck_switches" (int): Number of times the user switched decks.
+                    - "interruptions" (int): Number of interruptions recorded.
+                - "insights": dict containing:
+                    - "performance": dict with keys:
+                        - "cards_per_minute" (float)
+                        - "average_response_time_ms" (float)
+                        - "accuracy_percentage" (float)
+                        - "focus_score" (float)
+                    - "recommendations" (Any): Actionable suggestions.
+                    - "achievements" (Any): Achievements earned during the session.
+                    - "alerts" (Any): Notable alerts or warnings.
+                    - "comparisons": dict with keys:
+                        - "vs_last_session" (Any): Comparison data against the previous session.
+                        - "trend_direction" (Any): High-level trend indicator.
+            On failure or when no session is active, returns:
+                dict: {"error": "<error message>"}
         """
         if not self._session_started:
             return {"error": "No active session to end"}
@@ -289,10 +321,10 @@ class ReviewSessionManager:
 
     def get_due_card_count(self) -> int:
         """
-        Gets the total number of cards currently due for review using the efficient database count method.
-
+        Get the number of cards due for the manager's deck on today's date.
+        
         Returns:
-            The count of due cards.
+            The number of due cards for the manager's deck on today's date.
         """
         today = date.today()  # Use local date for user-friendly scheduling
         return self.db.get_due_card_count(

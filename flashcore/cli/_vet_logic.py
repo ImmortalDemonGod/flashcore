@@ -22,7 +22,15 @@ yaml.preserve_quotes = True
 
 
 def yaml_to_string(data: Dict[str, Any]) -> str:
-    """Dumps YAML data to a string."""
+    """
+    Serialize a Python mapping to a YAML-formatted string using the module's configured YAML instance.
+    
+    Parameters:
+        data (Dict[str, Any]): Mapping representing the YAML document to serialize.
+    
+    Returns:
+        str: A YAML-formatted string representing `data`, respecting the module's YAML configuration (indentation and preserved quotes).
+    """
     string_stream = StringIO()
     yaml.dump(data, string_stream)
     return string_stream.getvalue()
@@ -32,8 +40,20 @@ def _validate_and_normalize_card(
     raw_card_dict: Dict[str, Any], deck_name: str
 ) -> Dict[str, Any]:
     """
-    Validates a single card, adds a UUID if missing, and normalizes its structure.
-    Raises ValidationError or TypeError on failure.
+    Validate and normalize a single card dictionary for writing to YAML.
+    
+    This maps front/back aliases (`q` -> `front`, `a` -> `back`), removes empty or invalid `uuid` values so a new UUID can be generated, and returns a deterministic, key-sorted dictionary with the card's UUID as a string.
+    
+    Parameters:
+        raw_card_dict (Dict[str, Any]): The raw card data loaded from YAML.
+        deck_name (str): The deck name to associate with the card for validation.
+    
+    Returns:
+        Dict[str, Any]: A vetted, normalized card dictionary ready to be written back to YAML; `uuid` will be a string.
+    
+    Raises:
+        ValidationError: If the card fails model validation.
+        TypeError: If the provided card data has incorrect types for model fields.
     """
     # 1. Create a mutable copy and map front/back aliases
     mapped_card_dict = raw_card_dict.copy()
@@ -79,7 +99,19 @@ def _validate_and_process_cards(
     raw_cards: List[Dict[str, Any]], deck_name: str, file_path: Path
 ) -> Tuple[List[Dict[str, Any]], bool]:
     """
-    Validates and processes a list of cards, returning vetted cards and an error flag.
+    Validate and normalize a list of raw card dictionaries, reporting any per-card validation errors to the console.
+    
+    Processes each entry in `raw_cards` through normalization/validation and returns the collection of successfully vetted card dictionaries alongside a flag indicating whether any validation errors were encountered. Validation errors are printed with file and card index context.
+    
+    Parameters:
+        raw_cards (List[Dict[str, Any]]): Raw card objects parsed from a YAML file.
+        deck_name (str): Deck name to associate with each card during validation.
+        file_path (Path): Path to the source file; used only for error messages.
+    
+    Returns:
+        Tuple[List[Dict[str, Any]], bool]:
+            `vetted_cards`: List of normalized card dictionaries ready for writing.
+            `validation_error_found`: `true` if any card failed validation, `false` otherwise.
     """
     vetted_cards = []
     validation_error_found = False
@@ -106,10 +138,29 @@ def _validate_and_process_cards(
 
 
 def _sort_and_format_data(data: Dict[str, Any]) -> str:
-    """Sorts cards and top-level keys, and returns the formatted YAML string."""
+    """
+    Produce a YAML string with cards and top-level keys deterministically sorted.
+    
+    Sorts the list at data["cards"] in-place by the card's front text (preferring 'q' then 'front'),
+    normalizing whitespace and case for comparison. Then returns a YAML-formatted string where
+    top-level mapping keys are sorted alphabetically.
+    
+    Parameters:
+        data (Dict[str, Any]): Mapping representing the YAML document; if it contains a 'cards'
+            list, that list will be reordered in-place.
+    
+    Returns:
+        str: YAML-formatted string of the input data with sorted top-level keys and sorted cards.
+    """
 
     def normalize_front(card: Dict[str, Any]) -> str:
         # Handle both 'q' and 'front' for robustness during sorting
+        """
+        Produce a normalized, lowercased front text from a card suitable for sorting.
+        
+        Returns:
+            str: The card's front text lowercased with consecutive whitespace collapsed to single spaces; returns an empty string if neither 'q' nor 'front' is present.
+        """
         return " ".join(
             str(card.get("q", card.get("front", ""))).lower().split()
         )
@@ -123,8 +174,16 @@ def _sort_and_format_data(data: Dict[str, Any]) -> str:
 
 def _process_single_file(file_path: Path, check: bool) -> Tuple[bool, bool]:
     """
-    Processes a single YAML file: validates, cleans, adds UUIDs, and sorts.
-    Returns a tuple of (is_dirty, has_errors).
+    Validate and normalize a single YAML flashcard file, producing a sorted, cleaned YAML representation.
+    
+    Processes the file at the given path: loads YAML, validates and normalizes each card (including UUID handling), replaces the file's cards with the vetted list, and writes the updated, sorted YAML back to disk when changes are detected and `check` is False.
+    
+    Parameters:
+        file_path (Path): Path to the YAML file to process.
+        check (bool): If True, do not write changes to disk; only report whether changes would be made.
+    
+    Returns:
+        Tuple[bool, bool]: First element is `true` if the file would be or was modified, `false` otherwise; second element is `true` if validation errors were encountered, `false` otherwise.
     """
     try:
         original_content = file_path.read_text(encoding="utf-8")
@@ -199,13 +258,15 @@ def vet_logic(
     source_dir: Optional[Path] = None,
 ) -> bool:
     """
-    Main logic for the 'vet' command.
-    Validates, formats, sorts, and adds UUIDs to flashcard YAML files.
-
-    Args:
-        check: If True, run in check-only mode without modifying files.
-        files_to_process: Optional explicit list of files to vet.
-        source_dir: Directory to search for YAML files when files_to_process is None.
+    Orchestrates vetting of flashcard YAML files by discovering targets, validating and normalizing cards, formatting content, and optionally writing changes.
+    
+    Parameters:
+        check: If True, run in check-only mode and do not modify files.
+        files_to_process: Optional explicit list of files to vet; when provided, only these files are considered.
+        source_dir: Directory to search for YAML files when `files_to_process` is None; required in that case.
+    
+    Returns:
+        bool: `True` if any files required changes or any validation errors were found, `False` otherwise.
     """
     if files_to_process is None:
         if source_dir is None:
