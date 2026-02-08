@@ -1,6 +1,7 @@
 """
 Tests for the flashcard export logic.
 """
+
 import logging
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -97,6 +98,7 @@ def test_export_to_markdown_file_write_error(mock_db, sample_cards, tmp_path, ca
 
     # Let Deck 1 write, but fail on Deck 2
     original_open = open
+
     def mock_open(file, *args, **kwargs):
         if "Deck 2" in str(file):
             raise IOError("Disk full")
