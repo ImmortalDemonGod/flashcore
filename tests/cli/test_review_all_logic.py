@@ -4,7 +4,7 @@ Unit tests for the flashcore.cli._review_all_logic module.
 
 from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
