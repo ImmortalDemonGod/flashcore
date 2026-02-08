@@ -503,3 +503,407 @@ class TestSessionManagerIntegration:
         assert insights is not None
         # Note: cards_per_minute might be 0 without actual reviews in database
         assert insights.cards_per_minute >= 0
+
+    def test_start_session_db_error_resets_state(self, in_memory_db):
+        """Test that start_session resets current_session on database error."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        with patch.object(
+            in_memory_db, "create_session", side_effect=RuntimeError("DB failure")
+        ):
+            with pytest.raises(RuntimeError, match="DB failure"):
+                manager.start_session()
+        assert manager.current_session is None
+
+    def test_record_card_review_db_error_continues(self, in_memory_db):
+        """Test that record_card_review logs error but doesn't crash on DB failure."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        manager.start_session()
+        card = Card(uuid=uuid4(), deck_name="Math", front="Q", back="A", tags={"math"})
+        with patch.object(
+            in_memory_db, "update_session", side_effect=RuntimeError("DB failure")
+        ):
+            manager.record_card_review(card, rating=3, response_time_ms=1000)
+        assert manager.current_session.cards_reviewed == 1
+
+    def test_record_interruption_db_error_continues(self, in_memory_db):
+        """Test that record_interruption logs error but doesn't crash on DB failure."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        manager.start_session()
+        with patch.object(
+            in_memory_db, "update_session", side_effect=RuntimeError("DB failure")
+        ):
+            manager.record_interruption()
+        assert manager.current_session.interruptions == 1
+
+    def test_end_session_db_error_raises(self, in_memory_db):
+        """Test that end_session raises on DB failure during finalization."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        manager.start_session()
+        with patch.object(
+            in_memory_db, "update_session", side_effect=RuntimeError("DB failure")
+        ):
+            with pytest.raises(RuntimeError, match="DB failure"):
+                manager.end_session()
+
+    def test_get_user_sessions_db_error_returns_empty(self, in_memory_db):
+        """Test that _get_user_sessions returns empty list on DB failure."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        with patch.object(
+            in_memory_db, "get_recent_sessions", side_effect=RuntimeError("DB failure")
+        ):
+            result = manager._get_user_sessions("test_user")
+        assert result == []
+
+    def test_get_session_reviews_session_not_found(self, in_memory_db):
+        """Test that _get_session_reviews returns empty list when session not found."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        result = manager._get_session_reviews(uuid4())
+        assert result == []
+
+    def test_calculate_performance_metrics_with_reviews(self, in_memory_db):
+        """Test _calculate_performance_metrics with actual review data."""
+        from datetime import date as date_today
+        from flashcore.models import Review
+
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=600000,
+            cards_reviewed=10,
+            interruptions=1,
+            deck_switches=2,
+        )
+        reviews = [
+            Review(
+                card_uuid=uuid4(),
+                rating=r,
+                resp_ms=ms,
+                eval_ms=500,
+                stab_before=1.0,
+                stab_after=2.0,
+                diff=5.0,
+                next_due=date_today.today(),
+                elapsed_days_at_review=1,
+                scheduled_days_interval=1,
+                review_type="review",
+                ts=datetime.now(timezone.utc),
+            )
+            for r, ms in [(3, 1000), (4, 800), (2, 1200), (3, 900), (4, 700), (3, 1100)]
+        ]
+        metrics = manager._calculate_performance_metrics(session, reviews)
+        assert metrics["cards_per_minute"] == 1.0
+        assert metrics["average_response_time_ms"] > 0
+        assert metrics["accuracy_percentage"] > 0
+        assert metrics["focus_score"] <= 100
+        assert metrics["fatigue_detected"] is False
+
+    def test_calculate_performance_metrics_fatigue_detected(self, in_memory_db):
+        """Test fatigue detection when response times increase significantly."""
+        from datetime import date as date_today
+        from flashcore.models import Review
+
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=600000,
+            cards_reviewed=10,
+        )
+        reviews = [
+            Review(
+                card_uuid=uuid4(),
+                rating=3,
+                resp_ms=ms,
+                eval_ms=500,
+                stab_before=1.0,
+                stab_after=2.0,
+                diff=5.0,
+                next_due=date_today.today(),
+                elapsed_days_at_review=1,
+                scheduled_days_interval=1,
+                review_type="review",
+                ts=datetime.now(timezone.utc),
+            )
+            for ms in [500, 600, 550, 580, 1500, 1800, 2000, 1900, 2100, 2200]
+        ]
+        metrics = manager._calculate_performance_metrics(session, reviews)
+        assert metrics["fatigue_detected"] is True
+
+    def test_calculate_session_comparisons_improving_trend(self, in_memory_db):
+        """Test trend detection: improving (recent > older)."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=600000,
+            cards_reviewed=20,
+        )
+        historical = [session] + [
+            Session(
+                session_uuid=uuid4(),
+                user_id="test_user",
+                total_duration_ms=600000,
+                cards_reviewed=20 - i * 3,
+            )
+            for i in range(1, 5)
+        ]
+        result = manager._calculate_session_comparisons(session, historical)
+        assert result["trend_direction"] == "improving"
+
+    def test_calculate_session_comparisons_declining_trend(self, in_memory_db):
+        """Test trend detection: declining (recent < older)."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=600000,
+            cards_reviewed=5,
+        )
+        historical = [session] + [
+            Session(
+                session_uuid=uuid4(),
+                user_id="test_user",
+                total_duration_ms=600000,
+                cards_reviewed=5 + i * 3,
+            )
+            for i in range(1, 5)
+        ]
+        result = manager._calculate_session_comparisons(session, historical)
+        assert result["trend_direction"] == "declining"
+
+    def test_generate_recommendations_long_session(self, in_memory_db):
+        """Test recommendation for sessions longer than 1 hour."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=4000000,
+            cards_reviewed=10,
+        )
+        recs = manager._generate_recommendations(session, [], {})
+        assert any("shorter sessions" in r for r in recs)
+
+    def test_generate_recommendations_short_session(self, in_memory_db):
+        """Test recommendation for sessions shorter than 10 minutes."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=300000,
+            cards_reviewed=5,
+        )
+        recs = manager._generate_recommendations(session, [], {})
+        assert any("longer sessions" in r for r in recs)
+
+    def test_generate_recommendations_many_interruptions(self, in_memory_db):
+        """Test recommendation for too many interruptions."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=10,
+            interruptions=5,
+        )
+        recs = manager._generate_recommendations(session, [], {})
+        assert any("quieter environment" in r for r in recs)
+
+    def test_generate_recommendations_many_deck_switches(self, in_memory_db):
+        """Test recommendation for too many deck switches."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=10,
+            deck_switches=5,
+        )
+        recs = manager._generate_recommendations(session, [], {})
+        assert any("one deck at a time" in r for r in recs)
+
+    def test_generate_recommendations_low_ratings(self, in_memory_db):
+        """Test recommendation for low average ratings."""
+        from datetime import date as date_today
+        from flashcore.models import Review
+
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=5,
+        )
+        reviews = [
+            Review(
+                card_uuid=uuid4(),
+                rating=1,
+                resp_ms=1000,
+                eval_ms=500,
+                stab_before=1.0,
+                stab_after=2.0,
+                diff=5.0,
+                next_due=date_today.today(),
+                elapsed_days_at_review=1,
+                scheduled_days_interval=1,
+                review_type="review",
+                ts=datetime.now(timezone.utc),
+            )
+            for _ in range(5)
+        ]
+        recs = manager._generate_recommendations(session, reviews, {})
+        assert any("more frequently" in r for r in recs)
+
+    def test_generate_recommendations_high_ratings(self, in_memory_db):
+        """Test recommendation for high average ratings."""
+        from datetime import date as date_today
+        from flashcore.models import Review
+
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=5,
+        )
+        reviews = [
+            Review(
+                card_uuid=uuid4(),
+                rating=4,
+                resp_ms=1000,
+                eval_ms=500,
+                stab_before=1.0,
+                stab_after=2.0,
+                diff=5.0,
+                next_due=date_today.today(),
+                elapsed_days_at_review=1,
+                scheduled_days_interval=1,
+                review_type="review",
+                ts=datetime.now(timezone.utc),
+            )
+            for _ in range(5)
+        ]
+        recs = manager._generate_recommendations(session, reviews, {})
+        assert any("doing great" in r for r in recs)
+
+    def test_detect_achievements_50_cards(self, in_memory_db):
+        """Test achievement for reviewing 50+ cards."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=3600000,
+            cards_reviewed=55,
+        )
+        achievements = manager._detect_achievements(session, [], [])
+        assert any("50+" in a for a in achievements)
+
+    def test_detect_achievements_25_cards(self, in_memory_db):
+        """Test achievement for reviewing 25+ cards."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=30,
+        )
+        achievements = manager._detect_achievements(session, [], [])
+        assert any("25+" in a for a in achievements)
+
+    def test_detect_achievements_zero_interruptions(self, in_memory_db):
+        """Test achievement for zero interruptions."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=10,
+            interruptions=0,
+        )
+        achievements = manager._detect_achievements(session, [], [])
+        assert any("zero interruptions" in a for a in achievements)
+
+    def test_detect_achievements_7_day_streak(self, in_memory_db):
+        """Test achievement for 7-day review streak."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=10,
+        )
+        historical = [
+            Session(
+                session_uuid=uuid4(),
+                user_id="test_user",
+                total_duration_ms=1800000,
+                cards_reviewed=5 + i,
+            )
+            for i in range(8)
+        ]
+        achievements = manager._detect_achievements(session, [], historical)
+        assert any("7-day" in a for a in achievements)
+
+    def test_detect_achievements_high_efficiency(self, in_memory_db):
+        """Test achievement for high cards-per-minute efficiency."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=300000,
+            cards_reviewed=10,
+        )
+        achievements = manager._detect_achievements(session, [], [])
+        assert any("efficiency" in a for a in achievements)
+
+    def test_generate_alerts_performance_decline(self, in_memory_db):
+        """Test alert for significant performance decline."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=5,
+        )
+        comparisons = {"vs_last_session": {"cards_reviewed": -60}}
+        alerts = manager._generate_alerts(session, [], comparisons)
+        assert any("decrease" in a for a in alerts)
+
+    def test_generate_alerts_high_interruptions(self, in_memory_db):
+        """Test alert for high number of interruptions."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=5,
+            interruptions=7,
+        )
+        alerts = manager._generate_alerts(session, [], {})
+        assert any("interruptions" in a for a in alerts)
+
+    def test_generate_alerts_declining_trend(self, in_memory_db):
+        """Test alert for declining performance trend."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = Session(
+            session_uuid=uuid4(),
+            user_id="test_user",
+            total_duration_ms=1800000,
+            cards_reviewed=5,
+        )
+        comparisons = {"trend_direction": "declining"}
+        alerts = manager._generate_alerts(session, [], comparisons)
+        assert any("declining" in a for a in alerts)
+
+    def test_get_session_reviews_with_actual_reviews(self, in_memory_db):
+        """Test _get_session_reviews retrieves and converts review data."""
+        manager = SessionManager(in_memory_db, user_id="test_user")
+        session = manager.start_session()
+
+        card = Card(uuid=uuid4(), deck_name="Test", front="Q", back="A", tags={"test"})
+        in_memory_db.upsert_cards_batch([card])
+        manager.record_card_review(card, rating=3, response_time_ms=1000)
+
+        completed = manager.end_session()
+        reviews = manager._get_session_reviews(completed.session_uuid)
+        assert isinstance(reviews, list)
