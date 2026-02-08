@@ -142,7 +142,7 @@ class TestRatingSystemInconsistency:
 
         # Submit review with unified rating (1-4)
         rating = 3  # Good
-        updated_card = manager.submit_review(
+        manager.submit_review(
             card_uuid=sample_card.uuid, rating=rating, resp_ms=1000, eval_ms=500
         )
 
@@ -162,7 +162,7 @@ class TestRatingSystemInconsistency:
 
         # Submit review using review-all logic with unified rating
         rating = 2  # Hard
-        updated_card = _submit_single_review(
+        _submit_single_review(
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             card=sample_card,
