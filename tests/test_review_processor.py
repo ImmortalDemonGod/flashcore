@@ -379,15 +379,19 @@ class TestReviewProcessorIntegration:
         processor = ReviewProcessor(in_memory_db, real_scheduler)
 
         # Process multiple reviews to test state transitions
+        # Space timestamps apart to avoid negative elapsed_days from FSRS
         ratings = [3, 4, 2, 3]  # Good, Easy, Hard, Good
+        base_ts = datetime(2024, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
 
         for i, rating in enumerate(ratings):
+            review_ts = base_ts + timedelta(days=i * 7)  # 1 week apart
             updated_card = processor.process_review(
                 card=sample_card,
                 rating=rating,
                 resp_ms=1000 + i * 100,
                 eval_ms=500 + i * 50,
-                session_uuid=uuid4()
+                session_uuid=uuid4(),
+                reviewed_at=review_ts,
             )
 
             # Verify card state progresses correctly
