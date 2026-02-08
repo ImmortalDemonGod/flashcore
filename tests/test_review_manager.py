@@ -349,7 +349,7 @@ class TestReviewSessionManagerIntegration:
         assert latest_review is not None
         assert latest_review.review_id == updated_card.last_review_id
         assert latest_review.rating == rating.value  # Unified 1-4 rating scale, no conversion needed
-        assert latest_review.review_type == "learn"
+        assert latest_review.review_type == "review"
 
         # 6. Verify DB state
         card1_reviews = in_memory_db.get_reviews_for_card(card1_uuid)
