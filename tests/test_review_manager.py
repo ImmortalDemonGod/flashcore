@@ -8,11 +8,11 @@ from collections import deque
 from datetime import date, datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
-from cultivation.scripts.flashcore.card import Card, Review, CardState, Rating
-from cultivation.scripts.flashcore.database import FlashcardDatabase
-from cultivation.scripts.flashcore.exceptions import CardOperationError
-from cultivation.scripts.flashcore.scheduler import FSRS_Scheduler, SchedulerOutput
-from cultivation.scripts.flashcore.review_manager import ReviewSessionManager
+from flashcore.models import Card, Review, CardState, Rating
+from flashcore.db.database import FlashcardDatabase
+from flashcore.exceptions import CardOperationError
+from flashcore.scheduler import FSRS_Scheduler, SchedulerOutput
+from flashcore.review_manager import ReviewSessionManager
 
 # --- Fixtures ---
 
