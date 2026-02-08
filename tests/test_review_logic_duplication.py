@@ -13,11 +13,11 @@ from datetime import datetime, timezone, date
 from uuid import uuid4
 from unittest.mock import MagicMock, patch
 
-from cultivation.scripts.flashcore.card import Card, Review, CardState
-from cultivation.scripts.flashcore.database import FlashcardDatabase
-from cultivation.scripts.flashcore.scheduler import FSRS_Scheduler, SchedulerOutput
-from cultivation.scripts.flashcore.review_manager import ReviewSessionManager
-from cultivation.scripts.flashcore.cli._review_all_logic import _submit_single_review
+from flashcore.models import Card, Review, CardState
+from flashcore.db.database import FlashcardDatabase
+from flashcore.scheduler import FSRS_Scheduler, SchedulerOutput
+from flashcore.review_manager import ReviewSessionManager
+from flashcore.cli._review_all_logic import _submit_single_review
 
 
 class TestReviewLogicDuplication:
