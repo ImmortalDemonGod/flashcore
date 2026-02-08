@@ -2,7 +2,7 @@
 Logic for reviewing all due cards across all decks.
 """
 
-from datetime import datetime, timezone, date
+from datetime import datetime, date
 from typing import List, Optional
 from rich.console import Console
 
