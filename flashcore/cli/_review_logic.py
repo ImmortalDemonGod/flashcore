@@ -36,4 +36,3 @@ def review_logic(
     )
 
     start_review_flow(manager, tags=tags)
-
