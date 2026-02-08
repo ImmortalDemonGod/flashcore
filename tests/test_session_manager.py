@@ -11,9 +11,9 @@ from datetime import datetime, timezone, timedelta
 from uuid import uuid4, UUID
 from unittest.mock import patch, MagicMock
 
-from cultivation.scripts.flashcore.card import Card, Session
-from cultivation.scripts.flashcore.database import FlashcardDatabase
-from cultivation.scripts.flashcore.session_manager import SessionManager, SessionInsights
+from flashcore.models import Card, Session
+from flashcore.db.database import FlashcardDatabase
+from flashcore.session_manager import SessionManager, SessionInsights
 
 
 class TestSessionManager:
