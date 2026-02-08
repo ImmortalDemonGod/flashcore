@@ -82,7 +82,7 @@ def test_export_to_markdown_deck_name_sanitization(mock_db, tmp_path):
     assert expected_file.exists()
 
 
-def test_export_to_markdown_dir_creation_error(mock_db, sample_cards, tmp_path, mocker):
+def test_export_to_markdown_dir_creation_error(mock_db, tmp_path, mocker):
     """Test that an IOError is raised if the output directory cannot be created."""
     output_dir = tmp_path / "export"
     mocker.patch.object(Path, "mkdir", side_effect=OSError("Permission denied"))
