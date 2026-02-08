@@ -3,7 +3,7 @@ Logic for reviewing all due cards across all decks.
 """
 
 from datetime import datetime, date
-from typing import List, Optional
+from typing import Dict, List, Optional
 from rich.console import Console
 
 from pathlib import Path
@@ -43,7 +43,7 @@ def review_all_logic(db_path: Path, limit: int = 50):
         return
 
     # Group cards by deck for display purposes
-    deck_counts = {}
+    deck_counts: Dict[str, int] = {}
     for card in all_due_cards:
         deck_counts[card.deck_name] = deck_counts.get(card.deck_name, 0) + 1
 
