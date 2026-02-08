@@ -26,79 +26,79 @@ def review_all_logic(db_path: Path, limit: int = 50):
         db_path: Path to the database file (DI, no defaults).
         limit: Maximum number of cards to review in this session.
     """
-    db_manager = FlashcardDatabase(db_path=db_path)
-    db_manager.initialize_schema()
+    with FlashcardDatabase(db_path=db_path) as db_manager:
+        db_manager.initialize_schema()
 
-    scheduler = FSRS_Scheduler()
+        scheduler = FSRS_Scheduler()
 
-    # Get all due cards across all decks
-    today = date.today()  # Use local date for user-friendly scheduling
-    all_due_cards = _get_all_due_cards(db_manager, today, limit)
+        # Get all due cards across all decks
+        today = date.today()  # Use local date for user-friendly scheduling
+        all_due_cards = _get_all_due_cards(db_manager, today, limit)
 
-    if not all_due_cards:
+        if not all_due_cards:
+            console.print(
+                "[bold yellow]No cards are due for review across any deck.[/bold yellow]"
+            )
+            console.print("[bold cyan]Review session finished.[/bold cyan]")
+            return
+
+        # Group cards by deck for display purposes
+        deck_counts: Dict[str, int] = {}
+        for card in all_due_cards:
+            deck_counts[card.deck_name] = deck_counts.get(card.deck_name, 0) + 1
+
+        # Show summary
         console.print(
-            "[bold yellow]No cards are due for review across any deck.[/bold yellow]"
+            f"[bold green]Found {len(all_due_cards)} due cards across {len(deck_counts)} decks:[/bold green]"
         )
-        console.print("[bold cyan]Review session finished.[/bold cyan]")
-        return
+        for deck_name, count in deck_counts.items():
+            console.print(f"  • [cyan]{deck_name}[/cyan]: {count} cards")
+        console.print()
 
-    # Group cards by deck for display purposes
-    deck_counts: Dict[str, int] = {}
-    for card in all_due_cards:
-        deck_counts[card.deck_name] = deck_counts.get(card.deck_name, 0) + 1
+        # Create a unified review session by manually handling reviews
+        reviewed_count = 0
+        for card in all_due_cards:
+            reviewed_count += 1
 
-    # Show summary
-    console.print(
-        f"[bold green]Found {len(all_due_cards)} due cards across {len(deck_counts)} decks:[/bold green]"
-    )
-    for deck_name, count in deck_counts.items():
-        console.print(f"  • [cyan]{deck_name}[/cyan]: {count} cards")
-    console.print()
-
-    # Create a unified review session by manually handling reviews
-    reviewed_count = 0
-    for card in all_due_cards:
-        reviewed_count += 1
-
-        # Display progress with deck context
-        console.rule(
-            f"[bold]Card {reviewed_count} of {len(all_due_cards)} • [cyan]{card.deck_name}[/cyan][/bold]"
-        )
-
-        resp_ms = _display_card(card)
-        rating, eval_ms = _get_user_rating()
-
-        # Submit the review directly using database and scheduler
-        try:
-            updated_card = _submit_single_review(
-                db_manager=db_manager,
-                scheduler=scheduler,
-                card=card,
-                rating=rating,
-                resp_ms=resp_ms,
-                eval_ms=eval_ms,
+            # Display progress with deck context
+            console.rule(
+                f"[bold]Card {reviewed_count} of {len(all_due_cards)} • [cyan]{card.deck_name}[/cyan][/bold]"
             )
 
-            if updated_card and updated_card.next_due_date:
-                days_until_due = (
-                    updated_card.next_due_date - date.today()
-                ).days
-                due_date_str = updated_card.next_due_date.strftime("%Y-%m-%d")
-                console.print(
-                    f"[green]Reviewed.[/green] Next due in [bold]{days_until_due} days[/bold] on {due_date_str}."
-                )
-            else:
-                console.print(
-                    "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
-                )
-        except Exception as e:
-            console.print(f"[bold red]Error reviewing card: {e}[/bold red]")
+            resp_ms = _display_card(card)
+            rating, eval_ms = _get_user_rating()
 
-        console.print("")  # Add spacing
+            # Submit the review directly using database and scheduler
+            try:
+                updated_card = _submit_single_review(
+                    db_manager=db_manager,
+                    scheduler=scheduler,
+                    card=card,
+                    rating=rating,
+                    resp_ms=resp_ms,
+                    eval_ms=eval_ms,
+                )
 
-    console.print(
-        f"[bold green]Review session complete! Reviewed {reviewed_count} cards.[/bold green]"
-    )
+                if updated_card and updated_card.next_due_date:
+                    days_until_due = (
+                        updated_card.next_due_date - date.today()
+                    ).days
+                    due_date_str = updated_card.next_due_date.strftime("%Y-%m-%d")
+                    console.print(
+                        f"[green]Reviewed.[/green] Next due in [bold]{days_until_due} days[/bold] on {due_date_str}."
+                    )
+                else:
+                    console.print(
+                        "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
+                    )
+            except Exception as e:
+                console.print(f"[bold red]Error reviewing card: {e}[/bold red]")
+
+            console.print("")  # Add spacing
+
+        console.print(
+            f"[bold green]Review session complete! Reviewed {reviewed_count} cards.[/bold green]"
+        )
 
 
 def _get_all_due_cards(
