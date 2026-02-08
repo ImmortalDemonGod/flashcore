@@ -8,3 +8,10 @@ per-file-ignores =
     flashcore/yaml_validators.py:E501
     flashcore/parser.py:E501
     flashcore/yaml_models.py:E501
+    flashcore/session_manager.py:E501
+    flashcore/review_manager.py:E501
+    flashcore/cli/main.py:E501
+    flashcore/cli/review_ui.py:E501
+    flashcore/cli/_review_all_logic.py:E501
+    flashcore/cli/_vet_logic.py:E501
+    flashcore/cli/_export_logic.py:E501
