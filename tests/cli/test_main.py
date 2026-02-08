@@ -645,7 +645,9 @@ def test_main_handles_unexpected_exception(mock_print, mock_app):
     with patch("flashcore.cli.main.app", mock_app):
         from flashcore.cli.main import main
 
-        main()
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+        assert exc_info.value.code == 1
     # Check that the mock_print was called with the exception message.
     # The exact formatting may vary, so we check for the presence of the error string.
     assert any(
