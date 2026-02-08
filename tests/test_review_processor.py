@@ -111,7 +111,7 @@ class TestReviewProcessor:
         processor = ReviewProcessor(in_memory_db, mock_scheduler)
 
         # Process review without timestamp
-        with patch('cultivation.scripts.flashcore.review_processor.datetime') as mock_datetime:
+        with patch('flashcore.review_processor.datetime') as mock_datetime:
             mock_now = datetime(2024, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
             mock_datetime.now.return_value = mock_now
             mock_datetime.timezone = timezone
@@ -329,7 +329,7 @@ class TestReviewProcessor:
         processor = ReviewProcessor(in_memory_db, mock_scheduler)
 
         # Process review with logging
-        with patch('cultivation.scripts.flashcore.review_processor.logger') as mock_logger:
+        with patch('flashcore.review_processor.logger') as mock_logger:
             processor.process_review(
                 card=sample_card,
                 rating=3
