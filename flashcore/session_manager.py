@@ -648,13 +648,12 @@ class SessionManager:
 
         # Compare with average
         avg_cards = mean([s.cards_reviewed for s in historical_sessions[1:]])
-        avg_duration = mean(
-            [
-                s.total_duration_ms
-                for s in historical_sessions[1:]
-                if s.total_duration_ms
-            ]
-        )
+        durations = [
+            s.total_duration_ms
+            for s in historical_sessions[1:]
+            if s.total_duration_ms
+        ]
+        avg_duration = mean(durations) if durations else 0
 
         vs_average = {}
         if avg_cards > 0:
