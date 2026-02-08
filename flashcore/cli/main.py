@@ -19,7 +19,10 @@ from flashcore.db.database import FlashcardDatabase
 from flashcore.db.db_utils import backup_database, find_latest_backup
 from flashcore.exceptions import DatabaseError, DeckNotFoundError
 from flashcore.models import Card
-from flashcore.parser import YAMLProcessorConfig, load_and_process_flashcard_yamls
+from flashcore.parser import (
+    YAMLProcessorConfig,
+    load_and_process_flashcard_yamls,
+)
 from flashcore.cli._export_logic import export_to_markdown
 from flashcore.cli._review_logic import review_logic
 from flashcore.cli._review_all_logic import review_all_logic
@@ -39,6 +42,7 @@ app = typer.Typer(
 # ---------------------------------------------------------------------------
 # Helpers for resolving the --db path (DI: no defaults, FLASHCORE_DB envvar)
 # ---------------------------------------------------------------------------
+
 
 def _resolve_db_path(db: Optional[Path]) -> Path:
     """Resolve db path from CLI flag or FLASHCORE_DB envvar. Exits on missing."""
@@ -85,6 +89,7 @@ def _normalize_for_comparison(text: str) -> str:
 # Vet
 # ---------------------------------------------------------------------------
 
+
 @app.command()
 def vet(
     check: bool = typer.Option(
@@ -113,6 +118,7 @@ def vet(
 # ---------------------------------------------------------------------------
 # Ingest helpers
 # ---------------------------------------------------------------------------
+
 
 def _load_cards_from_source(
     source_dir: Path,
@@ -219,9 +225,7 @@ def _perform_ingestion_logic(
         if re_ingest:
             cards_to_upsert = all_cards
         else:
-            cards_to_upsert, duplicate_count = _filter_new_cards(
-                db, all_cards
-            )
+            cards_to_upsert, duplicate_count = _filter_new_cards(db, all_cards)
 
         upserted_count = _execute_ingestion(db, cards_to_upsert)
         if upserted_count > 0 or duplicate_count > 0:
@@ -233,6 +237,7 @@ def _perform_ingestion_logic(
 # ---------------------------------------------------------------------------
 # Ingest command
 # ---------------------------------------------------------------------------
+
 
 @app.command()
 def ingest(
@@ -254,9 +259,7 @@ def ingest(
         )
         raise typer.Exit(code=1)
 
-    console.print(
-        f"Starting ingestion from [cyan]{source_dir}[/cyan]..."
-    )
+    console.print(f"Starting ingestion from [cyan]{source_dir}[/cyan]...")
     if re_ingest:
         console.print(
             "[yellow]--re-ingest flag is noted. "
@@ -264,9 +267,7 @@ def ingest(
         )
 
     try:
-        _perform_ingestion_logic(
-            db_path, source_dir, assets_root, re_ingest
-        )
+        _perform_ingestion_logic(db_path, source_dir, assets_root, re_ingest)
     except typer.Exit:
         raise
     except DatabaseError as e:
@@ -284,19 +285,14 @@ def ingest(
 # Stats helpers & command
 # ---------------------------------------------------------------------------
 
+
 def _display_overall_stats(cons: Console, stats_data: dict):
     """Displays the overall stats table."""
-    overall_table = Table(
-        title="Overall Database Stats", show_header=False
-    )
+    overall_table = Table(title="Overall Database Stats", show_header=False)
     overall_table.add_column("Metric", style="cyan")
     overall_table.add_column("Value", style="magenta")
-    overall_table.add_row(
-        "Total Cards", str(stats_data["total_cards"])
-    )
-    overall_table.add_row(
-        "Total Reviews", str(stats_data["total_reviews"])
-    )
+    overall_table.add_row("Total Cards", str(stats_data["total_cards"]))
+    overall_table.add_row("Total Reviews", str(stats_data["total_reviews"]))
     cons.print(overall_table)
 
 
@@ -323,9 +319,7 @@ def _display_state_stats(cons: Console, stats_data: dict):
     states_table.add_column("Count", style="magenta")
     card_states = stats_data["states"]
     if not card_states:
-        states_table.add_row(
-            "N/A", str(stats_data["total_cards"])
-        )
+        states_table.add_row("N/A", str(stats_data["total_cards"]))
     else:
         for state, count in sorted(card_states.items()):
             states_table.add_row(state, str(count))
@@ -354,9 +348,7 @@ def stats(
             _display_state_stats(console, stats_data)
 
     except DatabaseError as e:
-        console.print(
-            f"[bold]A database error occurred: {e}[/bold]"
-        )
+        console.print(f"[bold]A database error occurred: {e}[/bold]")
         raise typer.Exit(code=1) from e
     except Exception as e:
         console.print(
@@ -369,6 +361,7 @@ def stats(
 # ---------------------------------------------------------------------------
 # Review commands
 # ---------------------------------------------------------------------------
+
 
 @app.command()
 def review(
@@ -387,9 +380,7 @@ def review(
     try:
         backup_path = backup_database(db_path)
         if backup_path.exists() and "backups" in str(backup_path):
-            console.print(
-                f"Database backed up to: [dim]{backup_path}[/dim]"
-            )
+            console.print(f"Database backed up to: [dim]{backup_path}[/dim]")
 
         if tags:
             console.print(
@@ -413,14 +404,10 @@ def review(
         console.print(f"[bold]Error: {e}[/bold]")
         raise typer.Exit(code=1) from e
     except DatabaseError as e:
-        console.print(
-            f"[bold]A database error occurred: {e}[/bold]"
-        )
+        console.print(f"[bold]A database error occurred: {e}[/bold]")
         raise typer.Exit(code=1) from e
     except Exception as e:
-        console.print(
-            f"[bold]An unexpected error occurred:[/bold] {e}"
-        )
+        console.print(f"[bold]An unexpected error occurred:[/bold] {e}")
         raise typer.Exit(code=1) from e
 
 
@@ -439,9 +426,7 @@ def review_all(
     try:
         backup_path = backup_database(db_path)
         if backup_path.exists() and "backups" in str(backup_path):
-            console.print(
-                f"Database backed up to: [dim]{backup_path}[/dim]"
-            )
+            console.print(f"Database backed up to: [dim]{backup_path}[/dim]")
 
         console.print(
             "[bold cyan]Starting review session "
@@ -449,14 +434,10 @@ def review_all(
         )
         review_all_logic(db_path=db_path, limit=limit)
     except DatabaseError as e:
-        console.print(
-            f"[bold]A database error occurred: {e}[/bold]"
-        )
+        console.print(f"[bold]A database error occurred: {e}[/bold]")
         raise typer.Exit(code=1) from e
     except Exception as e:
-        console.print(
-            f"[bold]An unexpected error occurred:[/bold] {e}"
-        )
+        console.print(f"[bold]An unexpected error occurred:[/bold] {e}")
         raise typer.Exit(code=1) from e
 
 
@@ -501,22 +482,19 @@ def export_md(
             "for Markdown export.[/bold red]"
         )
         raise typer.Exit(code=1)
-    console.print(
-        f"Exporting flashcards to [cyan]{output_dir}[/cyan]..."
-    )
+    console.print(f"Exporting flashcards to [cyan]{output_dir}[/cyan]...")
     try:
         with FlashcardDatabase(db_path=db_path) as db_inst:
             export_to_markdown(db=db_inst, output_dir=output_dir)
     except (DatabaseError, IOError) as e:
-        console.print(
-            f"[bold]An error occurred during export: {e}[/bold]"
-        )
+        console.print(f"[bold]An error occurred during export: {e}[/bold]")
         raise typer.Exit(code=1) from e
 
 
 # ---------------------------------------------------------------------------
 # Restore command
 # ---------------------------------------------------------------------------
+
 
 @app.command()
 def restore(
@@ -535,14 +513,10 @@ def restore(
     latest_backup = find_latest_backup(db_path)
 
     if not latest_backup:
-        console.print(
-            "[bold red]Error: No backup files found.[/bold red]"
-        )
+        console.print("[bold red]Error: No backup files found.[/bold red]")
         raise typer.Exit(code=1)
 
-    console.print(
-        f"Found latest backup: [cyan]{latest_backup.name}[/cyan]"
-    )
+    console.print(f"Found latest backup: [cyan]{latest_backup.name}[/cyan]")
 
     if not yes:
         confirmed = typer.confirm(
@@ -570,6 +544,7 @@ def restore(
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
 
 def main():
     try:
