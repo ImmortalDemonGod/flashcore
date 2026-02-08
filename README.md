@@ -43,7 +43,7 @@ task-master list
 
 ---
 
-## AIV Case Study (Option A)
+## AIV Case Study
 
 Flashcore is being developed as a reference *case study* for the AIV (Architect–Implementer–Verifier) workflow: tight task decomposition, explicit claims, and artifact-backed verification.
 
