@@ -112,3 +112,15 @@ def test_export_to_markdown_file_write_error(mock_db, sample_cards, tmp_path, ca
     assert not (output_dir / "Deck 2.md").exists()
     assert "Could not write to file" in caplog.text
     assert "Disk full" in caplog.text
+
+
+def test_export_to_markdown_unnamed_deck_fallback(mock_db, tmp_path):
+    """Test that deck names with only special chars get 'unnamed_deck' filename."""
+    cards = [Card(front="Q", back="A", deck_name="@#$%^&*")]
+    mock_db.get_all_cards.return_value = cards
+    output_dir = tmp_path / "export"
+
+    export_to_markdown(mock_db, output_dir)
+
+    expected_file = output_dir / "unnamed_deck.md"
+    assert expected_file.exists()
