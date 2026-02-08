@@ -84,12 +84,19 @@ def start_review_flow(
         resp_ms = _display_card(card)
         rating, eval_ms = _get_user_rating()
 
-        updated_card = manager.submit_review(
-            card_uuid=card.uuid,
-            rating=rating,
-            resp_ms=resp_ms,
-            eval_ms=eval_ms,
-        )
+        try:
+            updated_card = manager.submit_review(
+                card_uuid=card.uuid,
+                rating=rating,
+                resp_ms=resp_ms,
+                eval_ms=eval_ms,
+            )
+        except Exception as e:
+            logger.error(f"Failed to submit review for {card.uuid}: {e}")
+            console.print(
+                "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
+            )
+            continue
 
         if updated_card and updated_card.next_due_date:
             days_until_due = (updated_card.next_due_date - date.today()).days
@@ -97,6 +104,8 @@ def start_review_flow(
             console.print(
                 f"[green]Reviewed.[/green] Next due in [bold]{days_until_due} days[/bold] on {due_date_str}."
             )
+        elif updated_card:
+            console.print("[green]Reviewed.[/green]")
         else:
             console.print(
                 "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
