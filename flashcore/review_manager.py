@@ -59,10 +59,14 @@ class ReviewSessionManager:
         self.review_processor = ReviewProcessor(db_manager, scheduler)
 
         # Initialize session manager for analytics
-        self.session_manager = SessionManager(db_manager, user_id=str(user_uuid))
+        self.session_manager = SessionManager(
+            db_manager, user_id=str(user_uuid)
+        )
         self._session_started = False
 
-    def initialize_session(self, limit: int = 20, tags: Optional[List[str]] = None) -> None:
+    def initialize_session(
+        self, limit: int = 20, tags: Optional[List[str]] = None
+    ) -> None:
         """
         Initializes the review session by fetching due cards from the database.
 
@@ -82,18 +86,26 @@ class ReviewSessionManager:
                 self.session_manager.start_session(
                     device_type="desktop",  # Could be detected
                     platform="cli",
-                    session_uuid=self.session_uuid
+                    session_uuid=self.session_uuid,
                 )
                 self._session_started = True
-                logger.debug(f"Started session analytics for {self.session_uuid}")
+                logger.debug(
+                    f"Started session analytics for {self.session_uuid}"
+                )
             except Exception as e:
                 logger.warning(f"Failed to start session analytics: {e}")
 
         today = date.today()  # Use local date for user-friendly scheduling
-        due_cards = self.db.get_due_cards(self.deck_name, on_date=today, limit=limit, tags=tags)
+        due_cards = self.db.get_due_cards(
+            self.deck_name, on_date=today, limit=limit, tags=tags
+        )
         self.review_queue = sorted(due_cards, key=lambda c: c.modified_at)
-        self.current_session_card_uuids = {card.uuid for card in self.review_queue}
-        logger.info(f"Initialized session with {len(self.review_queue)} cards.")
+        self.current_session_card_uuids = {
+            card.uuid for card in self.review_queue
+        }
+        logger.info(
+            f"Initialized session with {len(self.review_queue)} cards."
+        )
 
     def get_next_card(self) -> Optional[Card]:
         """
@@ -129,7 +141,9 @@ class ReviewSessionManager:
         Args:
             card_uuid: The UUID of the card to remove.
         """
-        self.review_queue = [card for card in self.review_queue if card.uuid != card_uuid]
+        self.review_queue = [
+            card for card in self.review_queue if card.uuid != card_uuid
+        ]
 
     def submit_review(
         self,
@@ -159,7 +173,9 @@ class ReviewSessionManager:
         # Validate that the card is in the current session
         card = self._get_card_from_queue(card_uuid)
         if not card:
-            raise ValueError(f"Card {card_uuid} not found in the current review session.")
+            raise ValueError(
+                f"Card {card_uuid} not found in the current review session."
+            )
 
         try:
             # Use the shared review processor for consistent logic
@@ -169,7 +185,7 @@ class ReviewSessionManager:
                 resp_ms=resp_ms,
                 eval_ms=eval_ms,
                 reviewed_at=reviewed_at,
-                session_uuid=self.session_uuid  # Link review to this session
+                session_uuid=self.session_uuid,  # Link review to this session
             )
 
             # Record analytics if session tracking is active
@@ -179,7 +195,7 @@ class ReviewSessionManager:
                         card=card,
                         rating=rating,
                         response_time_ms=resp_ms,
-                        evaluation_time_ms=eval_ms
+                        evaluation_time_ms=eval_ms,
                     )
                 except Exception as e:
                     logger.warning(f"Failed to record session analytics: {e}")
@@ -204,11 +220,16 @@ class ReviewSessionManager:
         reviewed_cards = total_cards - len(self.review_queue)
 
         # Include real-time analytics if available
-        basic_stats = {"total_cards": total_cards, "reviewed_cards": reviewed_cards}
+        basic_stats = {
+            "total_cards": total_cards,
+            "reviewed_cards": reviewed_cards,
+        }
 
         if self._session_started:
             try:
-                analytics_stats = self.session_manager.get_current_session_stats()
+                analytics_stats = (
+                    self.session_manager.get_current_session_stats()
+                )
                 basic_stats.update(analytics_stats)
             except Exception as e:
                 logger.warning(f"Failed to get session analytics: {e}")
@@ -230,7 +251,9 @@ class ReviewSessionManager:
             completed_session = self.session_manager.end_session()
 
             # Generate insights
-            insights = self.session_manager.generate_session_insights(completed_session.session_uuid)
+            insights = self.session_manager.generate_session_insights(
+                completed_session.session_uuid
+            )
 
             self._session_started = False
 
@@ -241,23 +264,23 @@ class ReviewSessionManager:
                     "cards_reviewed": completed_session.cards_reviewed,
                     "decks_accessed": list(completed_session.decks_accessed),
                     "deck_switches": completed_session.deck_switches,
-                    "interruptions": completed_session.interruptions
+                    "interruptions": completed_session.interruptions,
                 },
                 "insights": {
                     "performance": {
                         "cards_per_minute": insights.cards_per_minute,
                         "average_response_time_ms": insights.average_response_time_ms,
                         "accuracy_percentage": insights.accuracy_percentage,
-                        "focus_score": insights.focus_score
+                        "focus_score": insights.focus_score,
                     },
                     "recommendations": insights.recommendations,
                     "achievements": insights.achievements,
                     "alerts": insights.alerts,
                     "comparisons": {
                         "vs_last_session": insights.vs_last_session,
-                        "trend_direction": insights.trend_direction
-                    }
-                }
+                        "trend_direction": insights.trend_direction,
+                    },
+                },
             }
 
         except Exception as e:
@@ -272,4 +295,6 @@ class ReviewSessionManager:
             The count of due cards.
         """
         today = date.today()  # Use local date for user-friendly scheduling
-        return self.db.get_due_card_count(deck_name=self.deck_name, on_date=today)
+        return self.db.get_due_card_count(
+            deck_name=self.deck_name, on_date=today
+        )
