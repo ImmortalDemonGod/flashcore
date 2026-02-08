@@ -443,8 +443,10 @@ class TestIntegration:
         tmp_path,
     ):
         """Integration test for the complete review-all workflow."""
-        # Arrange
+        # Arrange - configure context manager to return mock_db
         mock_db = mock_db_class.return_value
+        mock_db.__enter__ = MagicMock(return_value=mock_db)
+        mock_db.__exit__ = MagicMock(return_value=False)
         mock_scheduler = mock_scheduler_class.return_value
 
         # Create a test card that will be returned by db_row_to_card
