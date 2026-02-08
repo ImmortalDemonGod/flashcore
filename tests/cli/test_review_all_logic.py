@@ -69,14 +69,14 @@ class TestReviewAllLogic:
     @patch("flashcore.cli._review_all_logic.FSRS_Scheduler")
     @patch("flashcore.cli._review_all_logic._get_all_due_cards")
     def test_review_all_logic_no_due_cards(
-        self, mock_get_cards, mock_scheduler_class, mock_db_class, capsys
+        self, mock_get_cards, _mock_scheduler_class, _mock_db_class, capsys, tmp_path
     ):
         """Test review_all_logic when no cards are due."""
         # Arrange
         mock_get_cards.return_value = []
 
         # Act
-        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
+        review_all_logic(db_path=tmp_path / "test.db", limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -96,10 +96,11 @@ class TestReviewAllLogic:
         mock_get_rating,
         mock_display,
         mock_get_cards,
-        mock_scheduler_class,
-        mock_db_class,
+        _mock_scheduler_class,
+        _mock_db_class,
         sample_cards,
         capsys,
+        tmp_path,
     ):
         """Test review_all_logic with successful card reviews."""
         # Arrange
@@ -116,7 +117,7 @@ class TestReviewAllLogic:
         mock_submit.side_effect = updated_cards
 
         # Act
-        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
+        review_all_logic(db_path=tmp_path / "test.db", limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -143,10 +144,11 @@ class TestReviewAllLogic:
         mock_get_rating,
         mock_display,
         mock_get_cards,
-        mock_scheduler_class,
-        mock_db_class,
+        _mock_scheduler_class,
+        _mock_db_class,
         sample_cards,
         capsys,
+        tmp_path,
     ):
         """Test review_all_logic when review submission fails."""
         # Arrange
@@ -156,7 +158,7 @@ class TestReviewAllLogic:
         mock_submit.side_effect = Exception("Database error")
 
         # Act
-        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
+        review_all_logic(db_path=tmp_path / "test.db", limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -176,10 +178,11 @@ class TestReviewAllLogic:
         mock_get_rating,
         mock_display,
         mock_get_cards,
-        mock_scheduler_class,
-        mock_db_class,
+        _mock_scheduler_class,
+        _mock_db_class,
         sample_cards,
         capsys,
+        tmp_path,
     ):
         """Test review_all_logic when review returns None (failed)."""
         # Arrange
@@ -189,7 +192,7 @@ class TestReviewAllLogic:
         mock_submit.return_value = None  # Failed review
 
         # Act
-        review_all_logic(db_path=Path("/tmp/test.db"), limit=10)
+        review_all_logic(db_path=tmp_path / "test.db", limit=10)
 
         # Assert
         captured = capsys.readouterr()
@@ -437,6 +440,7 @@ class TestIntegration:
         mock_scheduler_class,
         mock_db_class,
         sample_cards,
+        tmp_path,
     ):
         """Integration test for the complete review-all workflow."""
         # Arrange
@@ -485,7 +489,7 @@ class TestIntegration:
         mock_db.add_review_and_update_card.return_value = updated_card
 
         # Act
-        review_all_logic(db_path=Path("/tmp/test.db"), limit=1)
+        review_all_logic(db_path=tmp_path / "test.db", limit=1)
 
         # Assert - verify the complete workflow
         mock_db.initialize_schema.assert_called_once()
