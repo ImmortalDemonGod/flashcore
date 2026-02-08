@@ -42,13 +42,15 @@ class TestSessionAnalyticsGaps:
                 uuid=uuid4(),
                 deck_name="Math",
                 front=f"What is {i}+{i}?",
-                back=str(i*2),
-                tags={"math", "basic"}
+                back=str(i * 2),
+                tags={"math", "basic"},
             )
             for i in range(1, 6)
         ]
 
-    def test_review_session_manager_now_creates_session_objects(self, in_memory_db, sample_cards):
+    def test_review_session_manager_now_creates_session_objects(
+        self, in_memory_db, sample_cards
+    ):
         """Test that ReviewSessionManager now creates Session objects (FIXED!)."""
         # Insert cards
         in_memory_db.upsert_cards_batch(sample_cards)
@@ -58,7 +60,7 @@ class TestSessionAnalyticsGaps:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name="Math"
+            deck_name="Math",
         )
         manager.initialize_session()
 
@@ -83,7 +85,9 @@ class TestSessionAnalyticsGaps:
         assert session_from_db.deck_switches == 0
         assert session_from_db.interruptions == 0
 
-    def test_review_workflows_now_have_session_integration(self, in_memory_db, sample_cards):
+    def test_review_workflows_now_have_session_integration(
+        self, in_memory_db, sample_cards
+    ):
         """Test that review workflows now integrate with session tracking (FIXED!)."""
         # Insert cards
         in_memory_db.upsert_cards_batch(sample_cards)
@@ -93,17 +97,14 @@ class TestSessionAnalyticsGaps:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name="Math"
+            deck_name="Math",
         )
         manager.initialize_session()
 
         # Submit reviews
         for card in sample_cards[:3]:
             manager.submit_review(
-                card_uuid=card.uuid,
-                rating=3,  # Good
-                resp_ms=1000,
-                eval_ms=500
+                card_uuid=card.uuid, rating=3, resp_ms=1000, eval_ms=500  # Good
             )
 
         # FIXED: Session object now exists and tracks analytics!
@@ -121,11 +122,7 @@ class TestSessionAnalyticsGaps:
     def test_missing_session_analytics_features(self, in_memory_db):
         """Test that session analytics features are missing."""
         # Create a manual session to test what analytics should exist
-        session = Session(
-            user_id="test_user",
-            device_type="desktop",
-            platform="cli"
-        )
+        session = Session(user_id="test_user", device_type="desktop", platform="cli")
 
         # Session model has analytics fields but no automated tracking
         assert session.cards_reviewed == 0
@@ -148,7 +145,7 @@ class TestSessionAnalyticsGaps:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name="Math"
+            deck_name="Math",
         )
 
         # GAP: No session start tracking
@@ -169,11 +166,23 @@ class TestSessionAnalyticsGaps:
         # Create cards from multiple decks
         math_cards = [
             Card(uuid=uuid4(), deck_name="Math", front="1+1?", back="2", tags={"math"}),
-            Card(uuid=uuid4(), deck_name="Math", front="2+2?", back="4", tags={"math"})
+            Card(uuid=uuid4(), deck_name="Math", front="2+2?", back="4", tags={"math"}),
         ]
         science_cards = [
-            Card(uuid=uuid4(), deck_name="Science", front="H2O?", back="Water", tags={"chemistry"}),
-            Card(uuid=uuid4(), deck_name="Science", front="CO2?", back="Carbon Dioxide", tags={"chemistry"})
+            Card(
+                uuid=uuid4(),
+                deck_name="Science",
+                front="H2O?",
+                back="Water",
+                tags={"chemistry"},
+            ),
+            Card(
+                uuid=uuid4(),
+                deck_name="Science",
+                front="CO2?",
+                back="Carbon Dioxide",
+                tags={"chemistry"},
+            ),
         ]
 
         in_memory_db.upsert_cards_batch(math_cards + science_cards)
@@ -196,7 +205,7 @@ class TestSessionAnalyticsGaps:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name="Math"
+            deck_name="Math",
         )
         manager.initialize_session()
 
@@ -209,7 +218,7 @@ class TestSessionAnalyticsGaps:
                 card_uuid=card.uuid,
                 rating=ratings[i],
                 resp_ms=response_times[i],
-                eval_ms=500
+                eval_ms=500,
             )
 
         # GAP: No session-level performance metrics
@@ -234,7 +243,7 @@ class TestSessionAnalyticsGaps:
             deck_switches=2,
             interruptions=1,
             device_type="desktop",
-            platform="cli"
+            platform="cli",
         )
 
         created_session = in_memory_db.create_session(session)
@@ -259,15 +268,15 @@ class TestSessionAnalyticsGaps:
         for i in range(3):
             session = Session(
                 user_id="test_user",
-                start_ts=datetime(2024, 1, i+1, 10, 0, 0, tzinfo=timezone.utc),
-                end_ts=datetime(2024, 1, i+1, 10, 30, 0, tzinfo=timezone.utc),
+                start_ts=datetime(2024, 1, i + 1, 10, 0, 0, tzinfo=timezone.utc),
+                end_ts=datetime(2024, 1, i + 1, 10, 30, 0, tzinfo=timezone.utc),
                 total_duration_ms=1800000,
-                cards_reviewed=15 + i*5,  # Improving performance
+                cards_reviewed=15 + i * 5,  # Improving performance
                 decks_accessed={"Math"},
                 deck_switches=0,
                 interruptions=i,  # Increasing interruptions
                 device_type="desktop",
-                platform="cli"
+                platform="cli",
             )
             sessions.append(in_memory_db.create_session(session))
 
@@ -289,7 +298,7 @@ class TestSessionAnalyticsGaps:
             db_manager=in_memory_db,
             scheduler=FSRS_Scheduler(),
             user_uuid=uuid4(),
-            deck_name="Math"
+            deck_name="Math",
         )
         manager.initialize_session()
 
@@ -317,14 +326,14 @@ class TestSessionAnalyticsRequirements:
                 "Update session analytics in real-time",
                 "Generate session insights",
                 "Provide session comparison analytics",
-                "Detect session patterns and trends"
+                "Detect session patterns and trends",
             ],
             "integration_points": [
                 "ReviewSessionManager",
                 "ReviewProcessor",
                 "_review_all_logic",
-                "CLI review workflows"
-            ]
+                "CLI review workflows",
+            ],
         }
 
         # Required Session model enhancements:
@@ -333,7 +342,7 @@ class TestSessionAnalyticsRequirements:
             "Accuracy rate calculation",
             "Learning velocity metrics",
             "Fatigue detection indicators",
-            "Performance trend tracking"
+            "Performance trend tracking",
         ]
 
         # Required database analytics queries:
@@ -342,7 +351,7 @@ class TestSessionAnalyticsRequirements:
             "User learning trends",
             "Deck-specific session analytics",
             "Time-based session patterns",
-            "Cross-session performance tracking"
+            "Cross-session performance tracking",
         ]
 
         assert len(session_manager_requirements["responsibilities"]) == 6
@@ -354,10 +363,10 @@ class TestSessionAnalyticsRequirements:
         # Session lifecycle stages:
         lifecycle_stages = [
             "initialization",  # Create Session object, set start time
-            "active_tracking", # Update analytics during reviews
-            "completion",      # Set end time, calculate final metrics
-            "persistence",     # Save to database
-            "analytics"        # Generate insights and comparisons
+            "active_tracking",  # Update analytics during reviews
+            "completion",  # Set end time, calculate final metrics
+            "persistence",  # Save to database
+            "analytics",  # Generate insights and comparisons
         ]
 
         # Required lifecycle events:
@@ -368,7 +377,7 @@ class TestSessionAnalyticsRequirements:
             "interruption_detected",
             "session_paused",
             "session_resumed",
-            "session_completed"
+            "session_completed",
         ]
 
         # Required analytics calculations:
@@ -380,7 +389,7 @@ class TestSessionAnalyticsRequirements:
             "deck_switch_frequency",
             "interruption_impact",
             "learning_velocity",
-            "fatigue_indicators"
+            "fatigue_indicators",
         ]
 
         assert len(lifecycle_stages) == 5
@@ -391,32 +400,32 @@ class TestSessionAnalyticsRequirements:
         """Test that defines session insights generation requirements."""
         # Required insight categories:
         insight_categories = [
-            "performance_summary",    # Overall session performance
-            "efficiency_metrics",     # Time and accuracy metrics
-            "learning_progress",      # Progress and improvement indicators
-            "attention_patterns",     # Focus and interruption analysis
-            "recommendations",        # Actionable suggestions
-            "comparisons"            # Historical comparisons
+            "performance_summary",  # Overall session performance
+            "efficiency_metrics",  # Time and accuracy metrics
+            "learning_progress",  # Progress and improvement indicators
+            "attention_patterns",  # Focus and interruption analysis
+            "recommendations",  # Actionable suggestions
+            "comparisons",  # Historical comparisons
         ]
 
         # Required insight types:
         insight_types = [
-            "quantitative_metrics",   # Numbers and percentages
-            "trend_analysis",         # Changes over time
-            "pattern_recognition",    # Behavioral patterns
-            "performance_alerts",     # Warnings and notifications
-            "achievement_recognition", # Positive reinforcement
-            "improvement_suggestions"  # Specific recommendations
+            "quantitative_metrics",  # Numbers and percentages
+            "trend_analysis",  # Changes over time
+            "pattern_recognition",  # Behavioral patterns
+            "performance_alerts",  # Warnings and notifications
+            "achievement_recognition",  # Positive reinforcement
+            "improvement_suggestions",  # Specific recommendations
         ]
 
         # Required delivery mechanisms:
         delivery_mechanisms = [
-            "real_time_updates",      # During session
-            "session_summary",        # At session end
-            "periodic_reports",       # Weekly/monthly summaries
-            "trend_notifications",    # When patterns change
-            "achievement_badges",     # Gamification elements
-            "api_endpoints"          # For external integrations
+            "real_time_updates",  # During session
+            "session_summary",  # At session end
+            "periodic_reports",  # Weekly/monthly summaries
+            "trend_notifications",  # When patterns change
+            "achievement_badges",  # Gamification elements
+            "api_endpoints",  # For external integrations
         ]
 
         assert len(insight_categories) == 6
@@ -432,7 +441,7 @@ class TestSessionAnalyticsRequirements:
             "_review_all_logic API unchanged",
             "Database schema backward compatible",
             "Existing tests continue to pass",
-            "Session tracking is opt-in initially"
+            "Session tracking is opt-in initially",
         ]
 
         # Gradual rollout strategy:
@@ -442,7 +451,7 @@ class TestSessionAnalyticsRequirements:
             "Phase 3: Real-time analytics",
             "Phase 4: Insights generation",
             "Phase 5: Cross-session analytics",
-            "Phase 6: Advanced recommendations"
+            "Phase 6: Advanced recommendations",
         ]
 
         assert len(compatibility_requirements) == 6
