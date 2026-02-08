@@ -7,7 +7,7 @@ import os
 import shutil
 from pathlib import Path
 from typing import List, Optional, Tuple
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 # Third-party imports
 import typer
