@@ -40,7 +40,7 @@ class TestSessionModel:
             user_id="test_user",
             start_ts=start_time,
             device_type="desktop",
-            platform="cli"
+            platform="cli",
         )
 
         assert session.session_uuid == session_uuid
@@ -141,7 +141,9 @@ class TestSessionModel:
         session.add_card_review("Deck A")
         assert session.cards_reviewed == 3
         assert session.decks_accessed == {"Deck A", "Deck B"}
-        assert session.deck_switches == 1  # No additional switch (deck already accessed)
+        assert (
+            session.deck_switches == 1
+        )  # No additional switch (deck already accessed)
 
         # Third deck
         session.add_card_review("Deck C")
@@ -222,11 +224,7 @@ class TestSessionModel:
 
     def test_complex_session_workflow(self):
         """Test a complex session workflow with multiple operations."""
-        session = Session(
-            user_id="test_user",
-            device_type="desktop",
-            platform="cli"
-        )
+        session = Session(user_id="test_user", device_type="desktop", platform="cli")
 
         # Review cards from multiple decks
         session.add_card_review("Math")
@@ -234,7 +232,7 @@ class TestSessionModel:
         session.add_card_review("Science")  # Switch
         session.record_interruption()
         session.add_card_review("History")  # Switch
-        session.add_card_review("Math")     # No switch (already accessed)
+        session.add_card_review("Math")  # No switch (already accessed)
         session.record_interruption()
 
         # Verify final state
