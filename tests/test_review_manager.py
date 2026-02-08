@@ -258,7 +258,7 @@ class TestSubmitReviewAndHelpers:
         assert sample_card.uuid in review_manager.current_session_card_uuids
 
 class TestGetDueCardCount:
-    @patch('cultivation.scripts.flashcore.review_manager.date')
+    @patch('flashcore.review_manager.date')
     def test_get_due_card_count_calls_db(self, mock_date: MagicMock, review_manager: ReviewSessionManager, mock_db: MagicMock):
         """Test get_due_card_count calls the database method and returns its result."""
         test_date = date(2025, 6, 20)
