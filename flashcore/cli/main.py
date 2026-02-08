@@ -127,7 +127,7 @@ def _load_cards_from_source(
     """Loads flashcards from YAML files and handles errors."""
     config = YAMLProcessorConfig(
         source_directory=source_dir,
-        assets_root_directory=assets_root,
+        assets_root_directory=assets_root or source_dir,
     )
     yaml_cards, errors = load_and_process_flashcard_yamls(config)
 
