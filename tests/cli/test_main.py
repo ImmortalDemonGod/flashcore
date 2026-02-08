@@ -774,4 +774,3 @@ def test_ingest_preserves_review_state_integration(tmp_path: Path):
         assert final_card.uuid == card_uuid
         assert final_card.state == CardState.Learning
         assert final_card.front == "Updated Question"
-        assert final_card.front == "Updated Question"
