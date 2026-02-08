@@ -6,24 +6,27 @@ from datetime import datetime, timezone, date
 from typing import List, Optional
 from rich.console import Console
 
-from cultivation.scripts.flashcore.cli.review_ui import _display_card, _get_user_rating
-from cultivation.scripts.flashcore.database import FlashcardDatabase
-from cultivation.scripts.flashcore.scheduler import FSRS_Scheduler
-from cultivation.scripts.flashcore.review_processor import ReviewProcessor
-from cultivation.scripts.flashcore.card import Card
-from cultivation.scripts.flashcore import db_utils
+from pathlib import Path
+
+from flashcore.cli.review_ui import _display_card, _get_user_rating
+from flashcore.db.database import FlashcardDatabase
+from flashcore.db.db_utils import db_row_to_card
+from flashcore.scheduler import FSRS_Scheduler
+from flashcore.review_processor import ReviewProcessor
+from flashcore.models import Card
 
 console = Console()
 
 
-def review_all_logic(limit: int = 50):
+def review_all_logic(db_path: Path, limit: int = 50):
     """
     Core logic for reviewing all due cards across all decks.
 
     Args:
+        db_path: Path to the database file (DI, no defaults).
         limit: Maximum number of cards to review in this session.
     """
-    db_manager = FlashcardDatabase()
+    db_manager = FlashcardDatabase(db_path=db_path)
     db_manager.initialize_schema()
 
     scheduler = FSRS_Scheduler()
@@ -111,13 +114,16 @@ def _get_all_due_cards(db_manager: FlashcardDatabase, on_date: date, limit: int)
     """
 
     try:
-        result_df = conn.execute(sql, [on_date, limit]).fetch_df()
-        if result_df.empty:
+        result = conn.execute(sql, [on_date, limit])
+        cols = [desc[0] for desc in result.description]
+        rows = result.fetchall()
+        if not rows:
             return []
 
         cards = []
-        for row in result_df.to_dict('records'):
-            card = db_utils.db_row_to_card(row)
+        for row in rows:
+            row_dict = dict(zip(cols, row))
+            card = db_row_to_card(row_dict)
             cards.append(card)
 
         return cards
