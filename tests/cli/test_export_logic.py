@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cultivation.scripts.flashcore.card import Card
-from cultivation.scripts.flashcore.cli._export_logic import export_to_markdown
-from cultivation.scripts.flashcore.database import FlashcardDatabase
+from flashcore.models import Card
+from flashcore.cli._export_logic import export_to_markdown
+from flashcore.db.database import FlashcardDatabase
 
 
 @pytest.fixture
