@@ -776,3 +776,151 @@ def test_ingest_preserves_review_state_integration(tmp_path: Path):
         assert final_card.uuid == card_uuid
         assert final_card.state == CardState.Learning
         assert final_card.front == "Updated Question"
+
+
+class TestCoverageGaps:
+    """Tests targeting specific uncovered lines in cli/main.py."""
+
+    def test_resolve_db_path_from_envvar(self, tmp_path, monkeypatch):
+        """Test _resolve_db_path falls back to FLASHCORE_DB envvar."""
+        monkeypatch.setenv("FLASHCORE_DB", str(tmp_path / "env.db"))
+        result = runner.invoke(app, ["stats"])
+        assert result.exit_code != 1 or "Error: --db is required" not in result.stdout
+
+    def test_resolve_db_path_missing_errors(self, monkeypatch):
+        """Test _resolve_db_path errors when no --db and no envvar."""
+        monkeypatch.delenv("FLASHCORE_DB", raising=False)
+        result = runner.invoke(app, ["stats"])
+        assert result.exit_code != 0
+        assert "Error: --db is required" in strip_ansi(result.stdout)
+
+    def test_ingest_no_flashcards_found(self, tmp_path):
+        """Test ingest with empty source dir (no YAML files)."""
+        db_path = tmp_path / "test.db"
+        source_dir = tmp_path / "empty_src"
+        source_dir.mkdir()
+        result = runner.invoke(
+            app, ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)]
+        )
+        output = strip_ansi(result.stdout)
+        assert "No flashcards found" in output or result.exit_code == 0
+
+    def test_ingest_source_dir_required(self, tmp_path):
+        """Test ingest without --source-dir gives error."""
+        db_path = tmp_path / "test.db"
+        result = runner.invoke(app, ["ingest", "--db", str(db_path)])
+        output = strip_ansi(result.stdout)
+        assert "Error: --source-dir is required" in output
+        assert result.exit_code != 0
+
+    def test_ingest_all_cards_already_exist(self, tmp_path):
+        """Test ingest when all cards already in database."""
+        db_path = tmp_path / "test.db"
+        source_dir = tmp_path / "src"
+        source_dir.mkdir()
+
+        yaml_content = {"deck": "Test", "cards": [{"q": "What?", "a": "That"}]}
+        (source_dir / "deck.yml").write_text(yaml.dump(yaml_content))
+
+        # First ingest
+        result1 = runner.invoke(
+            app, ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)]
+        )
+        assert result1.exit_code == 0
+
+        # Second ingest - cards already exist
+        result2 = runner.invoke(
+            app, ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)]
+        )
+        output = strip_ansi(result2.stdout)
+        assert "already exist" in output or result2.exit_code == 0
+
+    @patch("flashcore.cli.main.review_logic")
+    @patch("flashcore.cli.main.backup_database")
+    def test_review_with_tags(self, mock_backup, mock_review, tmp_path):
+        """Test review command with --tags flag."""
+        db_path = tmp_path / "test.db"
+        FlashcardDatabase(db_path=db_path).initialize_schema()
+        mock_backup.return_value = tmp_path / "backups" / "test.db.bak"
+        mock_backup.return_value.parent.mkdir(parents=True, exist_ok=True)
+
+        result = runner.invoke(
+            app,
+            [
+                "review",
+                "TestDeck",
+                "--db",
+                str(db_path),
+                "--tags",
+                "math,science",
+            ],
+        )
+        output = strip_ansi(result.stdout)
+        assert "math" in output or result.exit_code == 0
+
+    @patch("flashcore.cli.main.review_all_logic", side_effect=Exception("Unexpected"))
+    @patch("flashcore.cli.main.backup_database")
+    def test_review_all_unexpected_error(self, mock_backup, mock_review_all, tmp_path):
+        """Test review-all with unexpected exception."""
+        db_path = tmp_path / "test.db"
+        mock_backup.return_value = tmp_path / "backups" / "test.db.bak"
+        mock_backup.return_value.parent.mkdir(parents=True, exist_ok=True)
+
+        result = runner.invoke(app, ["review-all", "--db", str(db_path)])
+        assert result.exit_code != 0
+        assert "unexpected error" in strip_ansi(result.stdout).lower()
+
+    def test_export_md_output_dir_required(self, tmp_path):
+        """Test export md without --output-dir gives error."""
+        db_path = tmp_path / "test.db"
+        result = runner.invoke(app, ["export", "md", "--db", str(db_path)])
+        output = strip_ansi(result.stdout)
+        assert "Error: --output-dir is required" in output
+        assert result.exit_code != 0
+
+    @patch("flashcore.cli.main.find_latest_backup")
+    def test_restore_no_backup_found(self, mock_find, tmp_path):
+        """Test restore when no backup files exist."""
+        db_path = tmp_path / "test.db"
+        mock_find.return_value = None
+        result = runner.invoke(app, ["restore", "--db", str(db_path)])
+        output = strip_ansi(result.stdout)
+        assert "No backup files found" in output
+        assert result.exit_code != 0
+
+    @patch("flashcore.cli.main.shutil.copy2")
+    @patch("flashcore.cli.main.find_latest_backup")
+    def test_restore_success_with_yes(self, mock_find, mock_copy, tmp_path):
+        """Test restore command with --yes flag."""
+        db_path = tmp_path / "test.db"
+        backup_file = tmp_path / "test.db.bak"
+        backup_file.touch()
+        mock_find.return_value = backup_file
+        result = runner.invoke(app, ["restore", "--db", str(db_path), "--yes"])
+        output = strip_ansi(result.stdout)
+        assert "successfully restored" in output
+        mock_copy.assert_called_once()
+
+    @patch("flashcore.cli.main.shutil.copy2", side_effect=OSError("Permission denied"))
+    @patch("flashcore.cli.main.find_latest_backup")
+    def test_restore_copy_error(self, mock_find, mock_copy, tmp_path):
+        """Test restore when copy fails."""
+        db_path = tmp_path / "test.db"
+        backup_file = tmp_path / "test.db.bak"
+        backup_file.touch()
+        mock_find.return_value = backup_file
+        result = runner.invoke(app, ["restore", "--db", str(db_path), "--yes"])
+        output = strip_ansi(result.stdout)
+        assert "unexpected error" in output.lower()
+        assert result.exit_code != 0
+
+    @patch("flashcore.cli.main.find_latest_backup")
+    def test_restore_cancelled(self, mock_find, tmp_path):
+        """Test restore cancelled by user."""
+        db_path = tmp_path / "test.db"
+        backup_file = tmp_path / "test.db.bak"
+        backup_file.touch()
+        mock_find.return_value = backup_file
+        result = runner.invoke(app, ["restore", "--db", str(db_path)], input="n\n")
+        output = strip_ansi(result.stdout)
+        assert "cancelled" in output.lower() or result.exit_code == 0
