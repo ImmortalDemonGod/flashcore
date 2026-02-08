@@ -10,8 +10,8 @@ from typing import List, Optional
 from rich.console import Console
 from rich.panel import Panel
 
-from cultivation.scripts.flashcore.card import Card
-from cultivation.scripts.flashcore.review_manager import ReviewSessionManager
+from flashcore.models import Card
+from flashcore.review_manager import ReviewSessionManager
 
 logger = logging.getLogger(__name__)
 console = Console()
