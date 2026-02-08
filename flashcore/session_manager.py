@@ -14,8 +14,8 @@ The SessionManager class provides:
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Set, Any, Tuple
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Any
 from uuid import UUID, uuid4
 from statistics import mean, median
 from dataclasses import dataclass
