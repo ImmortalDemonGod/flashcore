@@ -379,12 +379,22 @@ class TestReviewProcessorIntegration:
         processor = ReviewProcessor(in_memory_db, real_scheduler)
 
         # Process multiple reviews to test state transitions
-        # Space timestamps apart to avoid negative elapsed_days from FSRS
-        ratings = [3, 4, 2, 3]  # Good, Easy, Hard, Good
-        base_ts = datetime(2024, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+        # Use timestamps that respect the card's next_due_date from FSRS
+        ratings = [3, 2, 3, 2]  # Good, Hard, Good, Hard (avoid Easy which schedules far out)
+        review_ts = datetime.now(timezone.utc)
 
         for i, rating in enumerate(ratings):
-            review_ts = base_ts + timedelta(days=i * 7)  # 1 week apart
+            # Ensure review happens at or after card's next_due_date
+            if sample_card.next_due_date is not None:
+                due_dt = datetime(
+                    sample_card.next_due_date.year,
+                    sample_card.next_due_date.month,
+                    sample_card.next_due_date.day,
+                    tzinfo=timezone.utc,
+                )
+                if review_ts < due_dt:
+                    review_ts = due_dt + timedelta(hours=1)
+
             updated_card = processor.process_review(
                 card=sample_card,
                 rating=rating,
