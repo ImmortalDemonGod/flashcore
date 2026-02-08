@@ -7,7 +7,7 @@ import pytest
 from datetime import datetime, timezone, timedelta
 from uuid import UUID, uuid4
 
-from cultivation.scripts.flashcore.card import Session
+from flashcore.models import Session
 
 
 class TestSessionModel:
