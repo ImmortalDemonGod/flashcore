@@ -39,18 +39,15 @@ class TestSessionManager:
                 uuid=uuid4(),
                 deck_name="Math",
                 front=f"What is {i}+{i}?",
-                back=str(i*2),
-                tags={"math", "basic"}
+                back=str(i * 2),
+                tags={"math", "basic"},
             )
             for i in range(1, 4)
         ]
 
     def test_start_session_success(self, session_manager):
         """Test successful session start."""
-        session = session_manager.start_session(
-            device_type="desktop",
-            platform="cli"
-        )
+        session = session_manager.start_session(device_type="desktop", platform="cli")
 
         assert session is not None
         assert session.session_uuid is not None
@@ -65,7 +62,9 @@ class TestSessionManager:
         assert session.interruptions == 0
 
         # Verify session is stored in database
-        stored_session = session_manager.db_manager.get_session_by_uuid(session.session_uuid)
+        stored_session = session_manager.db_manager.get_session_by_uuid(
+            session.session_uuid
+        )
         assert stored_session is not None
         assert stored_session.session_uuid == session.session_uuid
 
@@ -74,9 +73,7 @@ class TestSessionManager:
         existing_uuid = uuid4()
 
         session = session_manager.start_session(
-            device_type="mobile",
-            platform="app",
-            session_uuid=existing_uuid
+            device_type="mobile", platform="app", session_uuid=existing_uuid
         )
 
         assert session.session_uuid == existing_uuid
@@ -100,14 +97,13 @@ class TestSessionManager:
         # Record review
         card = sample_cards[0]
         session_manager.record_card_review(
-            card=card,
-            rating=3,
-            response_time_ms=1200,
-            evaluation_time_ms=500
+            card=card, rating=3, response_time_ms=1200, evaluation_time_ms=500
         )
 
         # Verify session was updated
-        updated_session = session_manager.db_manager.get_session_by_uuid(session.session_uuid)
+        updated_session = session_manager.db_manager.get_session_by_uuid(
+            session.session_uuid
+        )
         assert updated_session.cards_reviewed == 1
         assert card.deck_name in updated_session.decks_accessed
         assert updated_session.deck_switches == 0  # First deck
@@ -124,7 +120,7 @@ class TestSessionManager:
             deck_name="Science",
             front="What is H2O?",
             back="Water",
-            tags={"chemistry"}
+            tags={"chemistry"},
         )
 
         # Record reviews from different decks
@@ -145,20 +141,20 @@ class TestSessionManager:
             deck_name="Math",
             front="What is 2+2?",
             back="4",
-            tags={"math"}
+            tags={"math"},
         )
         session_manager.record_card_review(math_card2, rating=3, response_time_ms=900)
 
         # Should now have 2 switches: Math -> Science -> Math
         assert session.deck_switches == 2
 
-    def test_record_card_review_no_active_session_error(self, session_manager, sample_cards):
+    def test_record_card_review_no_active_session_error(
+        self, session_manager, sample_cards
+    ):
         """Test error when recording review without active session."""
         with pytest.raises(ValueError, match="No active session"):
             session_manager.record_card_review(
-                card=sample_cards[0],
-                rating=3,
-                response_time_ms=1000
+                card=sample_cards[0], rating=3, response_time_ms=1000
             )
 
     def test_record_interruption_success(self, session_manager):
@@ -184,13 +180,20 @@ class TestSessionManager:
         session_manager.start_session()
 
         # Record first review
-        session_manager.record_card_review(sample_cards[0], rating=3, response_time_ms=1000)
+        session_manager.record_card_review(
+            sample_cards[0], rating=3, response_time_ms=1000
+        )
 
         # Simulate time gap > 2 minutes
-        with patch.object(session_manager, 'last_activity_time',
-                         datetime.now(timezone.utc) - timedelta(minutes=3)):
+        with patch.object(
+            session_manager,
+            "last_activity_time",
+            datetime.now(timezone.utc) - timedelta(minutes=3),
+        ):
             # Record second review (should detect interruption)
-            session_manager.record_card_review(sample_cards[1], rating=3, response_time_ms=1000)
+            session_manager.record_card_review(
+                sample_cards[1], rating=3, response_time_ms=1000
+            )
 
         # Verify interruption was detected
         session = session_manager.current_session
@@ -213,7 +216,9 @@ class TestSessionManager:
         # Resume session
         session_manager.resume_session()
         assert session_manager.pause_start_time is None
-        assert session_manager.total_pause_duration_ms >= 0  # Should be >= 0, might be 0 due to timing
+        assert (
+            session_manager.total_pause_duration_ms >= 0
+        )  # Should be >= 0, might be 0 due to timing
 
     def test_pause_session_errors(self, session_manager):
         """Test pause session error conditions."""
@@ -248,8 +253,12 @@ class TestSessionManager:
         session = session_manager.start_session()
 
         # Record some activity
-        session_manager.record_card_review(sample_cards[0], rating=3, response_time_ms=1000)
-        session_manager.record_card_review(sample_cards[1], rating=4, response_time_ms=800)
+        session_manager.record_card_review(
+            sample_cards[0], rating=3, response_time_ms=1000
+        )
+        session_manager.record_card_review(
+            sample_cards[1], rating=4, response_time_ms=800
+        )
 
         # End session
         completed_session = session_manager.end_session()
@@ -268,7 +277,9 @@ class TestSessionManager:
         session_manager.start_session()
 
         # Record activity, pause, then end
-        session_manager.record_card_review(sample_cards[0], rating=3, response_time_ms=1000)
+        session_manager.record_card_review(
+            sample_cards[0], rating=3, response_time_ms=1000
+        )
         session_manager.pause_session()
 
         # End session (should auto-resume)
@@ -290,8 +301,12 @@ class TestSessionManager:
         session_manager.start_session()
 
         # Record some activity
-        session_manager.record_card_review(sample_cards[0], rating=3, response_time_ms=1200)
-        session_manager.record_card_review(sample_cards[1], rating=4, response_time_ms=800)
+        session_manager.record_card_review(
+            sample_cards[0], rating=3, response_time_ms=1200
+        )
+        session_manager.record_card_review(
+            sample_cards[1], rating=4, response_time_ms=800
+        )
 
         # Get stats
         stats = session_manager.get_current_session_stats()
@@ -320,13 +335,15 @@ class TestSessionManager:
             session_manager.record_card_review(
                 card=card,
                 rating=3 + (i % 2),  # Alternate between Good and Easy
-                response_time_ms=1000 + i * 100
+                response_time_ms=1000 + i * 100,
             )
 
         completed_session = session_manager.end_session()
 
         # Generate insights (will work with session analytics even without reviews)
-        insights = session_manager.generate_session_insights(completed_session.session_uuid)
+        insights = session_manager.generate_session_insights(
+            completed_session.session_uuid
+        )
 
         assert isinstance(insights, SessionInsights)
         # Note: cards_per_minute might be 0 if no actual reviews in database
@@ -373,16 +390,19 @@ class TestSessionManagerIntegration:
     def test_end_to_end_session_workflow(self, session_manager):
         """Test complete end-to-end session workflow."""
         # Start session
-        session = session_manager.start_session(
-            device_type="desktop",
-            platform="cli"
-        )
+        session = session_manager.start_session(device_type="desktop", platform="cli")
 
         # Create test cards
         cards = [
             Card(uuid=uuid4(), deck_name="Math", front="1+1?", back="2", tags={"math"}),
             Card(uuid=uuid4(), deck_name="Math", front="2+2?", back="4", tags={"math"}),
-            Card(uuid=uuid4(), deck_name="Science", front="H2O?", back="Water", tags={"chemistry"})
+            Card(
+                uuid=uuid4(),
+                deck_name="Science",
+                front="H2O?",
+                back="Water",
+                tags={"chemistry"},
+            ),
         ]
 
         # Record reviews with varying performance
@@ -394,7 +414,7 @@ class TestSessionManagerIntegration:
                 card=card,
                 rating=ratings[i],
                 response_time_ms=response_times[i],
-                evaluation_time_ms=500
+                evaluation_time_ms=500,
             )
 
         # Get real-time stats
@@ -410,7 +430,9 @@ class TestSessionManagerIntegration:
         assert completed_session.deck_switches == 1
 
         # Generate insights
-        insights = session_manager.generate_session_insights(completed_session.session_uuid)
+        insights = session_manager.generate_session_insights(
+            completed_session.session_uuid
+        )
         # Note: Since we're only using SessionManager without ReviewProcessor,
         # the insights will be based on session analytics, not actual reviews
         assert insights.cards_per_minute >= 0  # Might be 0 without actual reviews
@@ -418,7 +440,9 @@ class TestSessionManagerIntegration:
         assert insights.accuracy_percentage >= 0  # Based on session tracking
 
         # Verify session is persisted
-        stored_session = session_manager.db_manager.get_session_by_uuid(completed_session.session_uuid)
+        stored_session = session_manager.db_manager.get_session_by_uuid(
+            completed_session.session_uuid
+        )
         assert stored_session is not None
         assert stored_session.cards_reviewed == 3
 
@@ -438,19 +462,21 @@ class TestSessionManagerIntegration:
                     deck_name="Test",
                     front=f"Q{i}",
                     back=f"A{i}",
-                    tags={"test"}
+                    tags={"test"},
                 )
                 session_manager.record_card_review(
                     card=card,
                     rating=3,  # Consistent Good rating
-                    response_time_ms=1000 - session_num * 100  # Improving speed
+                    response_time_ms=1000 - session_num * 100,  # Improving speed
                 )
 
             completed_session = session_manager.end_session()
             sessions.append(completed_session)
 
             # Create new session manager for next session
-            session_manager = SessionManager(session_manager.db_manager, user_id="integration_test_user")
+            session_manager = SessionManager(
+                session_manager.db_manager, user_id="integration_test_user"
+            )
 
         # Generate insights for the latest session
         insights = session_manager.generate_session_insights(sessions[-1].session_uuid)
