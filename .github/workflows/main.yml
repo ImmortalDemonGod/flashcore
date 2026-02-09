@@ -109,6 +109,8 @@ jobs:
       - name: Install project
         run: pip install -e .[test]
       - name: run tests
+        env:
+          PYTHONUTF8: "1"
         run: pytest -s -vvvv -l --tb=long --cov=flashcore --cov-report=xml --cov-report=html tests
       - name: Upload test results
         if: always()
