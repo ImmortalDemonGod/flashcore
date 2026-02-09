@@ -16,14 +16,17 @@ def review_logic(
 ):
     """
     Set up and start a review session for the specified deck.
-    
-    Initializes the flashcard database schema, creates a scheduler and review session manager for the given user and deck, and launches the interactive review flow.
-    
+
+    Initializes the flashcard database schema, creates a scheduler
+    and review session manager for the given user and deck, and
+    launches the interactive review flow.
+
     Parameters:
         deck_name (str): Name of the deck to review.
         db_path (Path): Path to the flashcard database file.
         user_uuid (UUID): UUID of the user conducting the review.
-        tags (Optional[List[str]]): If provided, restricts the review to cards matching any of these tags.
+        tags (Optional[List[str]]): If provided, restricts the
+            review to cards matching any of these tags.
     """
     db_manager = FlashcardDatabase(db_path=db_path)
     db_manager.initialize_schema()
