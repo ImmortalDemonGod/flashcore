@@ -24,7 +24,7 @@ class TestReviewProcessor:
     def in_memory_db(self):
         """
         Create and initialize an in-memory FlashcardDatabase for use in tests.
-        
+
         Returns:
             FlashcardDatabase: An initialized database instance backed by an in-memory SQLite store.
         """
@@ -47,7 +47,7 @@ class TestReviewProcessor:
     def mock_scheduler_output(self):
         """
         Constructs a SchedulerOutput used in tests with fixed, predictable values.
-        
+
         Returns:
             SchedulerOutput: An instance with stab=2.5, diff=5.0, next_due set to the current date, scheduled_days=1, review_type="learn", elapsed_days=0, and state=CardState.Learning.
         """
@@ -376,7 +376,7 @@ class TestReviewProcessorIntegration:
     def in_memory_db(self):
         """
         Create and initialize an in-memory FlashcardDatabase for use in tests.
-        
+
         Returns:
             FlashcardDatabase: An initialized database instance backed by an in-memory SQLite store.
         """
