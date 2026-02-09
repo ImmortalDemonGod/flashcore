@@ -21,10 +21,10 @@ from flashcore.cli._review_all_logic import (
 def strip_ansi_codes(text: str) -> str:
     """
     Strip ANSI escape sequences (SGR color/style codes) from the given text.
-    
+
     Parameters:
         text (str): Input string that may contain ANSI escape sequences like `\x1b[31m` or `\x1b[0m`.
-    
+
     Returns:
         clean_text (str): The input string with ANSI escape sequences removed.
     """
@@ -51,9 +51,9 @@ def mock_scheduler():
 def sample_cards():
     """
     Create three sample Card objects for use in tests.
-    
+
     Each card has a unique UUID, front/back text "Question N"/"Answer N", deck names alternating between "Deck 1" and "Deck 2", tags set to ["test"], timestamps set to the current UTC time, state `CardState.New`, and review-related fields (`last_review_id`, `next_due_date`, `stability`, `difficulty`) set to None.
-    
+
     Returns:
         list[Card]: A list containing the three sample Card instances.
     """
