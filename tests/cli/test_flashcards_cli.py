@@ -18,8 +18,12 @@ def test_review_function_direct_call(tmp_path):
     with (
         patch("flashcore.cli._review_logic.FlashcardDatabase") as mock_db,
         patch("flashcore.cli._review_logic.FSRS_Scheduler") as mock_scheduler,
-        patch("flashcore.cli._review_logic.ReviewSessionManager") as mock_manager,
-        patch("flashcore.cli._review_logic.start_review_flow") as mock_start_flow,
+        patch(
+            "flashcore.cli._review_logic.ReviewSessionManager"
+        ) as mock_manager,
+        patch(
+            "flashcore.cli._review_logic.start_review_flow"
+        ) as mock_start_flow,
     ):
         mock_db_instance = mock_db.return_value
 
@@ -35,7 +39,9 @@ def test_review_function_direct_call(tmp_path):
             user_uuid=user_uuid,
             deck_name=deck_name,
         )
-        mock_start_flow.assert_called_once_with(mock_manager.return_value, tags=None)
+        mock_start_flow.assert_called_once_with(
+            mock_manager.return_value, tags=None
+        )
 
 
 def test_review_cli_smoke_test_direct_invoke(tmp_path):
