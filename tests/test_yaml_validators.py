@@ -29,10 +29,10 @@ from flashcore.yaml_models import (
 def mock_context(tmp_path):
     """
     Create a mock _CardProcessingContext preconfigured for unit tests.
-    
+
     Parameters:
         tmp_path (Path): Temporary directory to use as the assets_root_directory.
-    
+
     Returns:
         _CardProcessingContext: Context with source_file_path set to "/fake/deck.yaml", card_index 0,
         card_q_preview "A test question...", assets_root_directory set to `tmp_path`,
