@@ -21,9 +21,9 @@ from flashcore.review_manager import ReviewSessionManager
 def mock_db() -> MagicMock:
     """
     Create a MagicMock preconfigured to mimic a FlashcardDatabase for tests.
-    
+
     The mock exposes a CardOperationError attribute and sensible default return values for common database methods used in tests (empty lists or None), and provides a MagicMock for add_review_and_update_card.
-    
+
     Returns:
         MagicMock: A MagicMock with the FlashcardDatabase spec and configured defaults.
     """
@@ -57,7 +57,7 @@ def mock_scheduler() -> MagicMock:
 def sample_card_data() -> dict:
     """
     Provide a sample card data dictionary for tests.
-    
+
     Returns:
         dict: A dictionary representing a sample flashcard with keys:
             - uuid (UUID): Randomly generated UUID for the card.
@@ -79,10 +79,10 @@ def sample_card_data() -> dict:
 def sample_card(sample_card_data: dict) -> Card:
     """
     Create a Card instance from a mapping of card fields.
-    
+
     Parameters:
         sample_card_data (dict): Dictionary containing card attributes (e.g., "uuid", "deck_name", "front", "back", "added_at") used to construct the Card.
-    
+
     Returns:
         Card: A Card object populated with values from `sample_card_data`.
     """
@@ -106,7 +106,7 @@ def review_manager(
 def in_memory_db() -> FlashcardDatabase:
     """
     Create a FlashcardDatabase backed by an in-memory SQLite database for integration tests.
-    
+
     Returns:
         FlashcardDatabase: A database instance using ":memory:" with its schema initialized.
     """
