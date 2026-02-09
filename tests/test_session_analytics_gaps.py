@@ -102,11 +102,16 @@ class TestSessionAnalyticsGaps:
         # Submit reviews
         for card in sample_cards[:3]:
             manager.submit_review(
-                card_uuid=card.uuid, rating=3, resp_ms=1000, eval_ms=500  # Good
+                card_uuid=card.uuid,
+                rating=3,
+                resp_ms=1000,
+                eval_ms=500,  # Good
             )
 
         # FIXED: Session object now exists and tracks analytics!
-        session_from_db = in_memory_db.get_session_by_uuid(manager.session_uuid)
+        session_from_db = in_memory_db.get_session_by_uuid(
+            manager.session_uuid
+        )
         assert session_from_db is not None  # Session tracking is WORKING!
         assert session_from_db.cards_reviewed == 3  # Analytics are tracked!
         assert "Math" in session_from_db.decks_accessed
@@ -120,7 +125,9 @@ class TestSessionAnalyticsGaps:
     def test_missing_session_analytics_features(self, in_memory_db):
         """Test that session analytics features are missing."""
         # Create a manual session to test what analytics should exist
-        session = Session(user_id="test_user", device_type="desktop", platform="cli")
+        session = Session(
+            user_id="test_user", device_type="desktop", platform="cli"
+        )
 
         # Session model has analytics fields but no automated tracking
         assert session.cards_reviewed == 0
@@ -134,7 +141,9 @@ class TestSessionAnalyticsGaps:
         # GAP: No session insights generation
         # GAP: No session-based learning analytics
 
-    def test_missing_session_lifecycle_management(self, in_memory_db, sample_cards):
+    def test_missing_session_lifecycle_management(
+        self, in_memory_db, sample_cards
+    ):
         """Test that session lifecycle management is missing."""
         # Insert cards
         in_memory_db.upsert_cards_batch(sample_cards)
@@ -162,8 +171,20 @@ class TestSessionAnalyticsGaps:
         """Test that cross-deck session analytics are missing."""
         # Create cards from multiple decks
         math_cards = [
-            Card(uuid=uuid4(), deck_name="Math", front="1+1?", back="2", tags={"math"}),
-            Card(uuid=uuid4(), deck_name="Math", front="2+2?", back="4", tags={"math"}),
+            Card(
+                uuid=uuid4(),
+                deck_name="Math",
+                front="1+1?",
+                back="2",
+                tags={"math"},
+            ),
+            Card(
+                uuid=uuid4(),
+                deck_name="Math",
+                front="2+2?",
+                back="4",
+                tags={"math"},
+            ),
         ]
         science_cards = [
             Card(
@@ -193,7 +214,9 @@ class TestSessionAnalyticsGaps:
 
         # GAP: No session-level performance comparison across decks
 
-    def test_missing_session_performance_analytics(self, in_memory_db, sample_cards):
+    def test_missing_session_performance_analytics(
+        self, in_memory_db, sample_cards
+    ):
         """Test that session performance analytics are missing."""
         # Insert cards
         in_memory_db.upsert_cards_batch(sample_cards)
@@ -265,8 +288,12 @@ class TestSessionAnalyticsGaps:
         for i in range(3):
             session = Session(
                 user_id="test_user",
-                start_ts=datetime(2024, 1, i + 1, 10, 0, 0, tzinfo=timezone.utc),
-                end_ts=datetime(2024, 1, i + 1, 10, 30, 0, tzinfo=timezone.utc),
+                start_ts=datetime(
+                    2024, 1, i + 1, 10, 0, 0, tzinfo=timezone.utc
+                ),
+                end_ts=datetime(
+                    2024, 1, i + 1, 10, 30, 0, tzinfo=timezone.utc
+                ),
                 total_duration_ms=1800000,
                 cards_reviewed=15 + i * 5,  # Improving performance
                 decks_accessed={"Math"},
@@ -286,7 +313,9 @@ class TestSessionAnalyticsGaps:
         # GAP: No session trend analysis
         # Should track trends in performance, duration, efficiency, etc.
 
-    def test_missing_real_time_session_tracking(self, in_memory_db, sample_cards):
+    def test_missing_real_time_session_tracking(
+        self, in_memory_db, sample_cards
+    ):
         """Test that real-time session tracking is missing."""
         # Insert cards
         in_memory_db.upsert_cards_batch(sample_cards)
