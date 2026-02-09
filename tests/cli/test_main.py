@@ -24,10 +24,10 @@ runner = CliRunner()
 def strip_ansi(text: str) -> str:
     """
     Remove ANSI escape sequences (color and control codes) from text.
-    
+
     Parameters:
         text (str): Input string that may contain ANSI escape sequences.
-    
+
     Returns:
         str: The input string with all ANSI escape sequences removed.
     """
@@ -38,10 +38,10 @@ def strip_ansi(text: str) -> str:
 def normalize_output(text: str) -> str:
     """
     Normalize CLI output by removing ANSI escape sequences and collapsing consecutive whitespace into single spaces.
-    
+
     Parameters:
         text (str): The original text (may contain ANSI escape codes and arbitrary whitespace).
-    
+
     Returns:
         str: The cleaned text with ANSI codes removed and all whitespace sequences replaced by a single space, trimmed of leading/trailing spaces.
     """
@@ -54,15 +54,15 @@ def normalize_output(text: str) -> str:
 def temp_flashcard_files(tmp_path):
     """
     Create three temporary YAML flashcard deck files for tests.
-    
+
     Creates:
     - `valid.yml`: a deck named "Valid Deck" containing two complete cards (question and answer).
     - `invalid.yml`: a deck named "Invalid Deck" containing a card missing an answer.
     - `needs_vetting.yml`: a deck named "Needs Vetting" containing two unsorted cards intended to require vetting.
-    
+
     Parameters:
         tmp_path (pathlib.Path): Base temporary directory in which to create the files.
-    
+
     Returns:
         tuple: (tmp_path, valid_file, invalid_file, needs_vetting_file) where each file is a pathlib.Path to the created YAML file.
     """
@@ -371,7 +371,7 @@ def test_ingest_command_db_exception(mock_db, mock_load_cards, tmp_path):
 def test_ingest_command_integration(tmp_path: Path):
     """
     Integration test that vets YAML deck files, ingests them into a temporary database, and verifies the persisted cards.
-    
+
     Creates a small deck YAML in a temporary source directory, runs the CLI's `vet` command to normalize/validate the files, runs the `ingest` command against a temporary SQLite database, and asserts that two cards exist in the database with the expected deck name, fronts, and backs.
     """
     # 1. Setup paths
