@@ -47,7 +47,9 @@ class TestSessionManager:
 
     def test_start_session_success(self, session_manager):
         """Test successful session start."""
-        session = session_manager.start_session(device_type="desktop", platform="cli")
+        session = session_manager.start_session(
+            device_type="desktop", platform="cli"
+        )
 
         assert session is not None
         assert session.session_uuid is not None
@@ -108,7 +110,9 @@ class TestSessionManager:
         assert card.deck_name in updated_session.decks_accessed
         assert updated_session.deck_switches == 0  # First deck
 
-    def test_record_card_review_deck_switching(self, session_manager, sample_cards):
+    def test_record_card_review_deck_switching(
+        self, session_manager, sample_cards
+    ):
         """Test deck switching detection."""
         # Start session
         session_manager.start_session()
@@ -124,8 +128,12 @@ class TestSessionManager:
         )
 
         # Record reviews from different decks
-        session_manager.record_card_review(math_card, rating=3, response_time_ms=1000)
-        session_manager.record_card_review(science_card, rating=4, response_time_ms=800)
+        session_manager.record_card_review(
+            math_card, rating=3, response_time_ms=1000
+        )
+        session_manager.record_card_review(
+            science_card, rating=4, response_time_ms=800
+        )
 
         # Verify deck switch was detected
         session = session_manager.current_session
@@ -143,7 +151,9 @@ class TestSessionManager:
             back="4",
             tags={"math"},
         )
-        session_manager.record_card_review(math_card2, rating=3, response_time_ms=900)
+        session_manager.record_card_review(
+            math_card2, rating=3, response_time_ms=900
+        )
 
         # Should now have 2 switches: Math -> Science -> Math
         assert session.deck_switches == 2
@@ -169,12 +179,16 @@ class TestSessionManager:
         session = session_manager.current_session
         assert session.interruptions == 1
 
-    def test_record_interruption_no_active_session_error(self, session_manager):
+    def test_record_interruption_no_active_session_error(
+        self, session_manager
+    ):
         """Test error when recording interruption without active session."""
         with pytest.raises(ValueError, match="No active session"):
             session_manager.record_interruption()
 
-    def test_interruption_detection_on_review(self, session_manager, sample_cards):
+    def test_interruption_detection_on_review(
+        self, session_manager, sample_cards
+    ):
         """Test automatic interruption detection based on time gaps."""
         # Start session
         session_manager.start_session()
@@ -288,7 +302,9 @@ class TestSessionManager:
         assert completed_session.end_ts is not None
         assert completed_session.total_duration_ms is not None
         # Duration should exclude pause time
-        assert completed_session.total_duration_ms < 60000  # Less than 1 minute
+        assert (
+            completed_session.total_duration_ms < 60000
+        )  # Less than 1 minute
 
     def test_end_session_no_active_session_error(self, session_manager):
         """Test error when ending session without active session."""
@@ -320,12 +336,16 @@ class TestSessionManager:
         assert stats["cards_per_minute"] > 0
         assert stats["is_paused"] is False
 
-    def test_get_current_session_stats_no_active_session_error(self, session_manager):
+    def test_get_current_session_stats_no_active_session_error(
+        self, session_manager
+    ):
         """Test error when getting stats without active session."""
         with pytest.raises(ValueError, match="No active session"):
             session_manager.get_current_session_stats()
 
-    def test_generate_session_insights_success(self, session_manager, sample_cards):
+    def test_generate_session_insights_success(
+        self, session_manager, sample_cards
+    ):
         """Test successful session insights generation."""
         # Create and complete a session
         session = session_manager.start_session()
@@ -356,14 +376,18 @@ class TestSessionManager:
         assert isinstance(insights.achievements, list)
         assert isinstance(insights.alerts, list)
 
-    def test_generate_session_insights_session_not_found_error(self, session_manager):
+    def test_generate_session_insights_session_not_found_error(
+        self, session_manager
+    ):
         """Test error when generating insights for non-existent session."""
         non_existent_uuid = uuid4()
 
         with pytest.raises(ValueError, match="Session .* not found"):
             session_manager.generate_session_insights(non_existent_uuid)
 
-    def test_generate_session_insights_active_session_error(self, session_manager):
+    def test_generate_session_insights_active_session_error(
+        self, session_manager
+    ):
         """Test error when generating insights for active session."""
         # Start session but don't end it
         session = session_manager.start_session()
@@ -390,12 +414,26 @@ class TestSessionManagerIntegration:
     def test_end_to_end_session_workflow(self, session_manager):
         """Test complete end-to-end session workflow."""
         # Start session
-        session = session_manager.start_session(device_type="desktop", platform="cli")
+        session = session_manager.start_session(
+            device_type="desktop", platform="cli"
+        )
 
         # Create test cards
         cards = [
-            Card(uuid=uuid4(), deck_name="Math", front="1+1?", back="2", tags={"math"}),
-            Card(uuid=uuid4(), deck_name="Math", front="2+2?", back="4", tags={"math"}),
+            Card(
+                uuid=uuid4(),
+                deck_name="Math",
+                front="1+1?",
+                back="2",
+                tags={"math"},
+            ),
+            Card(
+                uuid=uuid4(),
+                deck_name="Math",
+                front="2+2?",
+                back="4",
+                tags={"math"},
+            ),
             Card(
                 uuid=uuid4(),
                 deck_name="Science",
@@ -435,8 +473,12 @@ class TestSessionManagerIntegration:
         )
         # Note: Since we're only using SessionManager without ReviewProcessor,
         # the insights will be based on session analytics, not actual reviews
-        assert insights.cards_per_minute >= 0  # Might be 0 without actual reviews
-        assert insights.average_response_time_ms >= 0  # Based on session tracking
+        assert (
+            insights.cards_per_minute >= 0
+        )  # Might be 0 without actual reviews
+        assert (
+            insights.average_response_time_ms >= 0
+        )  # Based on session tracking
         assert insights.accuracy_percentage >= 0  # Based on session tracking
 
         # Verify session is persisted
@@ -467,7 +509,8 @@ class TestSessionManagerIntegration:
                 session_manager.record_card_review(
                     card=card,
                     rating=3,  # Consistent Good rating
-                    response_time_ms=1000 - session_num * 100,  # Improving speed
+                    response_time_ms=1000
+                    - session_num * 100,  # Improving speed
                 )
 
             completed_session = session_manager.end_session()
@@ -479,7 +522,9 @@ class TestSessionManagerIntegration:
             )
 
         # Generate insights for the latest session
-        insights = session_manager.generate_session_insights(sessions[-1].session_uuid)
+        insights = session_manager.generate_session_insights(
+            sessions[-1].session_uuid
+        )
 
         # Should have comparison data
         assert isinstance(insights.vs_last_session, dict)
@@ -491,14 +536,18 @@ class TestSessionManagerIntegration:
         manager1 = SessionManager(in_memory_db, user_id="persistence_test")
         session = manager1.start_session()
 
-        card = Card(uuid=uuid4(), deck_name="Test", front="Q", back="A", tags={"test"})
+        card = Card(
+            uuid=uuid4(), deck_name="Test", front="Q", back="A", tags={"test"}
+        )
         manager1.record_card_review(card, rating=3, response_time_ms=1000)
 
         completed_session = manager1.end_session()
 
         # Create second manager and verify session exists
         manager2 = SessionManager(in_memory_db, user_id="persistence_test")
-        insights = manager2.generate_session_insights(completed_session.session_uuid)
+        insights = manager2.generate_session_insights(
+            completed_session.session_uuid
+        )
 
         assert insights is not None
         # Note: cards_per_minute might be 0 without actual reviews in database
@@ -508,7 +557,9 @@ class TestSessionManagerIntegration:
         """Test that start_session resets current_session on database error."""
         manager = SessionManager(in_memory_db, user_id="test_user")
         with patch.object(
-            in_memory_db, "create_session", side_effect=RuntimeError("DB failure")
+            in_memory_db,
+            "create_session",
+            side_effect=RuntimeError("DB failure"),
         ):
             with pytest.raises(RuntimeError, match="DB failure"):
                 manager.start_session()
@@ -518,9 +569,13 @@ class TestSessionManagerIntegration:
         """Test that record_card_review logs error but doesn't crash on DB failure."""
         manager = SessionManager(in_memory_db, user_id="test_user")
         manager.start_session()
-        card = Card(uuid=uuid4(), deck_name="Math", front="Q", back="A", tags={"math"})
+        card = Card(
+            uuid=uuid4(), deck_name="Math", front="Q", back="A", tags={"math"}
+        )
         with patch.object(
-            in_memory_db, "update_session", side_effect=RuntimeError("DB failure")
+            in_memory_db,
+            "update_session",
+            side_effect=RuntimeError("DB failure"),
         ):
             manager.record_card_review(card, rating=3, response_time_ms=1000)
         assert manager.current_session.cards_reviewed == 1
@@ -530,7 +585,9 @@ class TestSessionManagerIntegration:
         manager = SessionManager(in_memory_db, user_id="test_user")
         manager.start_session()
         with patch.object(
-            in_memory_db, "update_session", side_effect=RuntimeError("DB failure")
+            in_memory_db,
+            "update_session",
+            side_effect=RuntimeError("DB failure"),
         ):
             manager.record_interruption()
         assert manager.current_session.interruptions == 1
@@ -540,7 +597,9 @@ class TestSessionManagerIntegration:
         manager = SessionManager(in_memory_db, user_id="test_user")
         manager.start_session()
         with patch.object(
-            in_memory_db, "update_session", side_effect=RuntimeError("DB failure")
+            in_memory_db,
+            "update_session",
+            side_effect=RuntimeError("DB failure"),
         ):
             with pytest.raises(RuntimeError, match="DB failure"):
                 manager.end_session()
@@ -549,7 +608,9 @@ class TestSessionManagerIntegration:
         """Test that _get_user_sessions returns empty list on DB failure."""
         manager = SessionManager(in_memory_db, user_id="test_user")
         with patch.object(
-            in_memory_db, "get_recent_sessions", side_effect=RuntimeError("DB failure")
+            in_memory_db,
+            "get_recent_sessions",
+            side_effect=RuntimeError("DB failure"),
         ):
             result = manager._get_user_sessions("test_user")
         assert result == []
@@ -589,7 +650,14 @@ class TestSessionManagerIntegration:
                 review_type="review",
                 ts=datetime.now(timezone.utc),
             )
-            for r, ms in [(3, 1000), (4, 800), (2, 1200), (3, 900), (4, 700), (3, 1100)]
+            for r, ms in [
+                (3, 1000),
+                (4, 800),
+                (2, 1200),
+                (3, 900),
+                (4, 700),
+                (3, 1100),
+            ]
         ]
         metrics = manager._calculate_performance_metrics(session, reviews)
         assert metrics["cards_per_minute"] == 1.0
@@ -598,7 +666,9 @@ class TestSessionManagerIntegration:
         assert metrics["focus_score"] <= 100
         assert metrics["fatigue_detected"] is False
 
-    def test_calculate_performance_metrics_fatigue_detected(self, in_memory_db):
+    def test_calculate_performance_metrics_fatigue_detected(
+        self, in_memory_db
+    ):
         """Test fatigue detection when response times increase significantly."""
         from datetime import date as date_today
         from flashcore.models import Review
@@ -900,7 +970,9 @@ class TestSessionManagerIntegration:
         manager = SessionManager(in_memory_db, user_id="test_user")
         session = manager.start_session()
 
-        card = Card(uuid=uuid4(), deck_name="Test", front="Q", back="A", tags={"test"})
+        card = Card(
+            uuid=uuid4(), deck_name="Test", front="Q", back="A", tags={"test"}
+        )
         in_memory_db.upsert_cards_batch([card])
         manager.record_card_review(card, rating=3, response_time_ms=1000)
 
