@@ -63,7 +63,9 @@ class TestSessionModel:
     def test_calculate_duration(self):
         """Test duration calculation."""
         start_time = datetime(2023, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
-        end_time = datetime(2023, 1, 1, 10, 5, 30, tzinfo=timezone.utc)  # 5.5 minutes
+        end_time = datetime(
+            2023, 1, 1, 10, 5, 30, tzinfo=timezone.utc
+        )  # 5.5 minutes
 
         session = Session(start_ts=start_time)
 
@@ -224,7 +226,9 @@ class TestSessionModel:
 
     def test_complex_session_workflow(self):
         """Test a complex session workflow with multiple operations."""
-        session = Session(user_id="test_user", device_type="desktop", platform="cli")
+        session = Session(
+            user_id="test_user", device_type="desktop", platform="cli"
+        )
 
         # Review cards from multiple decks
         session.add_card_review("Math")
