@@ -79,7 +79,9 @@ def test_start_review_flow_with_one_card(mock_manager: MagicMock, capsys):
     )
 
 
-def test_start_review_flow_invalid_rating_input(mock_manager: MagicMock, capsys):
+def test_start_review_flow_invalid_rating_input(
+    mock_manager: MagicMock, capsys
+):
     """Tests that the review flow handles invalid rating inputs and re-prompts."""
     # Arrange
     card_uuid = uuid4()
@@ -98,7 +100,9 @@ def test_start_review_flow_invalid_rating_input(mock_manager: MagicMock, capsys)
 
     # Act
     # Simulate user pressing Enter, then entering 'abc', then '5', then a valid '2'
-    with patch("rich.console.Console.input", side_effect=["", "abc", "5", "2"]):
+    with patch(
+        "rich.console.Console.input", side_effect=["", "abc", "5", "2"]
+    ):
         start_review_flow(mock_manager)
 
     # Assert
@@ -118,7 +122,9 @@ def test_start_review_flow_invalid_rating_input(mock_manager: MagicMock, capsys)
     assert "Review session finished." in output
 
 
-def test_start_review_flow_submit_review_exception(mock_manager: MagicMock, capsys):
+def test_start_review_flow_submit_review_exception(
+    mock_manager: MagicMock, capsys
+):
     """Test that submit_review exception is handled gracefully."""
     card = Card(uuid=uuid4(), deck_name="Test", front="Q?", back="A")
     card_uuid = card.uuid
@@ -129,7 +135,9 @@ def test_start_review_flow_submit_review_exception(mock_manager: MagicMock, caps
     mock_manager.submit_review.side_effect = ValueError("Card not found")
 
     with patch("flashcore.cli.review_ui._display_card", return_value=1000):
-        with patch("flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)
+        ):
             start_review_flow(mock_manager)
 
     output = capsys.readouterr().out
@@ -137,7 +145,9 @@ def test_start_review_flow_submit_review_exception(mock_manager: MagicMock, caps
     assert "Review session finished." in output
 
 
-def test_start_review_flow_card_without_next_due_date(mock_manager: MagicMock, capsys):
+def test_start_review_flow_card_without_next_due_date(
+    mock_manager: MagicMock, capsys
+):
     """Test review flow when updated_card has no next_due_date."""
     card = Card(uuid=uuid4(), deck_name="Test", front="Q?", back="A")
 
@@ -150,14 +160,18 @@ def test_start_review_flow_card_without_next_due_date(mock_manager: MagicMock, c
     mock_manager.submit_review.return_value = updated_card
 
     with patch("flashcore.cli.review_ui._display_card", return_value=1000):
-        with patch("flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)
+        ):
             start_review_flow(mock_manager)
 
     output = capsys.readouterr().out
     assert "Reviewed." in output
 
 
-def test_start_review_flow_submit_returns_none(mock_manager: MagicMock, capsys):
+def test_start_review_flow_submit_returns_none(
+    mock_manager: MagicMock, capsys
+):
     """Test review flow when submit_review returns None."""
     card = Card(uuid=uuid4(), deck_name="Test", front="Q?", back="A")
 
@@ -167,7 +181,9 @@ def test_start_review_flow_submit_returns_none(mock_manager: MagicMock, capsys):
     mock_manager.submit_review.return_value = None
 
     with patch("flashcore.cli.review_ui._display_card", return_value=1000):
-        with patch("flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)
+        ):
             start_review_flow(mock_manager)
 
     output = capsys.readouterr().out
