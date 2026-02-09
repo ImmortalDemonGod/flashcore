@@ -147,7 +147,9 @@ class TestReviewProcessor:
         # Process review with custom timestamp
         custom_ts = datetime(2024, 6, 15, 14, 30, 0, tzinfo=timezone.utc)
 
-        processor.process_review(card=sample_card, rating=3, reviewed_at=custom_ts)
+        processor.process_review(
+            card=sample_card, rating=3, reviewed_at=custom_ts
+        )
 
         # Verify review has custom timestamp
         reviews = in_memory_db.get_reviews_for_card(sample_card.uuid)
@@ -183,14 +185,18 @@ class TestReviewProcessor:
 
         # Create mock scheduler that raises error
         mock_scheduler = MagicMock(spec=FSRS_Scheduler)
-        mock_scheduler.compute_next_state.side_effect = ValueError("Invalid rating")
+        mock_scheduler.compute_next_state.side_effect = ValueError(
+            "Invalid rating"
+        )
 
         # Create processor
         processor = ReviewProcessor(in_memory_db, mock_scheduler)
 
         # Process review should raise error
         with pytest.raises(ValueError, match="Invalid rating"):
-            processor.process_review(card=sample_card, rating=5)  # Invalid rating
+            processor.process_review(
+                card=sample_card, rating=5
+            )  # Invalid rating
 
     def test_process_review_database_error(
         self, in_memory_db, sample_card, mock_scheduler_output
@@ -253,8 +259,12 @@ class TestReviewProcessor:
 
         # Process review for non-existent card
         non_existent_uuid = uuid4()
-        with pytest.raises(ValueError, match=f"Card {non_existent_uuid} not found"):
-            processor.process_review_by_uuid(card_uuid=non_existent_uuid, rating=3)
+        with pytest.raises(
+            ValueError, match=f"Card {non_existent_uuid} not found"
+        ):
+            processor.process_review_by_uuid(
+                card_uuid=non_existent_uuid, rating=3
+            )
 
     def test_review_object_creation_completeness(
         self, in_memory_db, sample_card, mock_scheduler_output
@@ -307,11 +317,18 @@ class TestReviewProcessor:
         assert review.stab_after == mock_scheduler_output.stab
         assert review.diff == mock_scheduler_output.diff
         assert review.next_due == mock_scheduler_output.next_due
-        assert review.elapsed_days_at_review == mock_scheduler_output.elapsed_days
-        assert review.scheduled_days_interval == mock_scheduler_output.scheduled_days
+        assert (
+            review.elapsed_days_at_review == mock_scheduler_output.elapsed_days
+        )
+        assert (
+            review.scheduled_days_interval
+            == mock_scheduler_output.scheduled_days
+        )
         assert review.review_type == mock_scheduler_output.review_type
 
-    def test_logging_behavior(self, in_memory_db, sample_card, mock_scheduler_output):
+    def test_logging_behavior(
+        self, in_memory_db, sample_card, mock_scheduler_output
+    ):
         """Test that appropriate logging occurs."""
         # Insert card
         in_memory_db.upsert_cards_batch([sample_card])
@@ -331,9 +348,15 @@ class TestReviewProcessor:
             assert mock_logger.debug.call_count >= 2  # Start and end logging
 
             # Check log messages contain expected content
-            debug_calls = [call.args[0] for call in mock_logger.debug.call_args_list]
-            assert any("Processing review for card" in msg for msg in debug_calls)
-            assert any("Review processed successfully" in msg for msg in debug_calls)
+            debug_calls = [
+                call.args[0] for call in mock_logger.debug.call_args_list
+            ]
+            assert any(
+                "Processing review for card" in msg for msg in debug_calls
+            )
+            assert any(
+                "Review processed successfully" in msg for msg in debug_calls
+            )
 
 
 class TestReviewProcessorIntegration:
@@ -422,7 +445,9 @@ class TestReviewProcessorIntegration:
             assert review.resp_ms == 1000 + i * 100
             assert review.eval_ms == 500 + i * 50
 
-    def test_session_uuid_consistency(self, in_memory_db, real_scheduler, sample_card):
+    def test_session_uuid_consistency(
+        self, in_memory_db, real_scheduler, sample_card
+    ):
         """Test that session UUID is consistently applied."""
         # Insert card
         in_memory_db.upsert_cards_batch([sample_card])
@@ -434,7 +459,9 @@ class TestReviewProcessorIntegration:
         session_uuid = uuid4()
 
         # Review 1: With session UUID
-        processor.process_review(card=sample_card, rating=3, session_uuid=session_uuid)
+        processor.process_review(
+            card=sample_card, rating=3, session_uuid=session_uuid
+        )
 
         # Review 2: Without session UUID
         processor.process_review(card=sample_card, rating=2, session_uuid=None)
