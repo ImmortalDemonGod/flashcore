@@ -23,7 +23,7 @@ class TestSessionManager:
     def in_memory_db(self):
         """
         Create and initialize an in-memory FlashcardDatabase for use in tests.
-        
+
         Returns:
             FlashcardDatabase: an in-memory database instance with its schema initialized.
         """
@@ -35,10 +35,10 @@ class TestSessionManager:
     def session_manager(self, in_memory_db):
         """
         Create a SessionManager configured with the provided in-memory database for testing.
-        
+
         Parameters:
             in_memory_db: An initialized in-memory FlashcardDatabase instance to back the SessionManager.
-        
+
         Returns:
             session_manager (SessionManager): A SessionManager bound to `in_memory_db` and using the test user_id "test_user".
         """
@@ -48,7 +48,7 @@ class TestSessionManager:
     def sample_cards(self):
         """
         Create a small list of sample flashcards for tests.
-        
+
         Returns:
             list[Card]: Three Card instances in the "Math" deck (UUIDs generated), with fronts like "What is 1+1?" and corresponding backs ("2"), each tagged with "math" and "basic".
         """
@@ -421,7 +421,7 @@ class TestSessionManagerIntegration:
     def in_memory_db(self):
         """
         Create and initialize an in-memory FlashcardDatabase for use in tests.
-        
+
         Returns:
             FlashcardDatabase: an in-memory database instance with its schema initialized.
         """
@@ -433,10 +433,10 @@ class TestSessionManagerIntegration:
     def session_manager(self, in_memory_db):
         """
         Create a SessionManager configured for integration tests.
-        
+
         Parameters:
             in_memory_db: An initialized in-memory FlashcardDatabase fixture used for persistence during tests.
-        
+
         Returns:
             SessionManager: A SessionManager instance bound to the provided database and the test user_id "integration_test_user".
         """
@@ -614,7 +614,7 @@ class TestSessionManagerIntegration:
     def test_record_interruption_db_error_continues(self, in_memory_db):
         """
         Ensure recording an interruption increments the in-memory interruption counter even if the database update raises an error.
-        
+
         Starts a session, simulates a database failure when persisting the session update, calls `record_interruption`, and verifies `current_session.interruptions` increments to 1.
         """
         manager = SessionManager(in_memory_db, user_id="test_user")
