@@ -21,9 +21,9 @@ console = Console()
 def review_all_logic(db_path: Path, limit: int = 50):
     """
     Run a unified review session for all cards due on the local date, up to a specified limit.
-    
+
     Opens the flashcard database, fetches due cards across all decks, presents a per-deck summary, iterates through each due card to collect a user rating, submits each review, and prints per-card and session-level results.
-    
+
     Parameters:
         db_path (Path): Filesystem path to the flashcard database file.
         limit (int): Maximum number of due cards to include in this review session.
@@ -114,14 +114,14 @@ def _get_all_due_cards(
 ) -> List[Card]:
     """
     Retrieve due flashcards across all decks up to the specified limit.
-    
+
     Cards are prioritized with never-reviewed cards first, then by oldest next-due date, grouped by deck, and finally by the card's added time.
-    
+
     Parameters:
         db_manager (FlashcardDatabase): Database manager providing a connection to fetch cards.
         on_date (date): Date to test card due status (cards with next_due_date on or before this date are due; NULL counts as due).
         limit (int): Maximum number of cards to return.
-    
+
     Returns:
         List[Card]: A list of due Card objects ordered by priority. Returns an empty list if no cards match or if an error occurs while fetching.
     """
@@ -169,14 +169,14 @@ def _submit_single_review(
 ) -> Optional[Card]:
     """
     Process and submit a single card review using the shared ReviewProcessor.
-    
+
     Parameters:
         card (Card): The card being reviewed.
         rating (int): User's rating where 1=Again, 2=Hard, 3=Good, 4=Easy.
         resp_ms (int): Time in milliseconds to reveal the answer.
         eval_ms (int): Time in milliseconds to provide the rating.
         reviewed_at (Optional[datetime]): Timestamp of the review; if omitted, the processor will use the current time.
-    
+
     Returns:
         Optional[Card]: The updated Card on success, or `None` if an error occurred.
     """
