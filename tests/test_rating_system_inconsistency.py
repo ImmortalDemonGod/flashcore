@@ -26,7 +26,7 @@ class TestRatingSystemInconsistency:
     def in_memory_db(self):
         """
         Create an in-memory FlashcardDatabase with its schema initialized for testing.
-        
+
         Returns:
             FlashcardDatabase: A database instance backed by an in-memory SQLite database with the schema created.
         """
@@ -38,7 +38,7 @@ class TestRatingSystemInconsistency:
     def sample_card(self):
         """
         Create and return a sample Card populated with predictable test data.
-        
+
         Returns:
             Card: A Card with a generated UUID, deck "Test Deck", front "What is 2+2?", back "4", and tags {"math"}.
         """
@@ -54,7 +54,7 @@ class TestRatingSystemInconsistency:
     def scheduler(self):
         """
         Create an FSRS_Scheduler instance for use in tests.
-        
+
         Returns:
             FSRS_Scheduler: A new scheduler instance configured for testing.
         """
@@ -262,7 +262,7 @@ class TestRatingSystemInconsistency:
     def test_scheduler_rating_mapping_clarity_after_fix(self, scheduler):
         """
         Verifies the scheduler maps the unified 1–4 rating scale to FSRS rating names unambiguously and rejects invalid values.
-        
+
         Asserts that 1 maps to "Again", 2 to "Hard", 3 to "Good", and 4 to "Easy". Also asserts that an out-of-range value (0) raises a ValueError.
         """
         # After the fix, the scheduler only handles one scale (1-4)
