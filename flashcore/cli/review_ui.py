@@ -20,9 +20,9 @@ console = Console()
 def _get_user_rating() -> tuple[int, int]:
     """
     Prompt the user to enter a review rating (1–4) and measure how long they took to provide it.
-    
+
     Repeatedly prompts until a valid integer in the range 1 to 4 is entered. The elapsed time is measured from the first prompt until a valid response is received.
-    
+
     Returns:
         tuple[int, int]: (rating, eval_ms) where `rating` is an integer 1–4 and `eval_ms` is the elapsed time in milliseconds between the first prompt and the accepted input.
     """
@@ -50,10 +50,10 @@ def _get_user_rating() -> tuple[int, int]:
 def _display_card(card: Card) -> int:
     """
     Show a card's front, wait for the user to press Enter, then reveal the back.
-    
+
     Parameters:
         card (Card): Card object with `front` and `back` attributes to display.
-    
+
     Returns:
         response_time_ms (int): Milliseconds elapsed between showing the front and the user pressing Enter.
     """
