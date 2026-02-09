@@ -45,7 +45,9 @@ def review_all_logic(db_path: Path, limit: int = 50):
         # Group cards by deck for display purposes
         deck_counts: Dict[str, int] = {}
         for card in all_due_cards:
-            deck_counts[card.deck_name] = deck_counts.get(card.deck_name, 0) + 1
+            deck_counts[card.deck_name] = (
+                deck_counts.get(card.deck_name, 0) + 1
+            )
 
         # Show summary
         console.print(
@@ -83,7 +85,9 @@ def review_all_logic(db_path: Path, limit: int = 50):
                     days_until_due = (
                         updated_card.next_due_date - date.today()
                     ).days
-                    due_date_str = updated_card.next_due_date.strftime("%Y-%m-%d")
+                    due_date_str = updated_card.next_due_date.strftime(
+                        "%Y-%m-%d"
+                    )
                     console.print(
                         f"[green]Reviewed.[/green] Next due in [bold]{days_until_due} days[/bold] on {due_date_str}."
                     )
@@ -92,7 +96,9 @@ def review_all_logic(db_path: Path, limit: int = 50):
                         "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
                     )
             except Exception as e:
-                console.print(f"[bold red]Error reviewing card: {e}[/bold red]")
+                console.print(
+                    f"[bold red]Error reviewing card: {e}[/bold red]"
+                )
 
             console.print("")  # Add spacing
 
@@ -129,6 +135,8 @@ def _get_all_due_cards(
 
     try:
         result = conn.execute(sql, [on_date, limit])
+        if result.description is None:
+            return []
         cols = [desc[0] for desc in result.description]
         rows = result.fetchall()
         if not rows:
