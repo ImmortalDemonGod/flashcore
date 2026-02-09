@@ -10,10 +10,10 @@ from flashcore.cli._vet_logic import vet_logic
 def yaml_handler():
     """
     Create and return a configured ruamel.yaml.YAML instance.
-    
+
     The returned YAML instance preserves quotes and uses an indentation of 2 for mappings,
     4 for sequences, and an offset of 2 to produce consistently formatted YAML.
-    
+
     Returns:
         yaml (ruamel.yaml.YAML): Configured YAML processor instance.
     """
@@ -43,7 +43,7 @@ def test_vet_logic_clean_files_check_mode(
 ):
     """
     Verify that vet_logic reports no changes and indicates all files are clean when given a properly formatted YAML file in check mode.
-    
+
     Creates a YAML file containing a single card whose keys are alphabetically ordered and include a valid UUID, runs vet_logic with check=True, and asserts that no changes are needed and the captured output contains "All files are clean".
     """
     # Keys must be sorted alphabetically for the file to be considered "clean"
