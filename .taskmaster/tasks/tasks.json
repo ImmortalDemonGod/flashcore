@@ -400,7 +400,7 @@
         "dependencies": [
           "3"
         ],
-        "status": "done",
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
@@ -460,8 +460,7 @@
             "testStrategy": "Run 'pytest tests/test_yaml_validators.py -v' - all validator tests pass.",
             "parentId": "undefined"
           }
-        ],
-        "updatedAt": "2026-02-08T18:32:56.155Z"
+        ]
       },
       {
         "id": "6",
@@ -474,7 +473,7 @@
           "4",
           "5"
         ],
-        "status": "done",
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
@@ -536,8 +535,7 @@
             "testStrategy": "After 'pip install -e .', run 'which flashcore' - should find command. Run 'flashcore --help' - should work.",
             "parentId": "undefined"
           }
-        ],
-        "updatedAt": "2026-02-08T18:48:04.018Z"
+        ]
       },
       {
         "id": "7",
@@ -549,7 +547,7 @@
         "dependencies": [
           "6"
         ],
-        "status": "done",
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
@@ -607,8 +605,7 @@
             "testStrategy": "All tests pass. Coverage >80%. No regressions detected.",
             "parentId": "undefined"
           }
-        ],
-        "updatedAt": "2026-02-08T19:12:11.603Z"
+        ]
       },
       {
         "id": "8",
@@ -709,9 +706,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-08T19:12:11.608Z",
+      "lastModified": "2026-01-05T21:55:46.268Z",
       "taskCount": 9,
-      "completedCount": 7,
+      "completedCount": 4,
       "tags": [
         "master"
       ]
