@@ -25,7 +25,7 @@ class TestReviewLogicDuplication:
     def in_memory_db(self):
         """
         Create and initialize an in-memory FlashcardDatabase for use in tests.
-        
+
         Returns:
             FlashcardDatabase: a database instance connected to an in-memory SQLite store with its schema initialized.
         """
@@ -37,7 +37,7 @@ class TestReviewLogicDuplication:
     def sample_card(self):
         """
         Create a sample flashcard used in tests.
-        
+
         Returns:
             Card: A Card instance with a generated UUID, deck_name "Test Deck", front "What is 2+2?", back "4", and tags {"math"}.
         """
@@ -53,7 +53,7 @@ class TestReviewLogicDuplication:
     def mock_scheduler_output(self):
         """
         Provide a SchedulerOutput with preset fields for tests.
-        
+
         Returns:
             SchedulerOutput: instance with stab=2.5, diff=5.0, next_due set to date.today(), scheduled_days=1, review_type="learn", elapsed_days=0, and state=CardState.Learning
         """
@@ -282,7 +282,7 @@ class TestReviewLogicConsolidationRequirements:
     def test_shared_service_interface_requirements(self):
         """
         Define and verify the required interface and responsibilities for a consolidated ReviewProcessor service.
-        
+
         Asserts that a canonical interface is specified (class name, method name, parameters, return type, and raised exceptions), that the service will encapsulate the expected review-processing responsibilities, and that existing callsites become thin wrappers delegating to the service.
         """
         # The shared service should have this interface:
