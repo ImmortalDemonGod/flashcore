@@ -83,7 +83,7 @@ _assets_root_option = typer.Option(  # noqa: B008
 def _normalize_for_comparison(text: str) -> str:
     """
     Normalize text for comparison by converting to lowercase and removing leading and trailing whitespace.
-    
+
     Returns:
         normalized_text (str): The input text converted to lowercase with surrounding whitespace removed.
     """
@@ -112,9 +112,9 @@ def vet(
 ):
     """
     Validate, format, and ensure each flashcard YAML file contains a UUID.
-    
+
     Performs validation and formatting of flashcard YAML files and adds missing UUIDs. When `check` is True the function runs a dry run and does not modify files; it will cause the CLI to exit with code 1 if any changes would be required.
-    
+
     Parameters:
         check: If True, perform a non-destructive check-only run (no file writes).
         source_dir: Optional path containing flashcard YAML files to process.
@@ -140,16 +140,16 @@ def _load_cards_from_source(
 ) -> List[Card]:
     """
     Load flashcards from YAML files in source_dir and return the resulting Card objects.
-    
+
     Parameters:
         source_dir (Path): Directory containing flashcard YAML files to process.
         assets_root (Optional[Path]): Root directory for asset resolution; if None, source_dir is used.
-    
+
     Behavior:
         - Prints any processing errors to the console.
         - If no cards are produced and there were processing errors, exits with code 1.
         - If no cards are produced and there were no errors, prints a notice and exits with code 0.
-    
+
     Returns:
         List[Card]: Processed Card objects loaded from the YAML files.
     """
@@ -183,7 +183,7 @@ def _filter_new_cards(
 ) -> Tuple[List[Card], int]:
     """
     Selects cards that should be inserted or updated by removing any whose fronts duplicate an existing database card or an earlier card in the provided batch.
-    
+
     Returns:
         tuple: (cards_to_upsert, duplicate_count) where `cards_to_upsert` is a list of Card objects kept for upsert and `duplicate_count` is the number of cards skipped because their front was a duplicate.
     """
@@ -215,9 +215,9 @@ def _execute_ingestion(
 ) -> int:
     """
     Upsert a batch of cards into the provided flashcard database.
-    
+
     If `cards_to_upsert` is empty, prints a notice and returns 0.
-    
+
     Returns:
         int: Number of cards inserted or updated; `0` if no cards were provided.
     """
@@ -235,7 +235,7 @@ def _report_ingestion_summary(
 ):
     """
     Print a concise summary of ingestion results to the console.
-    
+
     Parameters:
         upserted_count (int): Number of cards that were inserted or updated.
         duplicate_count (int): Number of cards skipped because they were detected as duplicates.
@@ -261,13 +261,13 @@ def _perform_ingestion_logic(
 ):
     """
     Orchestrates loading flashcards from the source directory, selecting which cards should be upserted, performing the upsert into the database, and reporting a summary.
-    
+
     Parameters:
         db_path (Path): Path to the flashcard database file to open for upserting.
         source_dir (Path): Directory containing source YAML flashcard files to load.
         assets_root (Optional[Path]): Root directory to resolve asset references; if None, the source directory is used.
         re_ingest (bool): If True, force upserting all loaded cards (update existing cards). If False, only new or non-duplicate cards are upserted.
-    
+
     Side effects:
         Opens and modifies the database, may print ingestion summary and error messages via the CLI output.
     """
@@ -307,13 +307,13 @@ def ingest(
 ):
     """
     Ingest flashcards defined in YAML files from a source directory into the configured database.
-    
+
     Parameters:
         db (Optional[Path]): Path to the database file; resolved from the value or the FLASHCORE_DB environment variable.
         source_dir (Optional[Path]): Directory containing YAML flashcard files to ingest; required.
         assets_root (Optional[Path]): Root directory for card assets; defaults to `source_dir` when not provided.
         re_ingest (bool): If True, force re-ingestion and update existing cards.
-    
+
     Raises:
         typer.Exit: Raised with a non-zero exit code when required inputs are missing or when an error occurs during ingestion.
     """
@@ -355,9 +355,11 @@ def ingest(
 def _display_overall_stats(cons: Console, stats_data: dict):
     """
     Prints a two-row table summarizing the database's total cards and total reviews.
-    
+
     Parameters:
-    	stats_data (dict): Mapping containing at least the keys `"total_cards"` and `"total_reviews"` with numeric values to display.
+        stats_data (dict): Mapping containing at least the keys
+            `"total_cards"` and `"total_reviews"` with numeric values
+            to display.
     """
     overall_table = Table(title="Overall Database Stats", show_header=False)
     overall_table.add_column("Metric", style="cyan")
@@ -370,7 +372,7 @@ def _display_overall_stats(cons: Console, stats_data: dict):
 def _display_deck_stats(cons: Console, stats_data: dict):
     """
     Render and print a table of per-deck statistics to the given console.
-    
+
     Parameters:
         cons (Console): Rich Console used to print the table.
         stats_data (dict): Mapping containing a "decks" key with an iterable of deck records.
@@ -393,7 +395,7 @@ def _display_deck_stats(cons: Console, stats_data: dict):
 def _display_state_stats(cons: Console, stats_data: dict):
     """
     Render a table summarizing card counts grouped by state.
-    
+
     Parameters:
         cons (Console): Rich Console used to print the table.
         stats_data (dict): Statistics mapping containing:
@@ -562,9 +564,10 @@ def export_md(
 ):
     """
     Export flashcards into Markdown files, creating one Markdown file per deck in the given directory.
-    
+
     Parameters:
-    	output_dir (Path): Directory where per-deck Markdown files will be written; required.
+        output_dir (Path): Directory where per-deck Markdown
+            files will be written; required.
     """
     db_path = _resolve_db_path(db)
     if output_dir is None:
@@ -640,7 +643,7 @@ def restore(
 def main():
     """
     Run the CLI application.
-    
+
     If an unexpected exception occurs, print a bold red error message to the console and exit the process with status code 1.
     """
     try:
