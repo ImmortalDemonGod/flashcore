@@ -52,7 +52,9 @@ class TestReviewLogicDuplication:
             state=CardState.Learning,
         )
 
-    def test_both_methods_have_identical_core_logic(self, in_memory_db, sample_card):
+    def test_both_methods_have_identical_core_logic(
+        self, in_memory_db, sample_card
+    ):
         """Test that both review methods produce identical results for the same input."""
         # Insert card
         in_memory_db.upsert_cards_batch([sample_card])
@@ -125,7 +127,9 @@ class TestReviewLogicDuplication:
 
         if review1.stab_before is None and review2.stab_before is None:
             pass  # Both None, good
-        elif math.isnan(review1.stab_before) and math.isnan(review2.stab_before):
+        elif math.isnan(review1.stab_before) and math.isnan(
+            review2.stab_before
+        ):
             pass  # Both NaN, good
         else:
             assert review1.stab_before == review2.stab_before
@@ -134,7 +138,9 @@ class TestReviewLogicDuplication:
         assert review1.diff == review2.diff
         assert review1.next_due == review2.next_due
         assert review1.elapsed_days_at_review == review2.elapsed_days_at_review
-        assert review1.scheduled_days_interval == review2.scheduled_days_interval
+        assert (
+            review1.scheduled_days_interval == review2.scheduled_days_interval
+        )
         assert review1.review_type == review2.review_type
 
         # Card states should be identical
@@ -247,7 +253,9 @@ class TestReviewLogicDuplication:
         # standalone reviews don't
 
         assert review1.session_uuid is not None  # Fixed! Now has session UUID
-        assert review2.session_uuid is None  # Correct! No session for review-all
+        assert (
+            review2.session_uuid is None
+        )  # Correct! No session for review-all
 
         # This test documents that the maintenance hazard has been FIXED
         # by consolidating the logic into a shared ReviewProcessor service
