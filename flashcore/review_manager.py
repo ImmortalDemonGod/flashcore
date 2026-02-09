@@ -39,13 +39,13 @@ class ReviewSessionManager:
     ):
         """
         Create a ReviewSessionManager for a user's deck and prepare a new review session context.
-        
+
         Parameters:
             db_manager (FlashcardDatabase): Database interface used to load and persist cards and session data.
             scheduler (FSRS): Scheduling engine used to compute card due dates and spacing.
             user_uuid (UUID): Identifier of the user who will perform the review session.
             deck_name (str): Name of the deck to review.
-        
+
         Notes:
             Initializes session-specific state including `session_uuid`, `review_queue`, `current_session_card_uuids`,
             `session_start_time`, a shared `review_processor`, and a `session_manager` for analytics. The `_session_started`
@@ -74,9 +74,9 @@ class ReviewSessionManager:
     ) -> None:
         """
         Initialize a review session: start analytics (if not started), fetch due cards for today, and populate the session queue.
-        
+
         Starts session analytics if not already active, then fetches due cards for the manager's deck (optionally filtered by `tags`) limited by `limit`, sorts them by `modified_at`, and stores them in `self.review_queue` and `self.current_session_card_uuids`.
-        
+
         Parameters:
             limit (int): Maximum number of cards to include in the session.
             tags (Optional[List[str]]): Optional list of tags to filter which cards are fetched.
@@ -144,7 +144,7 @@ class ReviewSessionManager:
     def _remove_card_from_queue(self, card_uuid: UUID) -> None:
         """
         Remove a card with the given UUID from the session's review queue.
-        
+
         Parameters:
             card_uuid (UUID): UUID of the card to remove from the queue.
         """
@@ -162,17 +162,17 @@ class ReviewSessionManager:
     ) -> Card:
         """
         Submit a review for a card in the current session and update the card's state and next scheduled review.
-        
+
         Parameters:
             card_uuid (UUID): UUID of the card to review.
             rating (int): User's rating for the review (e.g., Again, Hard, Good, Easy).
             reviewed_at (Optional[datetime]): Timestamp when the review occurred; defaults to now when omitted.
             resp_ms (int): Time in milliseconds from showing the card to revealing the answer.
             eval_ms (int): Time in milliseconds taken to decide and submit the rating.
-        
+
         Returns:
             Card: The updated Card object reflecting the processed review.
-        
+
         Raises:
             ValueError: If the specified card is not part of the current review session.
         """
@@ -218,7 +218,7 @@ class ReviewSessionManager:
     def get_session_stats(self) -> Dict[str, int]:
         """
         Provide aggregated statistics for the active review session.
-        
+
         Returns:
             dict: Mapping containing session statistics:
                 - "total_cards" (int): Number of cards that were initially in the session.
@@ -248,9 +248,9 @@ class ReviewSessionManager:
     def end_session_with_insights(self) -> Dict[str, Any]:
         """
         End the active review session and produce a structured summary with analytics-driven insights.
-        
+
         If a session is active, ends analytics tracking, compiles a session summary (uuid, duration, reviewed cards, decks accessed, deck switches, interruptions) and an insights block containing performance metrics, recommendations, achievements, alerts, and comparisons. If no session is active or an error occurs, returns an error description.
-        
+
         Returns:
             dict: On success, a dictionary with keys:
                 - "session": dict with keys:
@@ -322,7 +322,7 @@ class ReviewSessionManager:
     def get_due_card_count(self) -> int:
         """
         Get the number of cards due for the manager's deck on today's date.
-        
+
         Returns:
             The number of due cards for the manager's deck on today's date.
         """
