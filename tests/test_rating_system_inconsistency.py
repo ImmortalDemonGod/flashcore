@@ -115,7 +115,9 @@ class TestRatingSystemInconsistency:
 
         for rating, expected_name in zip(valid_ratings, expected_fsrs_ratings):
             fsrs_rating = scheduler._map_flashcore_rating_to_fsrs(rating)
-            assert fsrs_rating is not None, f"Scheduler should handle rating {rating}"
+            assert (
+                fsrs_rating is not None
+            ), f"Scheduler should handle rating {rating}"
             assert (
                 fsrs_rating.name == expected_name
             ), f"Rating {rating} should map to {expected_name}"
@@ -126,7 +128,9 @@ class TestRatingSystemInconsistency:
             with pytest.raises(ValueError, match="Invalid rating"):
                 scheduler._map_flashcore_rating_to_fsrs(invalid_rating)
 
-    def test_review_manager_uses_unified_rating_scale(self, in_memory_db, sample_card):
+    def test_review_manager_uses_unified_rating_scale(
+        self, in_memory_db, sample_card
+    ):
         """Test that ReviewSessionManager now uses the unified 1-4 rating scale."""
         # Insert card
         in_memory_db.upsert_cards_batch([sample_card])
@@ -143,7 +147,10 @@ class TestRatingSystemInconsistency:
         # Submit review with unified rating (1-4)
         rating = 3  # Good
         manager.submit_review(
-            card_uuid=sample_card.uuid, rating=rating, resp_ms=1000, eval_ms=500
+            card_uuid=sample_card.uuid,
+            rating=rating,
+            resp_ms=1000,
+            eval_ms=500,
         )
 
         # Verify the review was stored with the same rating (no conversion)
@@ -198,7 +205,10 @@ class TestRatingSystemInconsistency:
         manager.initialize_session()
 
         manager.submit_review(
-            card_uuid=sample_card.uuid, rating=rating, resp_ms=1000, eval_ms=500
+            card_uuid=sample_card.uuid,
+            rating=rating,
+            resp_ms=1000,
+            eval_ms=500,
         )
 
         # Create a second card for the second review
@@ -303,7 +313,9 @@ class TestRatingSystemDocumentation:
         # Conversion formula: DB = UI + 1
         for ui_rating, meaning in ui_scale.items():
             db_rating = ui_rating + 1
-            assert db_scale[db_rating] == meaning, f"Conversion broken for {meaning}"
+            assert (
+                db_scale[db_rating] == meaning
+            ), f"Conversion broken for {meaning}"
 
         # This test documents the current behavior and will help verify
         # that our fix maintains the same semantic meaning
