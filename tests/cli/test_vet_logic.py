@@ -30,7 +30,9 @@ def test_vet_logic_no_yaml_files(tmp_path: Path, capsys):
     assert "No YAML files found to vet." in captured.out
 
 
-def test_vet_logic_clean_files_check_mode(tmp_path: Path, yaml_handler, capsys):
+def test_vet_logic_clean_files_check_mode(
+    tmp_path: Path, yaml_handler, capsys
+):
     """
     Tests that vet_logic in --check mode correctly identifies clean files.
     """
@@ -52,7 +54,9 @@ def test_vet_logic_clean_files_check_mode(tmp_path: Path, yaml_handler, capsys):
     assert "All files are clean" in captured.out
 
 
-def test_vet_logic_clean_files_modify_mode(tmp_path: Path, yaml_handler, capsys):
+def test_vet_logic_clean_files_modify_mode(
+    tmp_path: Path, yaml_handler, capsys
+):
     """
     Tests that vet_logic in modify mode makes no changes to clean files.
     """
@@ -78,7 +82,9 @@ def test_vet_logic_clean_files_modify_mode(tmp_path: Path, yaml_handler, capsys)
     assert original_mtime == new_mtime
 
 
-def test_vet_logic_dirty_files_check_mode(tmp_path: Path, yaml_handler, capsys):
+def test_vet_logic_dirty_files_check_mode(
+    tmp_path: Path, yaml_handler, capsys
+):
     """
     Tests that vet_logic in --check mode correctly identifies dirty files.
     """
@@ -100,7 +106,9 @@ def test_vet_logic_dirty_files_check_mode(tmp_path: Path, yaml_handler, capsys):
     )
 
 
-def test_vet_logic_dirty_files_modify_mode(tmp_path: Path, yaml_handler, capsys):
+def test_vet_logic_dirty_files_modify_mode(
+    tmp_path: Path, yaml_handler, capsys
+):
     """
     Tests that vet_logic in modify mode correctly adds UUIDs to dirty files.
     """
@@ -190,7 +198,9 @@ def test_vet_source_dir_none():
 
 def test_vet_non_validation_error(tmp_path):
     """Test that non-ValidationError exceptions during card vetting are handled."""
-    yaml_content = "deck: Test Deck\n" "cards:\n" "  - q: null\n" "    a: null\n"
+    yaml_content = (
+        "deck: Test Deck\n" "cards:\n" "  - q: null\n" "    a: null\n"
+    )
     file_path = tmp_path / "null_cards.yml"
     file_path.write_text(yaml_content)
 
