@@ -29,7 +29,7 @@ class TestSessionAnalyticsGaps:
     def in_memory_db(self):
         """
         Provide an initialized FlashcardDatabase backed by an in-memory SQLite database for use in tests.
-        
+
         Returns:
             FlashcardDatabase: an in-memory database instance with its schema initialized and ready for test operations.
         """
@@ -41,7 +41,7 @@ class TestSessionAnalyticsGaps:
     def sample_cards(self):
         """
         Create five sample Card objects for the "Math" deck used in tests.
-        
+
         Returns:
             list[Card]: A list of 5 Card instances each with a unique UUID, front text "What is i+i?", back equal to the string of i*2, and tags {"math", "basic"} for i in 1..5.
         """
@@ -471,7 +471,7 @@ class TestSessionAnalyticsRequirements:
     def test_backward_compatibility_requirements(self):
         """
         Declare backward compatibility constraints and a phased rollout plan for session analytics.
-        
+
         Defines a list of compatibility requirements that must remain stable and a sequence of rollout phases for introducing session analytics features, then asserts each list contains six entries.
         """
         # No breaking changes allowed:
