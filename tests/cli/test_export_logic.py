@@ -17,7 +17,7 @@ from flashcore.db.database import FlashcardDatabase
 def mock_db():
     """
     Pytest fixture that provides a MagicMock constrained to the FlashcardDatabase interface.
-    
+
     Returns:
         MagicMock: A mock object with the spec of `FlashcardDatabase`, suitable for configuring database call expectations in tests.
     """
@@ -28,7 +28,7 @@ def mock_db():
 def sample_cards():
     """
     Provide a list of sample Card objects used by tests.
-    
+
     Returns:
         list[Card]: Three Card instances in deterministic order:
             - Card(front="Q1", back="A1", deck_name="Deck 1", tags={"tag1", "tag2"})
@@ -119,15 +119,15 @@ def test_export_to_markdown_file_write_error(
     def mock_open(file, *args, **kwargs):
         """
         Simulate an `open` that fails with a disk-full error for files whose path contains "Deck 2".
-        
+
         Parameters:
             file (str | os.PathLike): Path or filename to open. If the string form contains "Deck 2", an IOError is raised.
             *args: Positional arguments forwarded to the original `open`.
             **kwargs: Keyword arguments forwarded to the original `open`.
-        
+
         Returns:
             file object: The file object returned by the original `open` when no simulated error occurs.
-        
+
         Raises:
             IOError: With message "Disk full" when "Deck 2" appears in the provided file path.
         """
