@@ -85,13 +85,17 @@ def test_export_to_markdown_deck_name_sanitization(mock_db, tmp_path):
 def test_export_to_markdown_dir_creation_error(mock_db, tmp_path, mocker):
     """Test that an IOError is raised if the output directory cannot be created."""
     output_dir = tmp_path / "export"
-    mocker.patch.object(Path, "mkdir", side_effect=OSError("Permission denied"))
+    mocker.patch.object(
+        Path, "mkdir", side_effect=OSError("Permission denied")
+    )
 
     with pytest.raises(IOError, match="Failed to create output directory"):
         export_to_markdown(mock_db, output_dir)
 
 
-def test_export_to_markdown_file_write_error(mock_db, sample_cards, tmp_path, caplog):
+def test_export_to_markdown_file_write_error(
+    mock_db, sample_cards, tmp_path, caplog
+):
     """Test that the export continues if one file fails to write."""
     mock_db.get_all_cards.return_value = sample_cards
     output_dir = tmp_path / "export"
