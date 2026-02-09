@@ -69,7 +69,12 @@ class TestReviewAllLogic:
     @patch("flashcore.cli._review_all_logic.FSRS_Scheduler")
     @patch("flashcore.cli._review_all_logic._get_all_due_cards")
     def test_review_all_logic_no_due_cards(
-        self, mock_get_cards, _mock_scheduler_class, _mock_db_class, capsys, tmp_path
+        self,
+        mock_get_cards,
+        _mock_scheduler_class,
+        _mock_db_class,
+        capsys,
+        tmp_path,
     ):
         """Test review_all_logic when no cards are due."""
         # Arrange
@@ -106,7 +111,10 @@ class TestReviewAllLogic:
         # Arrange
         mock_get_cards.return_value = sample_cards[:2]  # Use first 2 cards
         mock_display.return_value = 1000  # 1 second response time
-        mock_get_rating.side_effect = [(2, 1500), (3, 1200)]  # (rating, eval_ms) tuples
+        mock_get_rating.side_effect = [
+            (2, 1500),
+            (3, 1200),
+        ]  # (rating, eval_ms) tuples
 
         # Mock successful reviews
         updated_cards = []
@@ -217,7 +225,12 @@ class TestGetAllDueCards:
 
         # Mock cursor result (fetchall + description)
         mock_result = MagicMock()
-        mock_result.description = [("uuid",), ("front",), ("back",), ("deck_name",)]
+        mock_result.description = [
+            ("uuid",),
+            ("front",),
+            ("back",),
+            ("deck_name",),
+        ]
         mock_result.fetchall.return_value = [
             (
                 str(sample_cards[0].uuid),
@@ -284,7 +297,10 @@ class TestGetAllDueCards:
         # Assert
         assert result == []
         captured = capsys.readouterr()
-        assert "Error fetching due cards: Database connection failed" in captured.out
+        assert (
+            "Error fetching due cards: Database connection failed"
+            in captured.out
+        )
 
 
 class TestSubmitSingleReview:
@@ -338,7 +354,9 @@ class TestSubmitSingleReview:
         call_args = mock_db_manager.add_review_and_update_card.call_args
         review = call_args[1]["review"]
         assert review.card_uuid == card.uuid
-        assert review.rating == rating  # Unified 1-4 rating scale, no conversion needed
+        assert (
+            review.rating == rating
+        )  # Unified 1-4 rating scale, no conversion needed
         assert review.resp_ms == resp_ms
         assert review.eval_ms == 1000
         assert review.ts == review_ts
@@ -370,7 +388,9 @@ class TestSubmitSingleReview:
             mock_datetime.now.return_value = mock_now
             mock_datetime.timezone = timezone  # Preserve timezone reference
 
-            result = _submit_single_review(mock_db_manager, mock_scheduler, card, 2)
+            result = _submit_single_review(
+                mock_db_manager, mock_scheduler, card, 2
+            )
 
         # Assert
         assert result == updated_card
@@ -399,7 +419,9 @@ class TestSubmitSingleReview:
         )
 
         # Act
-        result = _submit_single_review(mock_db_manager, mock_scheduler, card, 2)
+        result = _submit_single_review(
+            mock_db_manager, mock_scheduler, card, 2
+        )
 
         # Assert
         assert result is None
@@ -413,10 +435,14 @@ class TestSubmitSingleReview:
         # Arrange
         card = sample_cards[0]
         mock_db_manager.get_reviews_for_card.return_value = []
-        mock_scheduler.compute_next_state.side_effect = Exception("Scheduler error")
+        mock_scheduler.compute_next_state.side_effect = Exception(
+            "Scheduler error"
+        )
 
         # Act
-        result = _submit_single_review(mock_db_manager, mock_scheduler, card, 2)
+        result = _submit_single_review(
+            mock_db_manager, mock_scheduler, card, 2
+        )
 
         # Assert
         assert result is None
@@ -457,7 +483,12 @@ class TestIntegration:
         mock_conn = MagicMock()
         mock_db.get_connection.return_value = mock_conn
         mock_result = MagicMock()
-        mock_result.description = [("uuid",), ("front",), ("back",), ("deck_name",)]
+        mock_result.description = [
+            ("uuid",),
+            ("front",),
+            ("back",),
+            ("deck_name",),
+        ]
         mock_result.fetchall.return_value = [
             (
                 str(sample_cards[0].uuid),
