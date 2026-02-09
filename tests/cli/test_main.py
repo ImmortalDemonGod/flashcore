@@ -43,7 +43,10 @@ def temp_flashcard_files(tmp_path):
             {"q": "Question 2", "a": "Answer 2"},
         ],
     }
-    invalid_deck = {"deck": "Invalid Deck", "cards": [{"q": "Only a question"}]}
+    invalid_deck = {
+        "deck": "Invalid Deck",
+        "cards": [{"q": "Only a question"}],
+    }
     needs_vetting_deck = {
         "deck": "Needs Vetting",
         "cards": [
@@ -80,7 +83,9 @@ def test_vet_command_check_mode_dirty(temp_flashcard_files):
     valid_file.unlink()
     invalid_file.unlink()
 
-    result = runner.invoke(app, ["vet", "--check", "--source-dir", str(temp_dir)])
+    result = runner.invoke(
+        app, ["vet", "--check", "--source-dir", str(temp_dir)]
+    )
     output = normalize_output(result.stdout)
     assert result.exit_code == 1
     assert "! Dirty: needs_vetting.yml" in output
@@ -90,20 +95,28 @@ def test_vet_command_check_mode_dirty(temp_flashcard_files):
 def test_vet_command_check_mode_clean(temp_flashcard_files):
     """Tests that vet --check returns a zero exit code if a file is clean after formatting."""
     # This test checks for idempotency. First we vet a file, then we check it.
-    temp_dir, clean_file, invalid_file, needs_vetting_file = temp_flashcard_files
+    temp_dir, clean_file, invalid_file, needs_vetting_file = (
+        temp_flashcard_files
+    )
     # To make the test specific, we'll work with just the file that needs formatting.
     clean_file.unlink()
     invalid_file.unlink()
 
     # First, run vet to format the file. This file is valid but needs sorting/UUIDs.
     result_format = runner.invoke(app, ["vet", "--source-dir", str(temp_dir)])
-    output_format = re.sub(r"\s+", " ", strip_ansi(result_format.stdout)).strip()
-    assert result_format.exit_code == 0, f"Initial vet run failed: {output_format}"
+    output_format = re.sub(
+        r"\s+", " ", strip_ansi(result_format.stdout)
+    ).strip()
+    assert (
+        result_format.exit_code == 0
+    ), f"Initial vet run failed: {output_format}"
     assert "File formatted successfully: needs_vetting.yml" in output_format
     assert "✓ Vetting complete. Some files were modified." in output_format
 
     # Now, run vet --check to ensure it's considered clean.
-    result_check = runner.invoke(app, ["vet", "--check", "--source-dir", str(temp_dir)])
+    result_check = runner.invoke(
+        app, ["vet", "--check", "--source-dir", str(temp_dir)]
+    )
     output_check = re.sub(r"\s+", " ", strip_ansi(result_check.stdout)).strip()
     assert (
         result_check.exit_code == 0
@@ -113,7 +126,9 @@ def test_vet_command_check_mode_clean(temp_flashcard_files):
 
 def test_vet_command_modifies_file(temp_flashcard_files):
     """Tests that vet modifies a file that needs formatting."""
-    temp_dir, clean_file, invalid_file, needs_vetting_file = temp_flashcard_files
+    temp_dir, clean_file, invalid_file, needs_vetting_file = (
+        temp_flashcard_files
+    )
     # To make the test specific, we only want the file that needs formatting.
     clean_file.unlink()
     invalid_file.unlink()
@@ -132,7 +147,9 @@ def test_vet_command_modifies_file(temp_flashcard_files):
     assert "uuid:" in modified_content
 
     # As a final check, ensure the modified file is now considered clean.
-    result_check = runner.invoke(app, ["vet", "--check", "--source-dir", str(temp_dir)])
+    result_check = runner.invoke(
+        app, ["vet", "--check", "--source-dir", str(temp_dir)]
+    )
     output_check = normalize_output(result_check.stdout)
     assert (
         result_check.exit_code == 0
@@ -222,11 +239,20 @@ def test_ingest_command_re_ingest_flag(mock_db, mock_load_process, tmp_path):
     """Tests the ingest command with the --re-ingest flag."""
     db_path = tmp_path / "test.db"
     mock_load_process.return_value = ([MagicMock()], [])
-    mock_db.return_value.__enter__.return_value.upsert_cards_batch.return_value = 1
+    mock_db.return_value.__enter__.return_value.upsert_cards_batch.return_value = (
+        1
+    )
 
     result = runner.invoke(
         app,
-        ["ingest", "--db", str(db_path), "--source-dir", str(tmp_path), "--re-ingest"],
+        [
+            "ingest",
+            "--db",
+            str(db_path),
+            "--source-dir",
+            str(tmp_path),
+            "--re-ingest",
+        ],
     )
 
     assert (
@@ -336,11 +362,14 @@ def test_ingest_command_integration(tmp_path: Path):
 
     # 3. Run vet command
     vet_result = runner.invoke(app, ["vet", "--source-dir", str(yaml_src_dir)])
-    assert vet_result.exit_code == 0, f"Vet command failed: {vet_result.stdout}"
+    assert (
+        vet_result.exit_code == 0
+    ), f"Vet command failed: {vet_result.stdout}"
 
     # 4. Run ingest command
     ingest_result = runner.invoke(
-        app, ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)]
+        app,
+        ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)],
     )
     assert (
         ingest_result.exit_code == 0
@@ -387,11 +416,14 @@ def test_stats_command_integration(tmp_path: Path):
     # 3. Vet and Ingest data
     runner.invoke(app, ["vet", "--source-dir", str(yaml_src_dir)])
     runner.invoke(
-        app, ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)]
+        app,
+        ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)],
     )
 
     # 4. Run stats command
-    result = runner.invoke(app, ["stats", "--db", str(db_path)], env={"COLUMNS": "200"})
+    result = runner.invoke(
+        app, ["stats", "--db", str(db_path)], env={"COLUMNS": "200"}
+    )
 
     # 5. Assertions
     assert (
@@ -444,7 +476,9 @@ def test_stats_command_with_manual_db_population(tmp_path):
         db.upsert_cards_batch(cards_to_insert)
 
     # Run the stats command
-    result = runner.invoke(app, ["stats", "--db", str(db_path)], env={"COLUMNS": "200"})
+    result = runner.invoke(
+        app, ["stats", "--db", str(db_path)], env={"COLUMNS": "200"}
+    )
     output = normalize_output(result.stdout)
 
     assert result.exit_code == 0
@@ -499,7 +533,8 @@ def test_stats_command_unexpected_exception(mock_db, tmp_path):
     assert result.exit_code == 1
     output = normalize_output(result.output)
     assert (
-        "An unexpected error occurred while fetching stats: Something broke" in output
+        "An unexpected error occurred while fetching stats: Something broke"
+        in output
     )
 
 
@@ -534,17 +569,23 @@ def test_review_all_command_with_limit(mock_review_all_logic, tmp_path):
     """Tests the review-all command with custom limit."""
     db_path = tmp_path / "db.db"
 
-    result = runner.invoke(app, ["review-all", "--db", str(db_path), "--limit", "10"])
+    result = runner.invoke(
+        app, ["review-all", "--db", str(db_path), "--limit", "10"]
+    )
     assert result.exit_code == 0
     mock_review_all_logic.assert_called_once_with(db_path=db_path, limit=10)
 
 
 @patch("flashcore.cli.main.review_all_logic")
-def test_review_all_command_with_short_limit_flag(mock_review_all_logic, tmp_path):
+def test_review_all_command_with_short_limit_flag(
+    mock_review_all_logic, tmp_path
+):
     """Tests the review-all command with short limit flag."""
     db_path = tmp_path / "db.db"
 
-    result = runner.invoke(app, ["review-all", "--db", str(db_path), "-l", "5"])
+    result = runner.invoke(
+        app, ["review-all", "--db", str(db_path), "-l", "5"]
+    )
     assert result.exit_code == 0
     mock_review_all_logic.assert_called_once_with(db_path=db_path, limit=5)
 
@@ -552,7 +593,9 @@ def test_review_all_command_with_short_limit_flag(mock_review_all_logic, tmp_pat
 @patch("flashcore.cli.main.review_logic")
 def test_review_command_db_error(mock_review_logic, tmp_path):
     """Tests the review command handles FlashcardDatabaseError."""
-    mock_review_logic.side_effect = FlashcardDatabaseError("DB connection failed")
+    mock_review_logic.side_effect = FlashcardDatabaseError(
+        "DB connection failed"
+    )
     deck = "MyDeck"
     db_path = tmp_path / "db.db"
 
@@ -565,7 +608,9 @@ def test_review_command_db_error(mock_review_logic, tmp_path):
 @patch("flashcore.cli.main.review_logic")
 def test_review_command_deck_not_found_error(mock_review_logic, tmp_path):
     """Tests the review command handles DeckNotFoundError."""
-    mock_review_logic.side_effect = DeckNotFoundError("Deck 'MyDeck' not found")
+    mock_review_logic.side_effect = DeckNotFoundError(
+        "Deck 'MyDeck' not found"
+    )
     deck = "MyDeck"
     db_path = tmp_path / "db.db"
 
@@ -600,13 +645,17 @@ def test_stats_command_no_card_states(mock_db, tmp_path):
     }
     db_path = tmp_path / "test.db"
 
-    result = runner.invoke(app, ["stats", "--db", str(db_path)], env={"COLUMNS": "200"})
+    result = runner.invoke(
+        app, ["stats", "--db", str(db_path)], env={"COLUMNS": "200"}
+    )
     output = normalize_output(result.stdout)
 
     assert result.exit_code == 0
     assert "Total Cards │ 1" in output
     assert "Test Deck │ 1 │ 0" in output
-    assert "N/A │ 1" in output  # Check for the placeholder for cards with no state
+    assert (
+        "N/A │ 1" in output
+    )  # Check for the placeholder for cards with no state
     assert "Card States" in output
     # Check that the table body is empty as no states are returned
     assert "New" not in output
@@ -619,7 +668,10 @@ def test_export_anki_stub():
     result = runner.invoke(app, ["export", "anki"])
     output = normalize_output(result.stdout)
     assert result.exit_code == 0
-    assert "Export to Anki is not yet implemented. This is a placeholder." in output
+    assert (
+        "Export to Anki is not yet implemented. This is a placeholder."
+        in output
+    )
 
 
 @patch("flashcore.cli.main.export_to_markdown")
@@ -630,7 +682,15 @@ def test_export_md_command(mock_export_logic, tmp_path):
     output_dir.mkdir()
 
     result = runner.invoke(
-        app, ["export", "md", "--db", str(db_path), "--output-dir", str(output_dir)]
+        app,
+        [
+            "export",
+            "md",
+            "--db",
+            str(db_path),
+            "--output-dir",
+            str(output_dir),
+        ],
     )
 
     assert result.exit_code == 0
@@ -658,7 +718,9 @@ def test_main_handles_unexpected_exception(mock_print, mock_app):
 
 @patch("flashcore.cli.main.FlashcardDatabase")
 @patch("flashcore.cli.main.load_and_process_flashcard_yamls")
-def test_ingest_proceeds_with_partial_yaml_errors(mock_load_process, mock_db, tmp_path):
+def test_ingest_proceeds_with_partial_yaml_errors(
+    mock_load_process, mock_db, tmp_path
+):
     """Tests that ingest proceeds if some cards are loaded despite YAML errors."""
     db_path = tmp_path / "test.db"
     mock_db_instance = mock_db.return_value.__enter__.return_value
@@ -666,7 +728,11 @@ def test_ingest_proceeds_with_partial_yaml_errors(mock_load_process, mock_db, tm
     mock_db_instance.upsert_cards_batch.return_value = 1
 
     mock_card = Card(
-        uuid=uuid4(), deck_name="deck", front="q", back="a", state=CardState.New
+        uuid=uuid4(),
+        deck_name="deck",
+        front="q",
+        back="a",
+        state=CardState.New,
     )
     mock_load_process.return_value = ([mock_card], ["Bad file"])
 
@@ -712,7 +778,8 @@ def test_export_md_handles_io_error(mock_db, mock_export, tmp_path):
     db_path = tmp_path / "test.db"
 
     result = runner.invoke(
-        app, ["export", "md", "--db", str(db_path), "--output-dir", str(tmp_path)]
+        app,
+        ["export", "md", "--db", str(db_path), "--output-dir", str(tmp_path)],
     )
 
     assert result.exit_code == 1
@@ -743,7 +810,8 @@ def test_ingest_preserves_review_state_integration(tmp_path: Path):
     # 2. Vet and Ingest for the first time.
     runner.invoke(app, ["vet", "--source-dir", str(yaml_src_dir)])
     runner.invoke(
-        app, ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)]
+        app,
+        ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)],
     )
 
     # 3. Manually update the card's state in the DB to simulate a review.
@@ -764,9 +832,12 @@ def test_ingest_preserves_review_state_integration(tmp_path: Path):
 
     # 5. Run ingest again.
     ingest_result = runner.invoke(
-        app, ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)]
+        app,
+        ["ingest", "--db", str(db_path), "--source-dir", str(yaml_src_dir)],
     )
-    assert ingest_result.exit_code == 0, f"Second ingest failed: {ingest_result.stdout}"
+    assert (
+        ingest_result.exit_code == 0
+    ), f"Second ingest failed: {ingest_result.stdout}"
 
     # 6. Verify the card's state was preserved and content was updated.
     with FlashcardDatabase(db_path=db_path) as db:
@@ -785,7 +856,10 @@ class TestCoverageGaps:
         """Test _resolve_db_path falls back to FLASHCORE_DB envvar."""
         monkeypatch.setenv("FLASHCORE_DB", str(tmp_path / "env.db"))
         result = runner.invoke(app, ["stats"])
-        assert result.exit_code != 1 or "Error: --db is required" not in result.stdout
+        assert (
+            result.exit_code != 1
+            or "Error: --db is required" not in result.stdout
+        )
 
     def test_resolve_db_path_missing_errors(self, monkeypatch):
         """Test _resolve_db_path errors when no --db and no envvar."""
@@ -800,7 +874,8 @@ class TestCoverageGaps:
         source_dir = tmp_path / "empty_src"
         source_dir.mkdir()
         result = runner.invoke(
-            app, ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)]
+            app,
+            ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)],
         )
         output = strip_ansi(result.stdout)
         assert "No flashcards found" in output or result.exit_code == 0
@@ -824,13 +899,15 @@ class TestCoverageGaps:
 
         # First ingest
         result1 = runner.invoke(
-            app, ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)]
+            app,
+            ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)],
         )
         assert result1.exit_code == 0
 
         # Second ingest - cards already exist
         result2 = runner.invoke(
-            app, ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)]
+            app,
+            ["ingest", "--db", str(db_path), "--source-dir", str(source_dir)],
         )
         output = strip_ansi(result2.stdout)
         assert "already exist" in output or result2.exit_code == 0
@@ -858,9 +935,14 @@ class TestCoverageGaps:
         output = strip_ansi(result.stdout)
         assert "math" in output or result.exit_code == 0
 
-    @patch("flashcore.cli.main.review_all_logic", side_effect=Exception("Unexpected"))
+    @patch(
+        "flashcore.cli.main.review_all_logic",
+        side_effect=Exception("Unexpected"),
+    )
     @patch("flashcore.cli.main.backup_database")
-    def test_review_all_unexpected_error(self, mock_backup, mock_review_all, tmp_path):
+    def test_review_all_unexpected_error(
+        self, mock_backup, mock_review_all, tmp_path
+    ):
         """Test review-all with unexpected exception."""
         db_path = tmp_path / "test.db"
         mock_backup.return_value = tmp_path / "backups" / "test.db.bak"
@@ -901,7 +983,10 @@ class TestCoverageGaps:
         assert "successfully restored" in output
         mock_copy.assert_called_once()
 
-    @patch("flashcore.cli.main.shutil.copy2", side_effect=OSError("Permission denied"))
+    @patch(
+        "flashcore.cli.main.shutil.copy2",
+        side_effect=OSError("Permission denied"),
+    )
     @patch("flashcore.cli.main.find_latest_backup")
     def test_restore_copy_error(self, mock_find, mock_copy, tmp_path):
         """Test restore when copy fails."""
@@ -921,6 +1006,8 @@ class TestCoverageGaps:
         backup_file = tmp_path / "test.db.bak"
         backup_file.touch()
         mock_find.return_value = backup_file
-        result = runner.invoke(app, ["restore", "--db", str(db_path)], input="n\n")
+        result = runner.invoke(
+            app, ["restore", "--db", str(db_path)], input="n\n"
+        )
         output = strip_ansi(result.stdout)
         assert "cancelled" in output.lower() or result.exit_code == 0
