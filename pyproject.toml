@@ -39,6 +39,9 @@ test = [
     "gitchangelog>=3.0.0",
     "mkdocs>=1.5.0",
 ]
+aiv = [
+    "aiv-protocol @ git+https://github.com/ImmortalDemonGod/aiv-protocol.git",
+]
 
 [project.scripts]
 flashcore = "flashcore.__main__:main"

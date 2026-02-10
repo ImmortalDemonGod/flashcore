@@ -1,134 +1,99 @@
 # AIV Verification Packet (v2.1)
 
-**Commit:** `<latest-commit-sha>`  
+**Commit:** `<latest-commit-sha>`
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
-
-> [!IMPORTANT]
-> **Immutability Requirement (Addendum 2.2):**
-> - All Class E links MUST use commit SHAs, NOT `main`/`master`/`develop` branches
-> - All Class B code links MUST use commit SHAs, NOT mutable branch names
-> - CI run links are naturally immutable (actions/runs/XXXXXX)
-> - **Validation will FAIL if mutable branch links are detected**
->
-> ✅ Good: `/blob/a1b2c3d/file.py` or `/actions/runs/12345`  
-> ❌ Bad: `/blob/main/file.py` or `/tree/develop/`
 
 ---
 
+## Classification (required)
+
+```yaml
+classification:
+  risk_tier: R1            # R0 (trivial) | R1 (low) | R2 (medium) | R3 (high)
+  sod_mode: S0             # S0 (self) | S1 (independent)
+  critical_surfaces: []    # e.g. ["Authentication", "PII Handling"]
+  blast_radius: "flashcore/module.py"
+  classification_rationale: "Brief explanation of risk tier choice"
+  classified_by: "author"
+  classified_at: "YYYY-MM-DDTHH:MM:SSZ"
+```
+
 ## Claim(s)
-<!-- List atomic, falsifiable claims. Number each claim. Map to task requirements if applicable. -->
+<!-- List atomic, falsifiable claims. Number each claim. -->
 
 1. [Primary claim - what changed]
 2. [Quality claim - tests/coverage/linting]
-3. [Safety claim - no regressions]
+3. No existing tests were modified or deleted during this change.
 
 ---
 
 ## Evidence
 
 ### Class E (Intent Alignment)
-<!-- ⚠️ CRITICAL: Must use commit SHA, NOT main/master/develop branch -->
-<!-- Example: /blob/a1b2c3d/.taskmaster/tasks/tasks.json (NOT /blob/main/...) -->
+<!-- Links MUST use commit SHA, NOT main/master/develop branch -->
 
-- **Link:** [Task #X - "Task Title"](https://github.com/OWNER/REPO/blob/COMMIT_SHA/.taskmaster/tasks/tasks.json#LXX-YY)
-- **Requirements Verified:**
-  1. ✅ [Requirement 1]
-  2. ✅ [Requirement 2]
+- **Link:** [Task #X](https://github.com/ImmortalDemonGod/flashcore/blob/COMMIT_SHA/.taskmaster/tasks/tasks.json)
+- **Requirements Verified:** [Which specific requirement the link satisfies]
 
 ### Class B (Referential Evidence)
-<!-- ⚠️ CRITICAL: All code links must use commit SHA permalinks -->
-<!-- Get permalink: View file on GitHub → Press 'y' key → Copy URL -->
+<!-- SHA-pinned GitHub permalinks. Press 'y' on GitHub to get permalink. -->
 
-**Claim 1: [Description]**
-- [`path/to/file.py`](https://github.com/OWNER/REPO/blob/COMMIT_SHA/path/to/file.py) - Description
-- Signature: [`def function(...)`](https://github.com/OWNER/REPO/blob/COMMIT_SHA/path/to/file.py#LXX)
+**Scope Inventory** (SHA: [`COMMIT_SHA`](https://github.com/ImmortalDemonGod/flashcore/tree/COMMIT_SHA))
+
+- Modified: [`path/to/file.py#LXX-LYY`](https://github.com/ImmortalDemonGod/flashcore/blob/COMMIT_SHA/path/to/file.py#LXX-LYY)
 
 ### Class A (Execution Evidence)
-<!-- CI run links are naturally immutable (actions/runs/XXXXXX) -->
-<!-- Link to SPECIFIC run number, not "latest" or workflow file -->
+<!-- CI run links or local pytest output -->
 
-**Claim 2: All tests pass**
-- [CI Run #XXXXXXX - All Jobs Successful](https://github.com/OWNER/REPO/actions/runs/XXXXXXX)
-  - ✅ tests_linux (3.10, ubuntu-latest)
-  - ✅ tests_linux (3.11, ubuntu-latest)
-  - ✅ tests_mac (3.10, macos-latest)
-  - ✅ tests_mac (3.11, macos-latest)
-  - ✅ tests_win (3.10, windows-latest)
-  - ✅ tests_win (3.11, windows-latest)
+- CI Run: [#XXXXXXX](https://github.com/ImmortalDemonGod/flashcore/actions/runs/XXXXXXX)
+- Local: `pytest — XXX passed, 0 failed`
 
-**Claim X: Coverage metrics**
-- `module.py`: XX% coverage (YY lines, ZZ uncovered)
-- **Overall: XX%**
+### Class C (Negative Evidence)
+<!-- Describe what you searched for and didn't find -->
 
-### Class C (Negative Evidence - Conservation)
-<!-- ⚠️ CRITICAL: Use CI artifact links, not "trust me I ran grep" -->
-<!-- The CI job "negative-checks" produces architecture_lint.txt artifact -->
-
-**Claim 3: No regressions**
-- **Evidence:** [Anti-Cheat Report Artifact](https://github.com/OWNER/REPO/actions/runs/XXXXXX/artifacts/YYYYY)
-- Shows: 0 deleted assertions, 0 added skips
-- CI Job: `anti-cheat-warning` step
-
-**Claim X: No [unwanted dependency] in [module]**
-- **Evidence:** [Architecture Lint Artifact](https://github.com/OWNER/REPO/actions/runs/XXXXXX/artifacts/YYYYY)
-- Shows: `✅ PASS: No [pattern] references found`
-- CI Job: `negative-checks` → `Architecture Lint - Database Layer` step
-- **Methodology:** `grep -rn "pattern" path/` (executed by CI, not verifier)
-
-### Class L (UI/Visual Evidence)
-<!-- REQUIRED if user-visible changes. Use GIF/Loom, not static screenshots -->
-
-- **Before:** [Loom/GIF link]
-- **After:** [Loom/GIF link]
-- **Interaction flow:** [Description]
+- Searched all test files for deleted assertions or `@pytest.mark.skip` additions — none found.
+- Architecture lint: no legacy `cultivation.scripts.flashcore` imports.
 
 ### Class D (State Evidence)
-<!-- DB schema, migrations, state transitions (if applicable) -->
+<!-- DB schema, migrations (if applicable) -->
 
-- N/A (or provide schema dumps, migration output)
+- N/A
+
+### Class F (Provenance)
+<!-- Git log chain-of-custody for test files (R2+ only) -->
+
+- N/A
+
+---
+
+## Claim Verification Matrix
+
+| # | Claim | Type | Evidence | Verdict |
+|---|-------|------|----------|---------|
+| 1 | [claim text] | symbol | [evidence summary] | PASS VERIFIED |
+| 2 | [claim text] | structural | [evidence summary] | PASS VERIFIED |
+| 3 | No tests modified or deleted | structural | Class C: all structural indicators clean | PASS VERIFIED |
+
+**Verdict summary:** X verified, 0 unverified, 0 manual review.
 
 ---
 
 ## Verification Methodology
-<!-- ⚠️ Zero-Touch Mandate: These commands show HOW evidence was generated -->
-<!-- The verifier inspects ARTIFACTS, not runs commands locally -->
-<!-- Primary proof = CI artifact link. Commands = context only. -->
 
-**How [Claim X] was verified:**
-```bash
-command-used-to-generate-evidence
-# Result: [actual output that became the artifact]
-```
+**Zero-Touch Mandate:** Verifier inspects artifacts only.
 
-**How tests were verified:**
-```bash
-pytest tests/ -v
-# Result: XXX passed (see CI Run #XXXXXX)
-```
+## Reproduction
 
-**How coverage was measured:**
 ```bash
-pytest tests/ --cov=module --cov-report=term-missing
-# Result: XX% overall (see CI coverage report)
+git clone https://github.com/ImmortalDemonGod/flashcore.git
+cd flashcore && git checkout COMMIT_SHA
+pip install -e .[test]
+make lint
+pytest -v --cov=flashcore tests/
 ```
 
 ---
 
 ## Summary
 
-**Task #X "[Task Title]" - COMPLETE**
-
-All N subtask requirements verified:
-1. ✅ [Requirement 1]
-2. ✅ [Requirement 2]
-
-**Quality Metrics:**
-- XX% test coverage
-- All CI/CD checks passing
-- Zero functional regressions
-
-**Zero-Touch Verification:** All evidence provided via immutable CI artifacts at commit `<commit-sha>`.
-
----
-
-_This packet certifies that all claims are supported by the linked, reproducible evidence per AIV Protocol v2.0 + Addendum 2.7 (Zero-Touch Mandate)._
+[One-line summary of the change]

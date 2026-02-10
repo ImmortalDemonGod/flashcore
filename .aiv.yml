@@ -1,0 +1,19 @@
+# AIV Protocol Configuration
+# See: https://github.com/ImmortalDemonGod/aiv-protocol
+
+version: "1.0"
+strict_mode: true
+
+# Pre-commit hook settings
+# flashcore uses flashcore/ as the main source package (not src/)
+hook:
+  functional_prefixes:
+    - "flashcore/"
+    - "tests/"
+    - "scripts/"
+    - ".github/workflows/"
+  functional_root_files:
+    - "pyproject.toml"
+    - "setup.py"
+    - "Makefile"
+    - ".flake8"

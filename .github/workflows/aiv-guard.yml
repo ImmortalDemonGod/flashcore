@@ -1,7 +1,8 @@
-name: AIV Packet Validation
+name: AIV Packet Validation (Python)
 
 "on":
   pull_request:
+    branches: [main]
     types:
       - opened
       - edited
@@ -13,105 +14,33 @@ jobs:
     permissions:
       pull-requests: read
       contents: read
+      actions: read
+
     steps:
-      - name: Check PR body for AIV packet
-        uses: actions/github-script@v7
+      - name: Checkout PR head
+        uses: actions/checkout@v4
         with:
-          script: |
-            const pr = context.payload.pull_request;
-            const body = pr?.body || '';
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
 
-            const required = [
-              '# AIV Verification Packet (v2.1)',
-              '## Claim(s)',
-              '## Evidence',
-              '### Class E (Intent Alignment)',
-              '## Reproduction',
-            ];
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
 
-            const missing = required.filter((h) => !body.includes(h));
+      - name: Install aiv-protocol
+        run: pip install "aiv-protocol @ git+https://github.com/ImmortalDemonGod/aiv-protocol.git"
 
-            // Fast-Track (Trivial) exception (docs/config-only PRs)
-            if (missing.length > 0) {
-              const allowedExtensions = ['.md', '.txt'];
-              const allowedExactNames = ['.gitignore', '.editorconfig'];
+      - name: Run AIV Guard
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python -m aiv.guard
 
-              const owner = context.repo.owner;
-              const repo = context.repo.repo;
-              const pull_number = pr.number;
-
-              const files = [];
-              let page = 1;
-              const MAX_PAGES = 100; // Safety limit
-              while (true) {
-                if (page > MAX_PAGES) {
-                  core.warning(
-                    `Reached maximum page limit (${MAX_PAGES}). Some files may not be checked.`
-                  );
-                  break;
-                }
-
-                const resp = await github.rest.pulls.listFiles({
-                  owner,
-                  repo,
-                  pull_number,
-                  per_page: 100,
-                  page,
-                });
-
-                if (!resp.data || resp.data.length === 0) {
-                  break;
-                }
-
-                files.push(...resp.data);
-
-                if (resp.data.length < 100) {
-                  break;
-                }
-
-                page += 1;
-              }
-
-              const changedPaths = files.map((f) => f.filename);
-
-              const isFastTrackEligible =
-                changedPaths.length > 0 &&
-                changedPaths.every((p) => {
-                  if (allowedExactNames.includes(p)) return true;
-                  return allowedExtensions.some((ext) => p.endsWith(ext));
-                });
-
-              if (isFastTrackEligible) {
-                core.info(
-                  '⚠️ Missing AIV Packet sections, but PR is Fast-Track eligible (docs/config-only).'
-                );
-                core.info(`Missing sections: ${missing.join(', ')}`);
-                return;
-              }
-
-              core.setFailed(
-                `Missing required packet sections: ${missing.join(', ')}`
-              );
-              return;
-            }
-
-            // Check for immutable Class E links (Addendum 2.2)
-            const classEMatch = body.match(
-              /### Class E \(Intent Alignment\)[\s\S]*?(?=###|$)/
-            );
-
-            if (classEMatch) {
-              const classESection = classEMatch[0];
-              const mutableBranchPattern = /\/blob\/(main|master|develop)\//;
-
-              if (mutableBranchPattern.test(classESection)) {
-                core.setFailed(
-                  '❌ Class E links must target commit SHA, not mutable branch (main/master/develop).\n' +
-                    'Example: Use `/blob/a1b2c3d/docs/PRD.md` instead of `/blob/main/docs/PRD.md`'
-                );
-                return;
-              }
-            }
-
-            core.info('✅ AIV Packet structure validated');
-            core.info('✅ Class E links are immutable');
+      - name: Upload validator output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aiv-validator-output
+          if-no-files-found: warn
+          path: aiv_validation_result.json
