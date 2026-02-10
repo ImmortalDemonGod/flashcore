@@ -158,3 +158,6 @@ node_modules/
 # tasks.json
 # tasks/ 
 .gitignore
+
+# AIV Protocol (change context is gitignored per spec)
+.aiv/change.json
