@@ -39,7 +39,7 @@ jobs:
 
       - name: Upload validator output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: aiv-validator-output
           if-no-files-found: warn
