@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "flashcore"
 dynamic = ["version"]
-description = "Awesome flashcore created by ImmortalDemonGod"
+description = "High-performance, local-first Spaced Repetition System engine using FSRS and DuckDB"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
@@ -56,4 +56,4 @@ version = {file = "flashcore/VERSION"}
 line-length = 79
 
 [tool.setuptools.packages.find]
-exclude = ["tests", ".github"]
+exclude = ["tests", ".github", "flashcore.scripts"]
