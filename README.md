@@ -28,18 +28,16 @@ Designed using a **Hub-and-Spoke** architecture, Flashcore is a path-agnostic lo
 
 ## Status
 
-- **Library**
-  Usable today: `FlashcardDatabase`, `FSRS_Scheduler`, YAML parsing utilities.
-- **CLI**
-  In progress. The `flashcore` console entrypoint is wired, but the full multi-command CLI workflow (`vet`, `ingest`, `review`, `stats`, etc.) is still being implemented.
+- **Library** — complete
+  `FlashcardDatabase`, `FSRS_Scheduler`, YAML parsing, review processing, session analytics.
+- **CLI** — complete
+  All commands (`vet`, `ingest`, `review`, `review-all`, `export`, `stats`) are implemented and tested.
+- **Data migration tooling** — complete
+  `flashcore/scripts/dump_history.py` and `flashcore/scripts/migrate.py` ship with the project.
 - **AIV protocol**
-  The mechanical enforcement layer (AIV packet structure + immutable intent links) is implemented in CI, while the deeper cognitive layer (SVP) is still a work in progress.
+  The mechanical enforcement layer (packet structure + immutable intent links) is implemented in CI. The cognitive layer (SVP) is still a work in progress.
 
-If you want to see what’s planned next, run:
-
-```bash
-task-master list
-```
+Tasks 1–8 are complete. Task 9 (finalization) is in progress.
 
 ---
 
@@ -148,19 +146,28 @@ print(f"Parsed {len(cards)} cards with {len(errors)} errors")
 
 ---
 
-## CLI Usage (The Hub) — WIP
+## CLI Usage (The Hub)
 
-The intended workflow cycle will look like this (commands are planned and may not be available yet):
+Supply the database path via `--db` flag or the `FLASHCORE_DB` environment variable.
+
+```bash
+export FLASHCORE_DB=./study.db
+
+flashcore vet   --source-dir ./decks        # Validate YAMLs, detect secrets
+flashcore ingest --source-dir ./decks       # Sync cards → DB (preserves history)
+flashcore review "Deck Name"                # Interactive FSRS review session
+flashcore review-all                        # Review all due cards across decks
+flashcore stats                             # Retention metrics and deck health
+flashcore export --out-dir ./export         # Export cards to Markdown
+```
 
 | Step | Command | Description |
 | :--- | :--- | :--- |
 | **1. Author** | `vim deck.yaml` | Create cards in YAML (see format below). |
-| **2. Vet** | `flashcore vet` | Validate structure, check for secrets, and assign stable UUIDs. |
-| **3. Ingest** | `flashcore ingest` | Sync YAML cards to the DuckDB database without losing history. |
-| **4. Review** | `flashcore review` | Start an interactive TUI session powered by FSRS. |
+| **2. Vet** | `flashcore vet` | Validate structure, check for secrets, assign stable UUIDs. |
+| **3. Ingest** | `flashcore ingest` | Sync YAML cards to DuckDB without losing review history. |
+| **4. Review** | `flashcore review` | Interactive TUI session powered by FSRS. |
 | **5. Audit** | `flashcore stats` | View retention metrics and deck health. |
-
-Environment-variable support (e.g., `FLASHCORE_DB`) is planned for the CLI so you can avoid repeating flags.
 
 ### YAML Card Format
 
@@ -178,6 +185,36 @@ cards:
       def func(): pass
       ```
 ```
+
+---
+
+## Migrating from a Legacy Flashcore Database
+
+If you have data in an older Flashcore DuckDB file (pre-pivot schema), use the
+bundled scripts to export and re-import safely. **Do not copy the `.db` file
+directly** — binary compatibility is not guaranteed across DuckDB versions.
+
+```bash
+# Step 1 — export legacy DB to JSON (read-only, non-destructive)
+python flashcore/scripts/dump_history.py \
+    --db ./old.db \
+    --out-dir ./export/
+
+# Step 2 — import into a new DB
+python flashcore/scripts/migrate.py import \
+    --cards   ./export/cards.json \
+    --reviews ./export/reviews.json \
+    --sessions ./export/sessions.json \
+    --db ./new.db
+
+# Step 3 — validate completeness and integrity
+python flashcore/scripts/migrate.py validate \
+    --old-db ./old.db \
+    --new-db ./new.db
+```
+
+The validate step checks row-count parity, orphaned reviews, stability/difficulty
+value ranges, and schema sanity. Exit code 0 means all checks passed.
 
 ---
 
