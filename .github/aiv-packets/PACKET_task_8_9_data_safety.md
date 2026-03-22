@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1: New utility scripts (no core library changes) and deletion of legacy scaffolding. No auth, security surfaces, or schema migrations involved."
   classified_by: "Miguel Ingram"
   classified_at: "2026-03-22T03:32:26Z"
 ```
@@ -30,7 +30,7 @@ classification:
 2. migrate.py import_from_json() initialises the canonical schema and bulk-inserts all rows from JSON files
 3. validate_migration() detects orphaned reviews, stability-range violations, and schema-sanity failures
 4. README updated: Status section reflects Tasks 1-8 complete; CLI usage block added; Migration Guide section added
-5. pyproject.toml description fixed; flashcore.scripts excluded from package discovery
+5. pyproject.toml description updated to reflect actual purpose; flashcore.scripts excluded from package discovery
 6. No existing tests were modified or deleted during this change.
 7. HPE_ARCHIVE/ (57 files) deleted; no flashcore/ or tests/ source imports from it
 8. task_009.md subtasks 9.1 and 9.2 marked done
@@ -45,6 +45,24 @@ classification:
 | 2 | EVIDENCE_.TASKMASTER_TASKS_TASK_009.MD.md | `77f75ab` | A, B, E |
 
 
+
+### Class E (Intent Alignment)
+
+- https://github.com/ImmortalDemonGod/flashcore/blob/27797f4/.taskmaster/tasks/task_008.md
+  — Task 8: Implement Data Safety Strategy (export script, import utility, validation queries)
+- https://github.com/ImmortalDemonGod/flashcore/blob/bd7cdab/.taskmaster/tasks/task_009.md
+  — Task 9.1: Remove HPE_ARCHIVE before final merge; Task 9.2: Update README and documentation
+
+---
+
+### Class F (Conservation Evidence)
+
+- **CI run (last green on main):** https://github.com/ImmortalDemonGod/flashcore/actions/runs/23102692799
+- **480 tests passed, 1 skipped** — confirmed by `aiv commit` pytest execution captured in evidence file at commit `c638af2`
+- **Zero test deletions:** `git diff 4234480..77f75ab -- tests/` returns no removed test files or deleted `assert` statements
+- **Anti-cheat:** no `@pytest.mark.skip` added; full suite passes after HPE_ARCHIVE removal
+
+---
 
 ### Class B (Referential Evidence)
 
