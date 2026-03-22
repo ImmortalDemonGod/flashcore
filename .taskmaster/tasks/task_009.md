@@ -2,7 +2,7 @@
 
 **Title:** Finalize and Document Migration
 
-**Status:** pending
+**Status:** in_progress
 
 **Dependencies:** 8
 
@@ -22,8 +22,8 @@ Verify HPE_ARCHIVE/ does not exist in git tree. README.md contains installation,
 
 ### 9.1. Remove HPE_ARCHIVE Before Final Merge
 
-**Status:** pending  
-**Dependencies:** None  
+**Status:** done
+**Dependencies:** None
 
 Remove legacy archive directory to prevent dual source-of-truth confusion.
 
@@ -33,8 +33,8 @@ Execute: git rm -r HPE_ARCHIVE/ and commit with message 'chore(repo): Remove HPE
 
 ### 9.2. Update README and Documentation
 
-**Status:** pending  
-**Dependencies:** 9.1  
+**Status:** done
+**Dependencies:** 9.1
 
 Document installation, usage, architecture, constraints, and migration guide.
 
@@ -44,7 +44,7 @@ Update README.md: installation, usage examples with explicit db_path, architectu
 
 ### 9.3. Run Verification Checklist
 
-**Status:** pending  
+**Status:** pending
 **Dependencies:** 9.2  
 
 Run PRD Section 5 verification checklist with explicit, testable criteria.
