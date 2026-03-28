@@ -20,7 +20,6 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Optional
 
 import duckdb
 
@@ -81,7 +80,7 @@ _SESSIONS_COLUMNS = [
 
 
 def _row_tuple(row, columns):
-    """Extract ordered values from a dict row, defaulting missing keys to None."""
+    """Extract ordered values from a dict row, defaulting missing keys to None."""  # noqa: E501
     return tuple(row.get(col) for col in columns)
 
 
