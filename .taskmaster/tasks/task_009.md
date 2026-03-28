@@ -2,7 +2,7 @@
 
 **Title:** Finalize and Document Migration
 
-**Status:** in_progress
+**Status:** done
 
 **Dependencies:** 8
 
@@ -44,7 +44,7 @@ Update README.md: installation, usage examples with explicit db_path, architectu
 
 ### 9.3. Run Verification Checklist
 
-**Status:** pending
+**Status:** done
 **Dependencies:** 9.2  
 
 Run PRD Section 5 verification checklist with explicit, testable criteria.
