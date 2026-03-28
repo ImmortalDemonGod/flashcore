@@ -58,24 +58,56 @@ def _coerce(value, nullable=True):
 # ---------------------------------------------------------------------------
 
 _CARDS_COLUMNS = [
-    "uuid", "deck_name", "front", "back", "tags",
-    "added_at", "modified_at", "last_review_id", "next_due_date",
-    "state", "stability", "difficulty", "origin_task",
-    "media_paths", "source_yaml_file", "internal_note",
-    "front_length", "back_length", "has_media", "tag_count",
+    "uuid",
+    "deck_name",
+    "front",
+    "back",
+    "tags",
+    "added_at",
+    "modified_at",
+    "last_review_id",
+    "next_due_date",
+    "state",
+    "stability",
+    "difficulty",
+    "origin_task",
+    "media_paths",
+    "source_yaml_file",
+    "internal_note",
+    "front_length",
+    "back_length",
+    "has_media",
+    "tag_count",
 ]
 
 _REVIEWS_COLUMNS = [
-    "card_uuid", "session_uuid", "ts", "rating",
-    "resp_ms", "eval_ms", "stab_before", "stab_after",
-    "diff", "next_due", "elapsed_days_at_review",
-    "scheduled_days_interval", "review_type",
+    "card_uuid",
+    "session_uuid",
+    "ts",
+    "rating",
+    "resp_ms",
+    "eval_ms",
+    "stab_before",
+    "stab_after",
+    "diff",
+    "next_due",
+    "elapsed_days_at_review",
+    "scheduled_days_interval",
+    "review_type",
 ]
 
 _SESSIONS_COLUMNS = [
-    "session_uuid", "user_id", "start_ts", "end_ts",
-    "total_duration_ms", "cards_reviewed", "decks_accessed",
-    "deck_switches", "interruptions", "device_type", "platform",
+    "session_uuid",
+    "user_id",
+    "start_ts",
+    "end_ts",
+    "total_duration_ms",
+    "cards_reviewed",
+    "decks_accessed",
+    "deck_switches",
+    "interruptions",
+    "device_type",
+    "platform",
 ]
 
 
@@ -87,9 +119,7 @@ def _row_tuple(row, columns):
 def _insert_cards(conn, rows):
     placeholders = ", ".join(["?"] * len(_CARDS_COLUMNS))
     col_list = ", ".join(_CARDS_COLUMNS)
-    sql = (
-        f"INSERT OR REPLACE INTO cards ({col_list}) VALUES ({placeholders})"
-    )
+    sql = f"INSERT OR REPLACE INTO cards ({col_list}) VALUES ({placeholders})"
     data = [_row_tuple(r, _CARDS_COLUMNS) for r in rows]
     conn.executemany(sql, data)
     return len(data)
@@ -99,9 +129,7 @@ def _insert_reviews(conn, rows):
     placeholders = ", ".join(["?"] * len(_REVIEWS_COLUMNS))
     col_list = ", ".join(_REVIEWS_COLUMNS)
     # Omit review_id — let the sequence assign new IDs in the new DB.
-    sql = (
-        f"INSERT INTO reviews ({col_list}) VALUES ({placeholders})"
-    )
+    sql = f"INSERT INTO reviews ({col_list}) VALUES ({placeholders})"
     data = [_row_tuple(r, _REVIEWS_COLUMNS) for r in rows]
     conn.executemany(sql, data)
     return len(data)
@@ -267,11 +295,21 @@ def validate_migration(old_db_path, new_db_path):
 
         # ── 4. Schema sanity: required columns present ────────────────────
         required_card_cols = {
-            "uuid", "deck_name", "front", "back", "state",
-            "stability", "difficulty", "next_due_date",
+            "uuid",
+            "deck_name",
+            "front",
+            "back",
+            "state",
+            "stability",
+            "difficulty",
+            "next_due_date",
         }
         required_review_cols = {
-            "card_uuid", "ts", "rating", "stab_before", "stab_after",
+            "card_uuid",
+            "ts",
+            "rating",
+            "stab_before",
+            "stab_after",
         }
         for table, required in (
             ("cards", required_card_cols),
