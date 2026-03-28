@@ -129,7 +129,8 @@ def main():
         sys.exit(1)
 
     total = sum(results.values())
-    print(f"\nDone. {total} total rows exported across {len(results)} table(s).")
+    tables_n = len(results)
+    print(f"\nDone. {total} total rows exported across {tables_n} table(s).")
 
 
 if __name__ == "__main__":
