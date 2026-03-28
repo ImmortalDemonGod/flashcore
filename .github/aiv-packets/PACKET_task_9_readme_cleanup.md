@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R0: pure documentation removal, no executable code modified or added"
   classified_by: "Miguel Ingram"
   classified_at: "2026-03-28T02:24:48Z"
 ```
@@ -45,6 +45,11 @@ classification:
 **Scope Inventory** (from 1 file references across evidence files)
 
 - `README.md#L1-L221`
+
+### Class E (Intent Alignment)
+
+- https://github.com/ImmortalDemonGod/flashcore/blob/bd7cdab/.taskmaster/tasks/task_009.md
+  — Task 9.2: README must document installation, usage, architecture, constraints accurately and serve external readers
 
 ---
 
