@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R0/R1 mix: pure documentation and status-tracking changes only. No executable code added or modified."
   classified_by: "Miguel Ingram"
   classified_at: "2026-03-28T02:15:18Z"
 ```
@@ -50,6 +50,13 @@ classification:
 | 3 | EVIDENCE_CLAUDE.MD.md | `0ffef18` | A, B, E |
 
 
+
+### Class E (Intent Alignment)
+
+- https://github.com/ImmortalDemonGod/flashcore/blob/bd7cdab/.taskmaster/tasks/task_009.md
+  — Task 9.2: README must document installation, usage, architecture, constraints, and migration guide accurately; Task 9.3: verification checklist confirmed all-complete
+
+---
 
 ### Class B (Referential Evidence)
 
