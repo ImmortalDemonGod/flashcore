@@ -54,20 +54,6 @@ flashcore review "My Deck"
 
 ---
 
-## Status
-
-All 9 tasks complete.
-
-| Component | State |
-|---|---|
-| Library (DB, scheduler, YAML, models) | complete |
-| CLI (`vet`, `ingest`, `review`, `review-all`, `export`, `stats`) | complete |
-| Data migration tooling (`dump_history.py`, `migrate.py`) | complete |
-| AIV mechanical enforcement (CI packet gate + immutable links) | complete |
-| AIV cognitive layer (SVP) | in progress |
-
----
-
 ## Installation
 
 Flashcore requires Python 3.10 or higher.
@@ -167,35 +153,6 @@ config = YAMLProcessorConfig(
 cards, errors = load_and_process_flashcard_yamls(config)
 print(f"Parsed {len(cards)} cards with {len(errors)} errors")
 ```
-
----
-
-## Migrating from a Legacy Flashcore Database
-
-Do **not** copy a `.db` file directly — binary compatibility across DuckDB
-versions is not guaranteed. Use the bundled migration scripts instead.
-
-```bash
-# Step 1 — export (read-only, non-destructive)
-python flashcore/scripts/dump_history.py \
-    --db ./old.db \
-    --out-dir ./export/
-
-# Step 2 — import into a fresh database
-python flashcore/scripts/migrate.py import \
-    --cards   ./export/cards.json \
-    --reviews ./export/reviews.json \
-    --sessions ./export/sessions.json \
-    --db ./new.db
-
-# Step 3 — validate completeness and integrity
-python flashcore/scripts/migrate.py validate \
-    --old-db ./old.db \
-    --new-db ./new.db
-```
-
-The validate step checks row-count parity, orphaned reviews, stability range,
-and schema sanity. Exit code 0 means all checks passed.
 
 ---
 
