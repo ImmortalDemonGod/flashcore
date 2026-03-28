@@ -5,67 +5,66 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-**Flashcore** is a high-performance, local-first Spaced Repetition System (SRS) engine built for developers. It combines the state-of-the-art **FSRS (Free Spaced Repetition Scheduler)** algorithm with a **DuckDB** backend to provide a lightning-fast, dependency-light memory engine.
+**Flashcore** is a high-performance, local-first Spaced Repetition System (SRS)
+engine built for developers. It combines the
+**FSRS (Free Spaced Repetition Scheduler)** algorithm with a **DuckDB** backend
+to give you a fast, dependency-light memory engine you can embed in any project
+or drive from the command line.
 
-Designed using a **Hub-and-Spoke** architecture, Flashcore is a path-agnostic logic library (the "Spoke") intended to be driven by a CLI (the "Hub"). It treats your knowledge base as source code.
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/ImmortalDemonGod/flashcore.git
+cd flashcore
+pip install -e .
+
+# Point every command at your database
+export FLASHCORE_DB=./study.db
+
+# Validate a deck of YAML cards
+flashcore vet --source-dir ./decks
+
+# Sync cards into the database
+flashcore ingest --source-dir ./decks
+
+# Start a review session
+flashcore review "My Deck"
+```
 
 ---
 
 ## Key Features
 
-- **O(1) scheduler performance**
-  Flashcore computes the next interval from cached card state (no full history replay).
-- **The "Nuclear Reactor" fix (lightweight deps)**
-  Runtime dependency set is intentionally small (no `torch`, no `transformers`).
-- **DuckDB backend**
-  A single-file database with fast OLAP-style queries and minimal overhead.
-- **YAML-first authoring (library support)**
-  Parse cards from human-readable YAML into strongly validated Pydantic models.
-- **Dependency-injection first**
-  The library requires paths to be provided explicitly at runtime (e.g., database path).
+- **O(1) scheduler** — next interval computed from cached card state; no full
+  history replay regardless of how many reviews a card has.
+- **Lightweight runtime** — no `torch`, no `transformers`, no `fsrs-optimizer`.
+  The install footprint is ~10 packages.
+- **Single-file DuckDB backend** — ACID-compliant, embeddable, zero server
+  setup. Move your `.db` file like any other file.
+- **YAML-first authoring** — write cards in plain YAML; the parser validates
+  structure, sanitizes HTML, and detects accidentally embedded secrets (API
+  keys, tokens) before they reach the database.
+- **Dependency-injection architecture** — the library never assumes a path.
+  Every operation receives its database path explicitly, making it safe to run
+  multiple isolated instances side-by-side.
+- **Safe ingestion** — re-ingesting a YAML file never overwrites existing
+  review history; stability and difficulty are preserved on conflict.
 
 ---
 
 ## Status
 
-- **Library** — complete
-  `FlashcardDatabase`, `FSRS_Scheduler`, YAML parsing, review processing, session analytics.
-- **CLI** — complete
-  All commands (`vet`, `ingest`, `review`, `review-all`, `export`, `stats`) are implemented and tested.
-- **Data migration tooling** — complete
-  `flashcore/scripts/dump_history.py` and `flashcore/scripts/migrate.py` ship with the project.
-- **AIV protocol**
-  The mechanical enforcement layer (packet structure + immutable intent links) is implemented in CI. The cognitive layer (SVP) is still a work in progress.
+All 9 tasks complete.
 
-Tasks 1–8 are complete. Task 9 (finalization) is in progress.
-
----
-
-## AIV Case Study
-
-Flashcore is being developed as a reference *case study* for the AIV (Architect–Implementer–Verifier) workflow: tight task decomposition, explicit claims, and artifact-backed verification.
-
-This is intentionally honest about the current state:
-- **AIV SOP (mechanical layer):** implemented
-- **AIV SVP (cognitive layer):** not fully implemented yet
-- **CLI “Hub” implementation:** in progress
-
-### Evidence Index (real repo artifacts)
-
-- **Task 4: Scheduler O(N) → O(1) audit trail**
-  - `artifacts/task_4_ci_verification_report.md`
-  - `artifacts/task_4_implementation_summary.md`
-  - `artifacts/task_4_scheduler_optimization_audit.md`
-- **AIV enforcement docs**
-  - `docs/AIV_ENFORCEMENT_PLAN.md`
-  - `docs/AIV_ENFORCEMENT_AUDIT.md`
-
-### CI enforcement (what’s actually gated)
-
-- **AIV packet validation (PR-body gate + immutable links)**
-  - `.github/workflows/aiv-guard.yml`
-- **CI + artifact production + negative evidence checks**
-  - `.github/workflows/main.yml`
+| Component | State |
+|---|---|
+| Library (DB, scheduler, YAML, models) | complete |
+| CLI (`vet`, `ingest`, `review`, `review-all`, `export`, `stats`) | complete |
+| Data migration tooling (`dump_history.py`, `migrate.py`) | complete |
+| AIV mechanical enforcement (CI packet gate + immutable links) | complete |
+| AIV cognitive layer (SVP) | in progress |
 
 ---
 
@@ -79,95 +78,30 @@ cd flashcore
 pip install -e .
 ```
 
-For development (tests, linting, etc.):
+For development (tests, linting, formatting):
 
 ```bash
-make install
+make install   # installs package + all dev deps
+make test      # runs 480 tests
+make fmt       # black + isort
+make lint      # flake8 + black --check + mypy
 ```
 
 ---
 
-## Programmatic Usage (The Library)
+## CLI Usage
 
-This example shows the current working public APIs.
-
-```python
-from datetime import date
-
-from flashcore import Card, FlashcardDatabase
-from flashcore.scheduler import FSRS_Scheduler
-from flashcore.review_processor import ReviewProcessor
-
-db = FlashcardDatabase(db_path="./my_study.db")
-
-with db:
-    # 1) Create and upsert a card
-    card = Card(
-        deck_name="Computer Science",
-        front="What is the average complexity of a dict lookup?",
-        back="O(1) on average.",
-    )
-    db.upsert_cards_batch([card])
-
-    # 2) Fetch it back from the DB
-    persisted = db.get_card_by_uuid(card.uuid)
-    assert persisted is not None
-
-    # 3) Submit a review using the O(1) scheduler
-    scheduler = FSRS_Scheduler()
-    processor = ReviewProcessor(db_manager=db, scheduler=scheduler)
-    updated = processor.process_review(card=persisted, rating=3)
-
-    # 4) Ask what’s due
-    due = db.get_due_cards(deck_name="Computer Science", on_date=date.today())
-    print(f"Due today: {len(due)}")
-```
-
----
-
-## YAML Processing (Current Library Capability)
-
-Flashcore includes a YAML parsing pipeline you can call directly.
-
-```python
-from pathlib import Path
-
-from flashcore import YAMLProcessorConfig
-from flashcore.parser import load_and_process_flashcard_yamls
-
-config = YAMLProcessorConfig(
-    source_directory=Path("./decks"),
-    assets_root_directory=Path("./assets"),
-)
-
-cards, errors = load_and_process_flashcard_yamls(config)
-print(f"Parsed {len(cards)} cards with {len(errors)} errors")
-```
-
----
-
-## CLI Usage (The Hub)
-
-Supply the database path via `--db` flag or the `FLASHCORE_DB` environment variable.
-
-```bash
-export FLASHCORE_DB=./study.db
-
-flashcore vet   --source-dir ./decks        # Validate YAMLs, detect secrets
-flashcore ingest --source-dir ./decks       # Sync cards → DB (preserves history)
-flashcore review "Deck Name"                # Interactive FSRS review session
-flashcore review-all                        # Review all due cards across decks
-flashcore stats                             # Retention metrics and deck health
-flashcore export --out-dir ./export         # Export cards to Markdown
-```
+Supply the database path via `--db` or the `FLASHCORE_DB` environment variable.
 
 | Step | Command | Description |
 | :--- | :--- | :--- |
-| **1. Author** | `vim deck.yaml` | Create cards in YAML (see format below). |
-| **2. Vet** | `flashcore vet` | Validate structure, check for secrets, assign stable UUIDs. |
-| **3. Ingest** | `flashcore ingest` | Sync YAML cards to DuckDB without losing review history. |
-| **4. Review** | `flashcore review` | Interactive TUI session powered by FSRS. |
-| **5. Audit** | `flashcore stats` | View retention metrics and deck health. |
+| **1. Author** | `vim deck.yaml` | Write cards in YAML (see format below). |
+| **2. Vet** | `flashcore vet --source-dir ./decks` | Validate structure, detect secrets, assign stable UUIDs. |
+| **3. Ingest** | `flashcore ingest --source-dir ./decks` | Sync YAML cards to DuckDB without overwriting review history. |
+| **4. Review** | `flashcore review "Deck Name"` | Interactive TUI session powered by FSRS. |
+| **5. Review all** | `flashcore review-all` | Review all due cards across every deck. |
+| **6. Export** | `flashcore export --out-dir ./export` | Export cards to Markdown. |
+| **7. Audit** | `flashcore stats` | Retention metrics and deck health. |
 
 ### YAML Card Format
 
@@ -188,19 +122,66 @@ cards:
 
 ---
 
+## Programmatic Usage
+
+```python
+from datetime import date
+
+from flashcore import Card, FlashcardDatabase
+from flashcore.scheduler import FSRS_Scheduler
+from flashcore.review_processor import ReviewProcessor
+
+db = FlashcardDatabase(db_path="./my_study.db")
+
+with db:
+    # Create and persist a card
+    card = Card(
+        deck_name="Computer Science",
+        front="What is the average complexity of a dict lookup?",
+        back="O(1) on average.",
+    )
+    db.upsert_cards_batch([card])
+
+    # Submit a review using the O(1) scheduler
+    scheduler = FSRS_Scheduler()
+    processor = ReviewProcessor(db_manager=db, scheduler=scheduler)
+    processor.process_review(card=db.get_card_by_uuid(card.uuid), rating=3)
+
+    # Query what is due today
+    due = db.get_due_cards(deck_name="Computer Science", on_date=date.today())
+    print(f"Due today: {len(due)}")
+```
+
+### YAML Pipeline
+
+```python
+from pathlib import Path
+
+from flashcore import YAMLProcessorConfig
+from flashcore.parser import load_and_process_flashcard_yamls
+
+config = YAMLProcessorConfig(
+    source_directory=Path("./decks"),
+    assets_root_directory=Path("./assets"),
+)
+cards, errors = load_and_process_flashcard_yamls(config)
+print(f"Parsed {len(cards)} cards with {len(errors)} errors")
+```
+
+---
+
 ## Migrating from a Legacy Flashcore Database
 
-If you have data in an older Flashcore DuckDB file (pre-pivot schema), use the
-bundled scripts to export and re-import safely. **Do not copy the `.db` file
-directly** — binary compatibility is not guaranteed across DuckDB versions.
+Do **not** copy a `.db` file directly — binary compatibility across DuckDB
+versions is not guaranteed. Use the bundled migration scripts instead.
 
 ```bash
-# Step 1 — export legacy DB to JSON (read-only, non-destructive)
+# Step 1 — export (read-only, non-destructive)
 python flashcore/scripts/dump_history.py \
     --db ./old.db \
     --out-dir ./export/
 
-# Step 2 — import into a new DB
+# Step 2 — import into a fresh database
 python flashcore/scripts/migrate.py import \
     --cards   ./export/cards.json \
     --reviews ./export/reviews.json \
@@ -213,19 +194,55 @@ python flashcore/scripts/migrate.py validate \
     --new-db ./new.db
 ```
 
-The validate step checks row-count parity, orphaned reviews, stability/difficulty
-value ranges, and schema sanity. Exit code 0 means all checks passed.
+The validate step checks row-count parity, orphaned reviews, stability range,
+and schema sanity. Exit code 0 means all checks passed.
 
 ---
 
 ## Architecture: Hub-and-Spoke
 
-Flashcore solves the "Hardcoded Life" problem by separating logic from configuration:
+Flashcore separates logic from configuration to avoid the "hardcoded path"
+problem common in SRS tools.
 
-1. **The Spoke (`flashcore/`)**
-   The core library. Contains scheduling logic, DB marshalling, and YAML parsing.
-2. **The Hub (`flashcore.cli`)**
-   The interface layer (in progress). Accepts user input (flags/env) and injects paths/config into the Spoke.
+**Spoke — `flashcore/`** (the library)
+Pure logic: scheduling, DB marshalling, YAML parsing, models. No hardcoded
+paths, no global config. Safe to import and use in any context.
+
+**Hub — `flashcore/cli/`** (the interface)
+Accepts paths and config from the user (flags or `FLASHCORE_DB`) and injects
+them into the Spoke at runtime. Two different programs can use the Spoke
+simultaneously against two different databases without interference.
+
+**Scripts — `flashcore/scripts/`**
+Standalone utility scripts (migration tooling). Not part of the installed
+package; not importable from core code.
+
+---
+
+## AIV Case Study
+
+Flashcore is a reference implementation for the
+**AIV (Architect–Implementer–Verifier)** workflow: every PR carries a
+structured verification packet with falsifiable claims, immutable intent links,
+and CI-collected evidence.
+
+| Layer | State |
+|---|---|
+| Mechanical (packet gate, immutable Class E links, anti-cheat) | implemented |
+| Cognitive (SVP verifier protocol) | in progress |
+
+### Evidence artifacts
+
+- `artifacts/task_4_ci_verification_report.md` — O(N)→O(1) scheduler benchmark
+- `docs/AIV_ENFORCEMENT_PLAN.md` — enforcement strategy
+- `docs/AIV_ENFORCEMENT_AUDIT.md` — gap analysis
+- `.github/aiv-packets/` — per-PR verification packets
+
+### CI gates
+
+- `.github/workflows/aiv-guard.yml` — rejects PRs without a valid packet
+- `.github/workflows/main.yml` — lint, tests (6 platform/Python combinations),
+  negative evidence checks, anti-cheat warning
 
 ---
 
@@ -238,10 +255,10 @@ make fmt
 make test
 ```
 
- See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ---
 
 ## License
 
-This project is released into the public domain under the [Unlicense](LICENSE). No rights reserved.
+Released into the public domain under the [Unlicense](LICENSE). No rights reserved.
