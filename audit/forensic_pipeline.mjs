@@ -45,7 +45,7 @@
  */
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, basename } from "node:path";
 
 // ───────────────────────── config ─────────────────────────
 const REPO = resolve(process.cwd());
@@ -100,7 +100,7 @@ function sh(cmd, args, opts = {}) {
     p.stdout?.on("data", (d) => (O += d));
     p.stderr?.on("data", (d) => (E += d));
     p.on("error", (err) => r({ code: 127, out: O, err: String(err) }));
-    p.on("close", (code) => r({ code, out: O, err: E }));
+    p.on("close", (code, signal) => r({ code: code ?? (signal ? 124 : 1), out: O, err: E }));
   });
 }
 
@@ -320,7 +320,7 @@ async function runAgent({ name, prompt, schema, model = MODEL_FAST, fallback = M
     if (env && typeof env.total_cost_usd === "number") trackCost(name.split(":")[0], env.total_cost_usd);
     // [RNA] usage/rate-limit detection → longer backoff before retry
     const limited = /usage limit|rate limit|overloaded|429/i.test(r.E + (env?.subtype || ""));
-    const data = readWork(out.replace(WORK + "/", "")); // tolerant read of the handoff
+    const data = readWork(basename(out)); // tolerant read of the handoff
     if (!data) { log(`  no/!json handoff (attempt ${attempt})${limited ? " [usage-limited]" : ""}`); await new Promise((x) => setTimeout(x, (limited ? 30000 : 3000) * attempt)); continue; }
     coerceEnums(schema, data);
     const errs = validate(schema, data);
@@ -495,7 +495,7 @@ async function stage3(state, s1, s2) {
   for (const c of disc.data.commands.filter((x) => ["install", "test", "coverage"].includes(x.purpose))) {
     if (DRY) { runLog.push({ cmd: c.cmd, purpose: c.purpose, code: 0, tail: "(dry-run: not executed)" }); continue; }
     log(`s3 run: ${c.cmd}`);
-    const r = await sh("bash", ["-lc", `timeout 1200 ${c.cmd}`]);
+    const r = await sh("bash", ["-lc", c.cmd], { timeout: 1_200_000 });
     const tail = (r.out + "\n" + r.err).slice(-4000);
     runLog.push({ cmd: c.cmd, purpose: c.purpose, code: r.code, tail });
   }
