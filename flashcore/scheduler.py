@@ -188,10 +188,27 @@ class FSRS_Scheduler(BaseScheduler):
         return self.RATING_MAP[flashcore_rating]
 
     def compute_next_state(
-        self, card: Card, new_rating: int, review_ts: datetime.datetime
+        self,
+        card: Card,
+        new_rating: int,
+        review_ts: datetime.datetime,
+        last_review_ts: Optional[datetime.datetime] = None,
     ) -> SchedulerOutput:
         """
         Computes the next state of a card using cached state (O(1) performance).
+
+        Args:
+            card: The card being reviewed (cached state: stability/difficulty/
+                state/next_due_date — no history replay).
+            new_rating: Flashcore rating 1-4 (Again/Hard/Good/Easy).
+            review_ts: When this review occurs.
+            last_review_ts: Timestamp of the card's *prior* review. FSRS measures
+                elapsed time (and thus retrievability) against this. The caller
+                (review_processor, the hub) supplies it from the reviews store so
+                the scheduler stays a pure spoke. When ``None`` (no prior review
+                available), elapsed time falls back to the card's due date — the
+                legacy approximation — so new cards and history-less callers are
+                unaffected.
         """
         # Start with a fresh card object.
         fsrs_card = FSRSCard()
@@ -208,7 +225,13 @@ class FSRS_Scheduler(BaseScheduler):
                     datetime.time(0, 0, 0),
                     tzinfo=datetime.timezone.utc,
                 )
-                # Set last_review to due date for elapsed_days calculation
+            # last_review must be the card's PRIOR review time so FSRS measures the
+            # real elapsed interval (and retrievability). Using the due date here
+            # made on-time reviews look like zero elapsed days (R=1.0).
+            if last_review_ts is not None:
+                fsrs_card.last_review = self._ensure_utc(last_review_ts)
+            elif card.next_due_date:
+                # Legacy fallback when no prior-review timestamp is available.
                 fsrs_card.last_review = fsrs_card.due
 
         # Capture the state before the new review to determine the review type.
