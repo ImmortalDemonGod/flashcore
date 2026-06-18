@@ -1,0 +1,17 @@
+{
+  "branch": "claude/nifty-brahmagupta-0tq0vy",
+  "apiEquivUsd": 16.14,
+  "note": "API-equivalent cost; real subscription draw is far lower — informational only",
+  "costByStage": {
+    "preflight": 0.0200573,
+    "s4": 6.433125550000001,
+    "s5": 9.6914708
+  },
+  "completed": {
+    "stage1": "2026-06-17 19:14:17",
+    "stage2": "2026-06-17 21:31:56",
+    "stage3": "2026-06-17 21:55:05",
+    "stage4": "2026-06-17 23:42:19",
+    "stage5": "2026-06-18 00:13:47"
+  }
+}

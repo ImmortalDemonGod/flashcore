@@ -1,0 +1,651 @@
+{
+  "denominator": 118,
+  "files": [
+    {
+      "path": ".aiv.yml",
+      "role": "config",
+      "note": "AIV commit-integrity tool configuration"
+    },
+    {
+      "path": ".codecov.yml",
+      "role": "config",
+      "note": "Codecov coverage reporting configuration"
+    },
+    {
+      "path": ".env.example",
+      "role": "config",
+      "note": "Environment variable template; not loaded at runtime"
+    },
+    {
+      "path": ".flake8",
+      "role": "config",
+      "note": "Flake8 Python linter configuration"
+    },
+    {
+      "path": ".github/FUNDING.yml",
+      "role": "config",
+      "note": "GitHub Sponsors / funding links configuration"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "role": "doc",
+      "note": "GitHub issue template for bug reports"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "role": "doc",
+      "note": "GitHub issue template for feature requests"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "role": "doc",
+      "note": "GitHub PR description template"
+    },
+    {
+      "path": ".github/aiv-evidence/.gitkeep",
+      "role": "asset",
+      "note": "Empty placeholder to track directory in git"
+    },
+    {
+      "path": ".github/aiv-evidence/EVIDENCE_.TASKMASTER_TASKS_TASK_009.MD.md",
+      "role": "doc",
+      "note": "AIV-generated evidence snapshot for task_009"
+    },
+    {
+      "path": ".github/aiv-evidence/EVIDENCE_CLAUDE.MD.md",
+      "role": "doc",
+      "note": "AIV-generated evidence snapshot of CLAUDE.md"
+    },
+    {
+      "path": ".github/aiv-evidence/EVIDENCE_FLASHCORE_SCRIPTS_DUMP_HISTORY.md",
+      "role": "doc",
+      "note": "AIV-generated evidence snapshot of dump_history script"
+    },
+    {
+      "path": ".github/aiv-evidence/EVIDENCE_FLASHCORE_SCRIPTS_MIGRATE.md",
+      "role": "doc",
+      "note": "AIV-generated evidence snapshot of migrate script"
+    },
+    {
+      "path": ".github/aiv-evidence/EVIDENCE_README.MD.md",
+      "role": "doc",
+      "note": "AIV-generated evidence snapshot of README.md"
+    },
+    {
+      "path": ".github/aiv-packets/.gitkeep",
+      "role": "asset",
+      "note": "Empty placeholder to track directory in git"
+    },
+    {
+      "path": ".github/aiv-packets/PACKET_task_8_9_data_safety.md",
+      "role": "doc",
+      "note": "AIV commit-integrity packet for task 8/9 data safety"
+    },
+    {
+      "path": ".github/aiv-packets/PACKET_task_9_readme_cleanup.md",
+      "role": "doc",
+      "note": "AIV commit-integrity packet for task 9 readme cleanup"
+    },
+    {
+      "path": ".github/aiv-packets/PACKET_task_9_readme_quality.md",
+      "role": "doc",
+      "note": "AIV commit-integrity packet for task 9 readme quality"
+    },
+    {
+      "path": ".github/aiv-packets/VERIFICATION_PACKET_TASK_4.md",
+      "role": "doc",
+      "note": "AIV verification packet for task 4"
+    },
+    {
+      "path": ".github/aiv-packets/VERIFICATION_PACKET_TASK_5.md",
+      "role": "doc",
+      "note": "AIV verification packet for task 5"
+    },
+    {
+      "path": ".github/aiv-packets/VERIFICATION_PACKET_TEMPLATE.md",
+      "role": "doc",
+      "note": "Template for AIV verification packets"
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "role": "config",
+      "note": "GitHub Dependabot automated dependency update configuration"
+    },
+    {
+      "path": ".github/init.sh",
+      "role": "source",
+      "note": "Project initialisation shell script (template-based setup)"
+    },
+    {
+      "path": ".github/release_message.sh",
+      "role": "source",
+      "note": "Shell script that generates release changelog from git shortlog"
+    },
+    {
+      "path": ".github/rename_project.sh",
+      "role": "source",
+      "note": "Shell script for renaming the project from its template origin"
+    },
+    {
+      "path": ".github/workflows/aiv-guard.yml",
+      "role": "config",
+      "note": "GitHub Actions workflow: enforces AIV packet presence on PRs"
+    },
+    {
+      "path": ".github/workflows/main.yml",
+      "role": "config",
+      "note": "GitHub Actions CI workflow: lint, test, coverage"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "role": "config",
+      "note": "GitHub Actions workflow: tag-triggered release pipeline"
+    },
+    {
+      "path": ".github/workflows/rename_project.yml",
+      "role": "config",
+      "note": "GitHub Actions workflow: runs rename_project.sh on dispatch"
+    },
+    {
+      "path": ".gitignore",
+      "role": "config",
+      "note": "Git ignore rules"
+    },
+    {
+      "path": ".taskmaster/config.json",
+      "role": "config",
+      "note": "Taskmaster tool configuration (model, provider settings)"
+    },
+    {
+      "path": ".taskmaster/tasks/task_001.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #1"
+    },
+    {
+      "path": ".taskmaster/tasks/task_002.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #2"
+    },
+    {
+      "path": ".taskmaster/tasks/task_003.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #3"
+    },
+    {
+      "path": ".taskmaster/tasks/task_004.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #4"
+    },
+    {
+      "path": ".taskmaster/tasks/task_005.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #5"
+    },
+    {
+      "path": ".taskmaster/tasks/task_006.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #6"
+    },
+    {
+      "path": ".taskmaster/tasks/task_007.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #7"
+    },
+    {
+      "path": ".taskmaster/tasks/task_008.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #8"
+    },
+    {
+      "path": ".taskmaster/tasks/task_009.md",
+      "role": "doc",
+      "note": "Taskmaster task specification #9"
+    },
+    {
+      "path": ".taskmaster/tasks/tasks.json",
+      "role": "config",
+      "note": "Taskmaster task registry / database (machine-read by taskmaster CLI)"
+    },
+    {
+      "path": ".taskmaster/templates/example_prd.txt",
+      "role": "doc",
+      "note": "Example PRD template for taskmaster task generation"
+    },
+    {
+      "path": ".taskmaster/templates/example_prd_rpg.txt",
+      "role": "doc",
+      "note": "Example RPG-domain PRD template for taskmaster task generation"
+    },
+    {
+      "path": ".windsurfrules",
+      "role": "config",
+      "note": "Windsurf IDE AI assistant rules, analogous to CLAUDE.md"
+    },
+    {
+      "path": "ABOUT_THIS_TEMPLATE.md",
+      "role": "doc",
+      "note": "Documentation describing the project template origin"
+    },
+    {
+      "path": "CLAUDE.md",
+      "role": "config",
+      "note": "Claude Code project instructions; configures AI assistant behaviour for this repo"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "role": "doc",
+      "note": "Contributor guidelines"
+    },
+    {
+      "path": "Containerfile",
+      "role": "config",
+      "note": "OCI/Docker container image build definition"
+    },
+    {
+      "path": "HISTORY.md",
+      "role": "doc",
+      "note": "Changelog / release history"
+    },
+    {
+      "path": "LICENSE",
+      "role": "doc",
+      "note": "Project license (legal text)"
+    },
+    {
+      "path": "MANIFEST.in",
+      "role": "config",
+      "note": "Python sdist packaging manifest (controls which files are included)"
+    },
+    {
+      "path": "Makefile",
+      "role": "config",
+      "note": "Build automation: targets include help, install, fmt, lint, test, watch, clean, virtualenv, release, docs"
+    },
+    {
+      "path": "README.md",
+      "role": "doc",
+      "note": "Primary project documentation / landing page"
+    },
+    {
+      "path": "artifacts/task_4_ci_verification_report.md",
+      "role": "doc",
+      "note": "Generated CI verification report produced during task 4 work"
+    },
+    {
+      "path": "artifacts/task_4_implementation_summary.md",
+      "role": "doc",
+      "note": "Generated implementation summary produced during task 4 work"
+    },
+    {
+      "path": "artifacts/task_4_scheduler_optimization_audit.md",
+      "role": "doc",
+      "note": "Audit artifact for task 4 scheduler optimization — documentation/analysis output"
+    },
+    {
+      "path": "docs/AIV_ENFORCEMENT_AUDIT.md",
+      "role": "doc",
+      "note": "AIV enforcement audit document"
+    },
+    {
+      "path": "docs/AIV_ENFORCEMENT_PLAN.md",
+      "role": "doc",
+      "note": "AIV enforcement plan document"
+    },
+    {
+      "path": "docs/PRD.md",
+      "role": "doc",
+      "note": "Product Requirements Document"
+    },
+    {
+      "path": "docs/index.md",
+      "role": "doc",
+      "note": "MkDocs site index page"
+    },
+    {
+      "path": "flashcore/VERSION",
+      "role": "asset",
+      "note": "Plain-text version string; read by pyproject.toml [tool.setuptools.dynamic] and formerly by setup.py.bak"
+    },
+    {
+      "path": "flashcore/__init__.py",
+      "role": "source",
+      "note": "Package public API; exports Card, Review, Session, CardState, Rating, DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION, FlashcardDatabase, YAMLProcessor, YAMLProcessorConfig"
+    },
+    {
+      "path": "flashcore/__main__.py",
+      "role": "source",
+      "note": "Entry point for `python -m flashcore`; delegates to flashcore.cli.main:main"
+    },
+    {
+      "path": "flashcore/base.py",
+      "role": "dead",
+      "note": "Scaffold placeholder; only defines NAME='flashcore'; no business logic; only consumed by the trivial test_base.py placeholder test"
+    },
+    {
+      "path": "flashcore/cli/__init__.py",
+      "role": "source",
+      "note": "Empty namespace init for cli sub-package"
+    },
+    {
+      "path": "flashcore/cli/_export_logic.py",
+      "role": "source",
+      "note": "Business logic for the `export md` CLI command"
+    },
+    {
+      "path": "flashcore/cli/_review_all_logic.py",
+      "role": "source",
+      "note": "Business logic for the `review_all` CLI command"
+    },
+    {
+      "path": "flashcore/cli/_review_logic.py",
+      "role": "source",
+      "note": "Business logic for the `review` CLI command"
+    },
+    {
+      "path": "flashcore/cli/_vet_logic.py",
+      "role": "source",
+      "note": "Business logic for the `vet` CLI command"
+    },
+    {
+      "path": "flashcore/cli/main.py",
+      "role": "source",
+      "note": "Typer app defining all CLI commands (vet, ingest, stats, review, review_all, export anki/md, restore); contains main() which is the console_scripts entry point"
+    },
+    {
+      "path": "flashcore/cli/review_ui.py",
+      "role": "source",
+      "note": "Terminal UI helpers for the review session"
+    },
+    {
+      "path": "flashcore/constants.py",
+      "role": "source",
+      "note": "Package-level constants including DEFAULT_PARAMETERS and DEFAULT_DESIRED_RETENTION"
+    },
+    {
+      "path": "flashcore/db/__init__.py",
+      "role": "source",
+      "note": "db sub-package init; re-exports FlashcardDatabase as the sole public symbol"
+    },
+    {
+      "path": "flashcore/db/connection.py",
+      "role": "source",
+      "note": "DuckDB connection management"
+    },
+    {
+      "path": "flashcore/db/database.py",
+      "role": "source",
+      "note": "FlashcardDatabase class — main DB access object"
+    },
+    {
+      "path": "flashcore/db/db_utils.py",
+      "role": "source",
+      "note": "Database utilities: backup_database, find_latest_backup"
+    },
+    {
+      "path": "flashcore/db/schema.py",
+      "role": "source",
+      "note": "Defines DB_SCHEMA_SQL constant containing the canonical DuckDB DDL"
+    },
+    {
+      "path": "flashcore/db/schema_manager.py",
+      "role": "source",
+      "note": "Schema migration / version management logic"
+    },
+    {
+      "path": "flashcore/exceptions.py",
+      "role": "source",
+      "note": "Custom exception hierarchy (DatabaseError, DeckNotFoundError, etc.)"
+    },
+    {
+      "path": "flashcore/models.py",
+      "role": "source",
+      "note": "Pydantic domain models: Card, Review, Session, CardState, Rating"
+    },
+    {
+      "path": "flashcore/parser.py",
+      "role": "source",
+      "note": "YAML flashcard parsing; exposes YAMLProcessor, YAMLProcessorConfig, load_and_process_flashcard_yamls"
+    },
+    {
+      "path": "flashcore/review_manager.py",
+      "role": "source",
+      "note": "Manages review session state"
+    },
+    {
+      "path": "flashcore/review_processor.py",
+      "role": "source",
+      "note": "Processes individual card reviews and computes FSRS scheduling"
+    },
+    {
+      "path": "flashcore/scheduler.py",
+      "role": "source",
+      "note": "FSRS scheduler wrapper"
+    },
+    {
+      "path": "flashcore/scripts/dump_history.py",
+      "role": "source",
+      "note": "Standalone utility script; exports legacy DuckDB tables to JSON; has own argparse main() / __main__ guard — NOT part of installed package per pyproject.toml"
+    },
+    {
+      "path": "flashcore/scripts/migrate.py",
+      "role": "source",
+      "note": "Standalone utility script; imports JSON exports into new DuckDB and validates migration; has argparse main() / __main__ guard — NOT part of installed package"
+    },
+    {
+      "path": "flashcore/session_manager.py",
+      "role": "source",
+      "note": "Session lifecycle management"
+    },
+    {
+      "path": "flashcore/yaml_models.py",
+      "role": "source",
+      "note": "Pydantic models for YAML flashcard file structure"
+    },
+    {
+      "path": "flashcore/yaml_validators.py",
+      "role": "source",
+      "note": "Validation logic for YAML flashcard content"
+    },
+    {
+      "path": "mkdocs.yml",
+      "role": "config",
+      "note": "MkDocs documentation site configuration"
+    },
+    {
+      "path": "pyproject.toml",
+      "role": "config",
+      "note": "PEP 517/518 build config; defines project metadata, dependencies, console_scripts entry point, tool settings"
+    },
+    {
+      "path": "requirements-test.txt",
+      "role": "config",
+      "note": "Test dependency pin file"
+    },
+    {
+      "path": "requirements.txt",
+      "role": "config",
+      "note": "Runtime dependency pin file"
+    },
+    {
+      "path": "setup.py.bak",
+      "role": "dead",
+      "note": "Backed-up legacy setuptools setup.py; superseded by pyproject.toml; .bak extension means it is not executed"
+    },
+    {
+      "path": "tests/__init__.py",
+      "role": "test",
+      "note": "Empty init making tests/ a package"
+    },
+    {
+      "path": "tests/cli/__init__.py",
+      "role": "test",
+      "note": "Empty init making tests/cli/ a package"
+    },
+    {
+      "path": "tests/cli/test_export_logic.py",
+      "role": "test",
+      "note": "Tests for flashcore.cli._export_logic"
+    },
+    {
+      "path": "tests/cli/test_flashcards_cli.py",
+      "role": "test",
+      "note": "Integration-style tests for the flashcore CLI"
+    },
+    {
+      "path": "tests/cli/test_main.py",
+      "role": "test",
+      "note": "Tests for flashcore.cli.main commands"
+    },
+    {
+      "path": "tests/cli/test_review_all_logic.py",
+      "role": "test",
+      "note": "Tests for flashcore.cli._review_all_logic"
+    },
+    {
+      "path": "tests/cli/test_review_ui.py",
+      "role": "test",
+      "note": "Tests for flashcore.cli.review_ui"
+    },
+    {
+      "path": "tests/cli/test_vet_logic.py",
+      "role": "test",
+      "note": "Tests for flashcore.cli._vet_logic"
+    },
+    {
+      "path": "tests/conftest.py",
+      "role": "test",
+      "note": "Pytest fixtures shared across the test suite"
+    },
+    {
+      "path": "tests/test_base.py",
+      "role": "test",
+      "note": "Trivial scaffold test asserting NAME=='flashcore' from flashcore.base"
+    },
+    {
+      "path": "tests/test_db.py",
+      "role": "test",
+      "note": "Tests for flashcore.db.database (FlashcardDatabase)"
+    },
+    {
+      "path": "tests/test_db_coverage.py",
+      "role": "test",
+      "note": "Additional coverage-focused tests for the db layer"
+    },
+    {
+      "path": "tests/test_db_errors.py",
+      "role": "test",
+      "note": "Error-path tests for the db layer"
+    },
+    {
+      "path": "tests/test_models.py",
+      "role": "test",
+      "note": "Tests for flashcore.models"
+    },
+    {
+      "path": "tests/test_parser.py",
+      "role": "test",
+      "note": "Tests for flashcore.parser"
+    },
+    {
+      "path": "tests/test_rating_system_inconsistency.py",
+      "role": "test",
+      "note": "Regression/consistency tests for the FSRS rating system"
+    },
+    {
+      "path": "tests/test_review_logic_duplication.py",
+      "role": "test",
+      "note": "pytest test module; exercises ReviewSessionManager.submit_review vs _submit_single_review parity; no entry points"
+    },
+    {
+      "path": "tests/test_review_manager.py",
+      "role": "test",
+      "note": "pytest unit+integration tests for ReviewSessionManager; uses mock_db, mock_scheduler, and in-memory FlashcardDatabase fixtures; no entry points"
+    },
+    {
+      "path": "tests/test_review_processor.py",
+      "role": "test",
+      "note": "pytest tests for ReviewProcessor class (process_review, process_review_by_uuid); also contains FSRS_Scheduler scheduling-behaviour tests (test_first_review_new_card etc.) that span the full scheduler API; no entry points"
+    },
+    {
+      "path": "tests/test_scheduler.py",
+      "role": "test",
+      "note": "pytest tests for FSRS_Scheduler: rating impact, stability growth, lapsed/early card, O(1) performance property, unknown-fsrs-state error, fallback without 'now' kwarg; no entry points"
+    },
+    {
+      "path": "tests/test_session_analytics_gaps.py",
+      "role": "test",
+      "note": "pytest tests documenting gaps and requirements for session analytics integration; exercises ReviewSessionManager.initialize_session and Session model creation; no entry points"
+    },
+    {
+      "path": "tests/test_session_manager.py",
+      "role": "test",
+      "note": "pytest unit+integration tests for SessionManager and SessionInsights; covers lifecycle (start/pause/resume/end), deck-switch detection, fatigue detection, trend analysis, recommendations, achievements, and alerts; no entry points"
+    },
+    {
+      "path": "tests/test_session_model.py",
+      "role": "test",
+      "note": "pytest tests for the Session Pydantic model: defaults, is_active, duration calculation, add_card_review, deck-switch counting, cards_per_minute, validation of negative values, unicode deck names; no entry points"
+    },
+    {
+      "path": "tests/test_yaml_validators.py",
+      "role": "test",
+      "note": "pytest tests for flashcore.yaml_validators: UUID validation, secret detection, media path validation (traversal, absolute, missing, directory), deck metadata extraction, card validation pipeline; no entry points"
+    }
+  ],
+  "entry_points": [
+    {
+      "entry": ".github/workflows/main.yml",
+      "what": "GitHub Actions CI entry point: triggers on push/PR, runs lint then pytest suite"
+    },
+    {
+      "entry": ".github/workflows/release.yml",
+      "what": "GitHub Actions release entry point: triggers on version tag push, builds and publishes release"
+    },
+    {
+      "entry": ".github/workflows/aiv-guard.yml",
+      "what": "GitHub Actions gate: blocks PRs that lack a valid AIV commit-integrity packet"
+    },
+    {
+      "entry": ".github/workflows/rename_project.yml",
+      "what": "GitHub Actions workflow_dispatch entry point: executes rename_project.sh to rebrand from template"
+    },
+    {
+      "entry": ".github/init.sh",
+      "what": "Shell script entry point: initialises repo from template (run manually or via make init)"
+    },
+    {
+      "entry": ".github/release_message.sh",
+      "what": "Shell script entry point: generates release changelog from git shortlog (called by release workflow)"
+    },
+    {
+      "entry": ".github/rename_project.sh",
+      "what": "Shell script entry point: renames project slug/author across files (called by rename_project.yml)"
+    },
+    {
+      "entry": "Makefile",
+      "what": "Make entry point: exposes targets help, install, fmt, lint, test, watch, clean, virtualenv, release, docs, init"
+    },
+    {
+      "entry": "flashcore/__main__.py",
+      "what": "python -m flashcore entry point; calls flashcore.cli.main:main()"
+    },
+    {
+      "entry": "flashcore/cli/main.py:main",
+      "what": "console_scripts entry point 'flashcore' declared in pyproject.toml [project.scripts]; runs the Typer app with commands: vet, ingest, stats, review, review_all, export anki, export md, restore"
+    },
+    {
+      "entry": "flashcore/__init__.py",
+      "what": "Installed Python package public API; importable as `import flashcore`; exports Card, Review, Session, CardState, Rating, DEFAULT_PARAMETERS, DEFAULT_DESIRED_RETENTION, FlashcardDatabase, YAMLProcessor, YAMLProcessorConfig"
+    },
+    {
+      "entry": "flashcore/scripts/dump_history.py:main",
+      "what": "Standalone CLI script (not installed); invoked directly with python flashcore/scripts/dump_history.py --db OLD --out-dir DIR; exports legacy DB tables to JSON"
+    },
+    {
+      "entry": "flashcore/scripts/migrate.py:main",
+      "what": "Standalone CLI script (not installed); invoked directly with python flashcore/scripts/migrate.py import|validate ...; imports JSON exports into new DuckDB or validates migration"
+    }
+  ],
+  "architecture_summary": "flashcore is a Python flashcard/spaced-repetition system built on a deliberate Hub-and-Spoke layout (per CLAUDE.md): the spoke `flashcore/` holds pure domain logic (Card, Review, Session, CardState, Rating, FSRS DEFAULT_PARAMETERS/DEFAULT_DESIRED_RETENTION, FlashcardDatabase over DuckDB, and a YAMLProcessor for authoring), while the hub `flashcore/cli/` injects all paths at runtime and exposes a Typer console app (`flashcore` console_script and `python -m flashcore`) with commands vet, ingest, stats, review, review_all, export anki, export md, and restore. Non-installed utility scripts under `flashcore/scripts/` (dump_history.py, migrate.py) handle legacy-DB extraction to JSON and import/validation into the new DuckDB store. The repo is template-derived, evidenced by .github automation: CI (main.yml lint+pytest), tagged-release publishing (release.yml + release_message.sh), an AIV commit-integrity gate (aiv-guard.yml), and template rename/init tooling (rename_project.yml, init.sh, rename_project.sh), with a Makefile orchestrating install/fmt/lint/test/docs/release. The 118-file inventory skews toward docs (37) and config (23) over source (27) and tests (24), consistent with a packaged, heavily-governed library plus its task/governance scaffolding. PROVISIONAL: file-level role counts and entry-point descriptions are taken from the supplied Stage-1 inventory and not independently re-read here.",
+  "provisional_intent": "PROVISIONAL: The apparent goal is to provide a packaged, CLI-driven spaced-repetition flashcard engine — authoring cards from YAML, ingesting/vetting them into a DuckDB-backed store, scheduling reviews via FSRS-style parameters, and exporting to Anki/Markdown — while migrating data from a legacy database. A strong secondary intent is rigorous change governance: the AIV commit-packet workflow, CI/release automation, and template-based project scaffolding suggest the repo doubles as a disciplined, auditable engineering template. This intent is inferred from entry points, exported API symbols, and CLAUDE.md conventions and should be verified against primary source before being treated as fact."
+}
