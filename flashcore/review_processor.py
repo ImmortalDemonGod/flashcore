@@ -96,10 +96,18 @@ class ReviewProcessor:
         )
 
         try:
-            # Step 2: Compute next state using scheduler (O(1) with cached card state)
+            # Step 2: Compute next state using scheduler (O(1) with cached card state).
+            # Supply the prior review timestamp so FSRS measures the real elapsed
+            # interval (retrievability) rather than treating on-time reviews as
+            # zero-elapsed. The hub owns the reviews store; the scheduler stays pure.
+            prior_review = self.db_manager.get_latest_review_for_card(card.uuid)
+            last_review_ts = prior_review.ts if prior_review else None
             scheduler_output: SchedulerOutput = (
                 self.scheduler.compute_next_state(
-                    card=card, new_rating=rating, review_ts=ts
+                    card=card,
+                    new_rating=rating,
+                    review_ts=ts,
+                    last_review_ts=last_review_ts,
                 )
             )
 
