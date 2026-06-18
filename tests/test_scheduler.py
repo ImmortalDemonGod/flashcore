@@ -518,6 +518,8 @@ def test_review_processor_process_review_success(sample_card_uuid: UUID):
         return updated_card
 
     db_manager.add_review_and_update_card.side_effect = add_review_side_effect
+    # New card -> no prior review, so the scheduler receives last_review_ts=None.
+    db_manager.get_latest_review_for_card.return_value = None
 
     processor = ReviewProcessor(db_manager=db_manager, scheduler=scheduler)
     result = processor.process_review(
@@ -526,7 +528,7 @@ def test_review_processor_process_review_success(sample_card_uuid: UUID):
 
     assert result == updated_card
     scheduler.compute_next_state.assert_called_once_with(
-        card=card, new_rating=3, review_ts=ts
+        card=card, new_rating=3, review_ts=ts, last_review_ts=None
     )
     assert captured["review"].card_uuid == card.uuid
     assert captured["review"].rating == 3
@@ -692,3 +694,44 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
     print(f"  100 reviews: {time_100*1000:.3f}ms")
     print(f"  500 reviews: {time_500*1000:.3f}ms")
     print(f"  Ratio (500/1): {time_500/time_1:.2f}x")
+
+
+def test_on_time_review_uses_prior_review_ts_not_due_date(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
+    """Captured bug (corpus C2 / F4): an on-time review must compute elapsed_days
+    from the card's PRIOR review timestamp, not its due date.
+
+    Before the fix, scheduler.py set ``fsrs_card.last_review = fsrs_card.due``, so a
+    review on the exact due date yielded ``elapsed_days == 0`` and retrievability
+    R=1.0 -- corrupting the FSRS stability update for the normal (on-time) case.
+    The corrected contract: callers pass ``last_review_ts`` (the real prior review
+    time); elapsed_days is measured against it.
+    """
+    # Card last reviewed 2024-01-01, scheduled 7 days out -> due 2024-01-08.
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.Review,
+        stability=5.0,
+        difficulty=6.0,
+        next_due_date=datetime.date(2024, 1, 8),
+    )
+    prior_review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
+    on_time_ts = datetime.datetime(2024, 1, 8, 10, 0, 0, tzinfo=UTC)  # == due
+
+    result = scheduler.compute_next_state(
+        card, 3, on_time_ts, last_review_ts=prior_review_ts
+    )
+    # The true interval since the prior review is 7 days, NOT 0.
+    assert result.elapsed_days == 7
+
+    # B2 invariant: a same-instant re-review (no elapsed time) must differ from a
+    # real 7-day interval -- both elapsed_days and the resulting stability.
+    same_day = scheduler.compute_next_state(
+        card, 3, on_time_ts, last_review_ts=on_time_ts
+    )
+    assert same_day.elapsed_days == 0
+    assert result.stab != same_day.stab
