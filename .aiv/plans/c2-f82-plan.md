@@ -4,7 +4,7 @@
 **Stage:** c2 (write-code follows)
 **Risk tier:** R1
 **Branch:** `fix/c2-f82`
-**No prior check-drift verdict found** at `.aiv/verdicts/c2-f82/check-drift.md`; plan is fresh.
+**check-drift iteration 1 verdict:** `.aiv/verdicts/c2-f82/check-drift.md` — PARTIAL. One hard stop resolved in this revision: GT-3 (Drives A/D/E) — gate [5] re-tagged from static grep to CliRunner execution test; `tests/cli/test_main.py` added to scope; Commit 5 (new) delivers the live-fire exit-code proof.
 
 > **AskUserQuestion gate status:** The tool was invoked twice in the plan stage and
 > returned a tool error both times. Design decisions in §7 are locked via operator
@@ -58,6 +58,7 @@ on 2026-06-19.
 | V14 | `_review_logic.py` does not currently import `typer` | `_review_logic.py:1-8` | VERIFIED |
 | V15 | No taskmaster entry tracks F82 | `grep -rn "F82" .taskmaster/tasks/` → no output | VERIFIED |
 | V16 | Test baseline: 480 tests, 1 skipped | CLAUDE.md | VERIFIED (documented) |
+| V17 | `tests/cli/test_main.py` exists and uses `CliRunner` + `result.exit_code == 1` at ~14 sites — live-fire CLI exit-code pattern is established in the project | `grep -c "exit_code" tests/cli/test_main.py` — pre-change read confirmed non-zero | VERIFIED |
 
 ---
 
@@ -92,6 +93,7 @@ store skipped"). Lessons are sourced from CLAUDE.md and the brief.
 | `flashcore/cli/review_ui.py` | Primary bug site: exception handler, counter tracking, conditional message, return type |
 | `flashcore/cli/_review_logic.py` | Single caller; must wire the bool return to `typer.Exit(code=1)` on total failure |
 | `tests/cli/test_review_ui.py` | Strengthen masked test; add all-fail test; add Well-done regression guard |
+| `tests/cli/test_main.py` | CliRunner exit-code assertion: `result.exit_code == 1` when all reviews fail — live-fire proof of the `typer.Exit` wiring in `_review_logic.py` (evidence class A/B; established convention, V17) |
 | `audit/02-static-audit.md` | Finding status must be updated to record the correcting commit SHA (gate [12]) |
 
 ### OUT OF SCOPE (classified per operator cost function Drive A)
@@ -173,15 +175,24 @@ framework-agnostic; all typer coupling stays in `_review_logic.py`, which alread
 orchestrates DB, scheduler, and manager construction. "Log-only" is **DISFAVORED**
 (Drive D: callers cannot detect total failure; silent degradation).
 
-### Decision 4 — Test location: `test_review_ui.py` ONLY
+### Decision 4 — Test location: `test_review_ui.py` for unit tests; `test_main.py` for CLI exit-code proof
 
-**Chosen:** All new and strengthened tests go in `tests/cli/test_review_ui.py`.
+**Chosen:** Unit tests for `start_review_flow` (bounded loop, conditional message, bool
+return) go in `tests/cli/test_review_ui.py`. The execution proof that `typer.Exit(code=1)`
+is actually raised when the caller (`_review_logic.py`) handles `False` goes in
+`tests/cli/test_main.py` as a CliRunner test, following the established project convention
+(V17, ~14 existing sites). This two-file placement separates concerns: unit behavior of
+`start_review_flow` vs live-fire CLI exit-code wiring of the full command.
 
-**Rationale:** `start_review_flow` is defined in `review_ui.py`; its tests belong in
-`test_review_ui.py`. `test_review_all_logic.py` tests `_review_all_logic.py` (a
-separate module with a separate loop architecture; confirmed by V13). Adding
-`start_review_flow` tests there would be off-target and create a maintenance liability
-when the function moves or changes signature.
+**Rationale:** `start_review_flow` unit tests belong in `test_review_ui.py` (module
+alignment). The CLI exit-code assertion is NOT a `start_review_flow` unit test — it is a
+live-fire test of the `_review_logic.py → typer.Exit` wiring, which is exercised only at
+the CLI invocation boundary. The project's own convention for this evidence class is
+CliRunner + `result.exit_code == 1` in `test_main.py` (V17); using the same file and
+pattern provides evidence class A/B (live-fire). GT-3 from check-drift iteration 1
+establishes that the grep-only proof is NOT sufficient and that an execution test is
+demonstrably possible — which rules out declaring it out-of-scope (Drive B: exemption
+must be impossible, not merely costly).
 
 ---
 
@@ -286,14 +297,15 @@ aiv commit flashcore/cli/review_ui.py \
    ```
 
 **Test-layer contract for Commit 3:**
-The unit tests for `start_review_flow` (in `test_review_ui.py`) verify the bool
-return value. The integration assertion that `typer.Exit(code=1)` is actually raised
-by `review_logic()` is a behavior of the caller layer; it would be asserted by an
-integration test of `review_logic()`. That integration test is not added in this PR
-(the existing `_review_logic.py` test suite does not exist as a separate file and
-adding one is out-of-scope). The gate [5] check is satisfied by the `grep` drill in
-the completion contract verifying that both `return False` in `review_ui.py` and
-`raise typer.Exit(code=1)` in `_review_logic.py` exist at the correct sites.
+The unit tests for `start_review_flow` (in `test_review_ui.py`, Commit 4) verify the
+bool return value. The execution proof that `typer.Exit(code=1)` is actually raised by
+`review_logic()` when `start_review_flow` returns `False` is a CLI-layer concern and is
+delivered by **Commit 5** (`tests/cli/test_main.py`, CliRunner test, evidence class A/B).
+The static grep approach (previously proposed for gate [5]) is **DISFAVORED per GT-3**:
+string-presence cannot detect mis-wiring of the condition, and the project's existing
+CliRunner convention makes execution proof demonstrably possible (Drive E cannot claim
+"impossible"; Drive D forbids treating grep-presence as PASS). Gate [5] is satisfied by
+the Commit 5 CliRunner execution test, not by grep.
 
 ```bash
 git add flashcore/cli/_review_logic.py
@@ -401,7 +413,47 @@ aiv commit tests/cli/test_review_ui.py \
 
 ---
 
-### Commit 5 — `audit/02-static-audit.md`
+### Commit 5 — `tests/cli/test_main.py`
+
+**What changes:** Add one new CliRunner test that invokes the `review` CLI command
+with `start_review_flow` patched to return `False` (and any session/DB setup patched
+per the patterns already used in this file), and asserts `result.exit_code == 1`.
+
+This is the **live-fire proof** (evidence class A/B) that the `if not result: raise typer.Exit(code=1)`
+wiring in `_review_logic.py` (Commit 3) operates correctly at the CLI boundary.
+Following the project convention: CliRunner invocation + `result.exit_code == 1`
+assertion (V17, ~14 existing sites in this file).
+
+**Test-layer contract for Commit 5:**
+- Input produced by the CLI layer: `runner.invoke(app, ["review"])` — the CliRunner is
+  the hub that drives the full `review` command stack.
+- `start_review_flow` is patched at `flashcore.cli._review_logic.start_review_flow` to
+  return `False` — simulating a total-failure session without needing a real DB or
+  `ReviewSessionManager`.
+- Any DB/session/scheduler setup in `review_logic()` is patched per the patterns
+  already established in `test_main.py` (inspect the file's existing mock fixtures before
+  writing; do NOT reinvent the setup pattern).
+- The assertion `result.exit_code == 1` confirms the full chain:
+  `False` return → `if not result:` branch → `raise typer.Exit(code=1)` → CLI exit code 1.
+- Evidence class: A/B (live-fire at CLI boundary); NOT synthetic unit (D/E).
+
+All test assertions are tagged: UNVERIFIED — pending execution at write-code stage.
+
+```bash
+git add tests/cli/test_main.py
+aiv commit tests/cli/test_main.py \
+  -m "test(main): add CliRunner exit-code assertion for review command on total failure [F82]" \
+  -t R1 \
+  -c "CliRunner invokes the review CLI command with start_review_flow patched to return False; result.exit_code == 1 confirms typer.Exit(code=1) wiring in _review_logic.py at the CLI boundary (evidence class A/B)" \
+  -i "https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92" \
+  --requirement "failure signal confirmed live at CLI boundary — gate [5]" \
+  -r "R1: test-only change; no production logic modified; follows established CliRunner pattern (V17)" \
+  -s "Live-fire CLI exit-code proof for typer.Exit wiring on total review failure (GT-3 remediation)"
+```
+
+---
+
+### Commit 6 — `audit/02-static-audit.md`
 
 **What changes:** Locate the F82 finding entry near line 92 and append or update a
 status note: `CORRECTED: bounded loop + conditional message — <commit-sha of commit 2>`.
@@ -454,7 +506,8 @@ gh pr create \
 | `flashcore/cli/review_ui.py` | Primary bug site | Logic: counters, `skip_card` call, conditional message, return type |
 | `flashcore/review_manager.py` | Queue management | New public method `skip_card` |
 | `flashcore/cli/_review_logic.py` | Single caller | Wire failure signal + `import typer` |
-| `tests/cli/test_review_ui.py` | Test coverage | Strengthen 1 + add 2 new tests |
+| `tests/cli/test_review_ui.py` | Test coverage | Strengthen 1 + add 2 new tests (unit layer) |
+| `tests/cli/test_main.py` | CLI exit-code proof | Add 1 CliRunner test asserting exit_code==1 (live-fire, evidence class A/B) |
 | `audit/02-static-audit.md` | Finding status | Status annotation for F82 |
 
 **Files confirmed NOT requiring changes:**
@@ -487,7 +540,7 @@ Directly maps to completion contract VERIFY slots [1]–[12].
 | [2] | Session terminates in finite time | `pytest tests/cli/test_review_ui.py -q -k "all_fail" --timeout=10` | UNVERIFIED — pending execution |
 | [3] | "Well done" absent on total failure | `pytest -k "all_fail"` → assert `"Well done" not in captured.out` | UNVERIFIED — pending execution |
 | [4] | "Well done" present on all-success | `pytest -k "success"` → assert `"Well done!" in captured.out` | UNVERIFIED — pending execution |
-| [5] | Failure signal wired to CLI | `grep -n "return False" flashcore/cli/review_ui.py` and `grep -n "typer.Exit" flashcore/cli/_review_logic.py` both non-empty | UNVERIFIED — pending execution |
+| [5] | Failure signal confirmed live at CLI boundary | `pytest tests/cli/test_main.py -q -k "review_command_exits" --tb=short` → exits 0; `result.exit_code == 1` assertion passes (evidence class A/B; Commit 5 CliRunner test) | UNVERIFIED — pending execution |
 | [6] | Existing exception test strengthened | `pytest tests/cli/test_review_ui.py::test_start_review_flow_submit_review_exception -v` passes; `grep -n "side_effect.*None" tests/cli/test_review_ui.py` confirms `[card, None]` pattern removed from that test | UNVERIFIED — pending execution |
 | [7] | Advance mechanism recorded in commit log | `git log --oneline HEAD~5..HEAD` shows "skip_card" or "public skip_card" | UNVERIFIED — pending execution |
 | [8] | New all-fail test collected and passes | `pytest tests/cli/test_review_ui.py --co -q` lists `test_start_review_flow_all_fail_suppresses_well_done` | UNVERIFIED — pending execution |
@@ -508,7 +561,8 @@ Directly maps to completion contract VERIFY slots [1]–[12].
 | Existing tests break due to return-type change | Low | Only one caller (V11); existing `test_review_ui.py` tests do not assert on return value; UNVERIFIED — pending execution |
 | `test_review_all_logic.py` incidentally breaks | Very low | Confirmed: does not import from `review_ui` (V13); UNVERIFIED — pending execution |
 | Stale `aiv` context from a prior abandoned change | Known | Run `aiv status` first; `echo "y" | aiv abandon` if stale |
-| `aiv commit` primary-file constraint violated | Known | All five commits use files that exist on disk and have changes relative to HEAD; deleted files are never used as primary |
+| `aiv commit` primary-file constraint violated | Known | All six commits use files that exist on disk and have changes relative to HEAD; deleted files are never used as primary |
+| `test_main.py` CliRunner test requires complex mocking of DB/session/scheduler | Medium | Read `test_main.py` existing fixtures BEFORE writing; reuse the established mock pattern verbatim rather than inventing a new one; if `review_logic()` setup cannot be patched cleanly, escalate to operator before writing — do NOT fall back to grep-only proof |
 | `make lint` fails on new `import typer` in `_review_logic.py` | Low | `typer` is already a project dependency (`main.py` imports it); no new dep needed |
 
 **RED STOP conditions (block all pushes until resolved):**
@@ -549,3 +603,11 @@ identified").
    commit SHA after merge.
 
 6. **Unblocked work:** No downstream PRs are blocked. F83–F114 continue independently.
+
+---
+
+## Revision log
+
+| Iteration | Date | Hard stop resolved | What changed |
+|-----------|------|--------------------|--------------|
+| 1 → 2 | 2026-06-19 | GT-3 (Drives A/D/E): gate [5] verified by grep-only, not execution | (1) §2 V17 added — confirmed `tests/cli/test_main.py` has established CliRunner+exit_code convention. (2) §6 IN SCOPE: `tests/cli/test_main.py` added with A/B evidence classification. (3) §7 Decision 4: extended to clarify CliRunner test placement in `test_main.py` vs unit tests in `test_review_ui.py`; GT-3 rationale added. (4) §9 Commit 3 test-layer contract: "out-of-scope" language for integration test removed; replaced with forward-reference to Commit 5. (5) §9: new Commit 5 (`tests/cli/test_main.py` CliRunner test) inserted; old Commit 5 renumbered to Commit 6. (6) §10: `tests/cli/test_main.py` added to critical files. (7) §14 gate [5]: verification command changed from static grep to `pytest tests/cli/test_main.py -k "review_command_exits"` with evidence class A/B. (8) §15: risk row added for `test_main.py` mocking complexity with escalation instruction. No other sections changed. |
