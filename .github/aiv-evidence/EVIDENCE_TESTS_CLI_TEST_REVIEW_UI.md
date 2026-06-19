@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `tests/cli/test_review_ui.py`
-**Commit:** `aab9d20`
-**Previous:** `076e8e0`
-**Generated:** 2026-06-19T21:38:46Z
+**Commit:** `58a44e1`
+**Previous:** `e3b95d5`
+**Generated:** 2026-06-19T22:05:41Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,18 +16,16 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "tests/cli/test_review_ui.py"
-  classification_rationale: "R1: test-only change; no production logic modified"
+  classification_rationale: "R1: test-only change adding one new test case; no production logic modified"
   classified_by: "Claude"
-  classified_at: "2026-06-19T21:38:46Z"
+  classified_at: "2026-06-19T22:05:41Z"
 ```
 
 ## Claim(s)
 
-1. exception handler calls skip_card to advance queue; closure-based side_effect confirms loop terminates after one card attempt, not from a coincidental mock shortcut
-2. all-fail scenario with 3-card queue: Well-done absent, Review-session-failed present, get_next_card call_count bounded at 4, skip_card call_count 3, bool return is False
-3. success-path regression guard: Well-done present and bool return is True when submit_review succeeds; skip_card not called on success path
-4. direct unit tests for skip_card on real ReviewSessionManager cover the new public method per AIV symbol-coverage requirement (scope widened per operator rule 8)
-5. No existing tests were modified or deleted during this change.
+1. The elif branch at review_ui.py:141-143 (failed_count>0 and success_count>0) is now exercised: the new mixed-outcome scenario returns True, prints 'Review session finished.' without 'Well done', and confirms skip_card is called once for the failed card
+2. pytest tests/cli/test_review_ui.py: 11 passed (was 10); full suite 491 passed, 0 failed — no regressions
+3. No existing tests were modified or deleted during this change.
 
 ---
 
@@ -36,34 +34,24 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92](https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92)
-- **Requirements Verified:** existing exception test strengthened [gate 6]; all-fail test [gate 8]; success regression guard [gate 4]
+- **Requirements Verified:** Codecov PR comment: 2 lines missing (review_ui.py patch at 85.71%) — elif branch lines 141-143 untested
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`aab9d20`](https://github.com/ImmortalDemonGod/flashcore/tree/aab9d202c56bd895acc542e782752f6fd35da978))
+**Scope Inventory** (SHA: [`58a44e1`](https://github.com/ImmortalDemonGod/flashcore/tree/58a44e153522326b38460694fb17f49ef928fe82))
 
-- [`tests/cli/test_review_ui.py#L128-L133`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L128-L133)
-- [`tests/cli/test_review_ui.py#L135`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L135)
-- [`tests/cli/test_review_ui.py#L137-L146`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L137-L146)
-- [`tests/cli/test_review_ui.py#L153`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L153)
-- [`tests/cli/test_review_ui.py#L157-L160`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L157-L160)
-- [`tests/cli/test_review_ui.py#L250-L252`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L250-L252)
-- [`tests/cli/test_review_ui.py#L255-L266`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L255-L266)
-- [`tests/cli/test_review_ui.py#L275-L276`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L275-L276)
-- [`tests/cli/test_review_ui.py#L278-L352`](https://github.com/ImmortalDemonGod/flashcore/blob/aab9d202c56bd895acc542e782752f6fd35da978/tests/cli/test_review_ui.py#L278-L352)
+- [`tests/cli/test_review_ui.py#L352-L401`](https://github.com/ImmortalDemonGod/flashcore/blob/58a44e153522326b38460694fb17f49ef928fe82/tests/cli/test_review_ui.py#L352-L401)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_start_review_flow_submit_review_exception`** (L128-L133): FAIL -- WARNING: No tests import or call `test_start_review_flow_submit_review_exception`
-- **`_get_next`** (L135): FAIL -- WARNING: No tests import or call `_get_next`
-- **`_skip`** (L137-L146): FAIL -- WARNING: No tests import or call `_skip`
-- **`test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop`** (L153): FAIL -- WARNING: No tests import or call `test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop`
-- **`test_start_review_flow_all_fail_suppresses_well_done`** (L157-L160): FAIL -- WARNING: No tests import or call `test_start_review_flow_all_fail_suppresses_well_done`
-- **`test_start_review_flow_success_emits_well_done`** (L250-L252): FAIL -- WARNING: No tests import or call `test_start_review_flow_success_emits_well_done`
+- **`test_start_review_flow_mixed_outcome_no_well_done`** (L352-L401): FAIL -- WARNING: No tests import or call `test_start_review_flow_mixed_outcome_no_well_done`
+- **`_get_next`** (unknown): FAIL -- WARNING: No tests import or call `_get_next`
+- **`_skip`** (unknown): FAIL -- WARNING: No tests import or call `_skip`
+- **`_submit`** (unknown): FAIL -- WARNING: No tests import or call `_submit`
 
-**Coverage summary:** 0/6 symbols verified by tests.
+**Coverage summary:** 0/4 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
@@ -74,23 +62,21 @@ classification:
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | exception handler calls skip_card to advance queue; closure-... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 2 | all-fail scenario with 3-card queue: Well-done absent, Revie... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 3 | success-path regression guard: Well-done present and bool re... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 4 | direct unit tests for skip_card on real ReviewSessionManager... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 5 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
+| 1 | The elif branch at review_ui.py:141-143 (failed_count>0 and ... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 2 | pytest tests/cli/test_review_ui.py: 11 passed (was 10); full... | structural | Class C not collected | REVIEW MANUAL REVIEW |
+| 3 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
-**Verdict summary:** 0 verified, 0 unverified, 5 manual review.
+**Verdict summary:** 0 verified, 0 unverified, 3 manual review.
 ---
 
 ## Verification Methodology
 
 **Zero-Touch Mandate:** Verifier inspects artifacts only.
-Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (0/6 symbols verified).
+Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (0/4 symbols verified).
 Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/types, not behavior.
 
 ---
 
 ## Summary
 
-Test coverage for bounded loop and conditional Well-done message
+Close elif-branch coverage gap flagged by Codecov in PR review

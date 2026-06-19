@@ -349,3 +349,53 @@ def test_start_review_flow_success_emits_well_done(
     assert "Review session finished. Well done!" in output
     assert result is True
     mock_manager.skip_card.assert_not_called()
+
+
+def test_start_review_flow_mixed_outcome_no_well_done(
+    mock_manager: MagicMock, capsys
+):
+    """Two-card queue: first card succeeds, second fails.
+
+    Exercises the elif (failed_count > 0, success_count > 0) branch in
+    start_review_flow (review_ui.py:141-143).  Must emit 'Review session
+    finished.' WITHOUT 'Well done', must NOT emit 'Review session failed.',
+    and must return True.
+    """
+    card_ok = Card(uuid=uuid4(), deck_name="Test", front="Q1?", back="A1")
+    card_fail = Card(uuid=uuid4(), deck_name="Test", front="Q2?", back="A2")
+    queue = [card_ok, card_fail]
+
+    def _get_next():
+        return queue[0] if queue else None
+
+    def _skip(uuid):
+        nonlocal queue
+        queue = [c for c in queue if c.uuid != uuid]
+
+    mock_manager.review_queue = list(queue)
+    mock_manager.get_next_card.side_effect = _get_next
+    mock_manager.skip_card.side_effect = _skip
+
+    updated_card = MagicMock()
+    updated_card.next_due_date = date.today() + timedelta(days=1)
+
+    def _submit(card_uuid, rating, resp_ms, eval_ms):
+        if card_uuid == card_ok.uuid:
+            queue.pop(0)  # simulate _remove_card_from_queue on success
+            return updated_card
+        raise Exception("DB error")
+
+    mock_manager.submit_review.side_effect = _submit
+
+    with patch("flashcore.cli.review_ui._display_card", return_value=500):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(3, 300)
+        ):
+            result = start_review_flow(mock_manager)
+
+    output = capsys.readouterr().out
+    assert "Review session finished." in output
+    assert "Well done" not in output
+    assert "Review session failed" not in output
+    assert result is True
+    mock_manager.skip_card.assert_called_once_with(card_fail.uuid)
