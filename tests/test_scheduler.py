@@ -265,7 +265,9 @@ def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         stability=1.5,
         difficulty=6.0,
         next_due_date=datetime.date(2024, 1, 1),
-        last_review_date=datetime.date(2023, 12, 31),  # Path A: hub-supplied prior-review date
+        last_review_date=datetime.date(
+            2023, 12, 31
+        ),  # Path A: hub-supplied prior-review date
     )
 
     # Scenario 1 (Control): Review on the exact due date.
@@ -301,7 +303,9 @@ def test_review_early_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
         stability=2.0,
         difficulty=5.0,
         next_due_date=datetime.date(2024, 1, 10),
-        last_review_date=datetime.date(2024, 1, 8),  # Path A: hub-supplied prior-review date
+        last_review_date=datetime.date(
+            2024, 1, 8
+        ),  # Path A: hub-supplied prior-review date
     )
 
     # Scenario 1 (Control): Review on the exact due date.
@@ -725,7 +729,9 @@ def test_on_time_review_elapsed_days_positive(
         stability=14.0,
         difficulty=5.0,
         next_due_date=datetime.date(2024, 3, 15),
-        last_review_date=datetime.date(2024, 3, 1),  # Path A: hub-supplied prior-review date (14 days before due)
+        last_review_date=datetime.date(
+            2024, 3, 1
+        ),  # Path A: hub-supplied prior-review date (14 days before due)
     )
     # Caller (hub) explicitly supplies stability, difficulty, next_due_date, last_review_date.
     # review_ts is the on-time review: date matches next_due_date exactly.
