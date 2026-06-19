@@ -37,7 +37,7 @@ classification:
   classified_at: "2026-06-18T19:58:55Z"
 ```
 
-## Claims
+## Claim(s)
 
 1. compute_next_state accepts an optional last_review_ts; when provided, fsrs_card.last_review is set from it (UTC-normalized) rather than the due date
 2. An on-time review (review_ts == next_due_date) with a prior-review timestamp 7 days earlier yields SchedulerOutput.elapsed_days == 7, not 0
@@ -52,7 +52,7 @@ classification:
 
 ---
 
-## Evidence References
+## Evidence
 
 | # | Evidence File | Commit SHA | Classes |
 |---|---------------|------------|---------|
@@ -61,7 +61,15 @@ classification:
 | 3 | EVIDENCE_TESTS_TEST_SCHEDULER.md | `f801290` | A, B, E |
 | 4 | EVIDENCE_TESTS_TEST_SCHEDULER.BUG_CATALOG.MD.md | `413bc62` | A, B, E |
 
+### Class A (Execution Evidence)
 
+Test suite run on branch HEAD (`9d0b3129`), Python 3.11, Ubuntu:
+
+- `test_on_time_review_uses_prior_review_ts_not_due_date` — PASS
+- `test_review_processor_process_review_success` — PASS
+- Full baseline: 465 passed / 1 skipped / 16 pre-existing errors (same 16 as clean base `b5e1c4b`, verified by stash-and-rerun)
+
+---
 
 ### Class B (Referential Evidence)
 
@@ -79,19 +87,15 @@ classification:
 
 ---
 
-### Class E (Intent Alignment)
+### Class C (Negative Evidence)
 
-The change is anchored to the audit finding's immutable evidence (corpus C2 / F4,
-F87, F169, F255, F115), SHA-pinned to the cited baseline `b5e1c4b`:
+Searched for and did not find:
 
-- Intent — the defect line: <https://github.com/ImmortalDemonGod/flashcore/blob/b5e1c4b983b33602e8531340f382c72626a0fb59/flashcore/scheduler.py#L211-L212>
-- Call site the hub repairs: <https://github.com/ImmortalDemonGod/flashcore/blob/b5e1c4b983b33602e8531340f382c72626a0fb59/flashcore/review_processor.py#L101>
+- Any other call site that passes `last_review` to `compute_next_state` before this change: none found
+- Any existing test deleted or `@pytest.mark.skip` added: none (only one `assert_called_once_with` updated for the new `last_review_ts=None` kwarg on a new-card call)
+- The 16 pre-existing errors in `test_db.py`, `test_parser.py`, `test_yaml_validators.py` do NOT involve any file touched by this change — confirmed by stash-and-rerun on clean base
 
-**Requirement satisfied:** FSRS retrievability must derive from the real interval
-since the prior review, not the due date. The audit recipe assumed a one-line edit;
-grounding showed the prior-review timestamp is not in the scheduler's cached state,
-so the intent is satisfied by plumbing it from the reviews store (hub) into the
-scheduler (spoke) via a new optional parameter.
+---
 
 ### Class D (Behavioral Evidence) — prove-it, diffed against cited baseline
 
@@ -108,6 +112,22 @@ Artifacts (sha256 in `MANIFEST.sha256`): `.github/aiv-packets/evidence/C2_before
 stability (5.1001); the fix restores correct retrievability while still
 distinguishing a genuine same-day re-review. Per-claim verdict: claims 1, 2, 3, 5,
 6, 7, 8, 9 PASS; claim 4 PASS (baseline isolation recorded); claim 10 PASS. 0 UNVERIFIED.
+
+---
+
+### Class E (Intent Alignment)
+
+The change is anchored to the audit finding's immutable evidence (corpus C2 / F4,
+F87, F169, F255, F115), SHA-pinned to the cited baseline `b5e1c4b`:
+
+- Intent — the defect line: <https://github.com/ImmortalDemonGod/flashcore/blob/b5e1c4b983b33602e8531340f382c72626a0fb59/flashcore/scheduler.py#L211-L212>
+- Call site the hub repairs: <https://github.com/ImmortalDemonGod/flashcore/blob/b5e1c4b983b33602e8531340f382c72626a0fb59/flashcore/review_processor.py#L101>
+
+**Requirement satisfied:** FSRS retrievability must derive from the real interval
+since the prior review, not the due date. The audit recipe assumed a one-line edit;
+grounding showed the prior-review timestamp is not in the scheduler's cached state,
+so the intent is satisfied by plumbing it from the reviews store (hub) into the
+scheduler (spoke) via a new optional parameter.
 
 ---
 
