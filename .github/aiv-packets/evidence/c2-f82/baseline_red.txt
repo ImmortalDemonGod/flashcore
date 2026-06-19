@@ -1,0 +1,96 @@
+===== BASELINE RED RUN — c2-f82 =====
+Baseline SHA : 5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb  (origin/main)
+HEAD SHA     : c0f4366d5f05719e2c6c7b2b11238855f475cded  (fix/c2-f82)
+Test file    : tests/cli/test_review_ui.py  (HEAD version, copied into baseline worktree)
+Worktree     : /tmp/c2-f82_base  (git worktree add /tmp/c2-f82_base origin/main)
+Code loaded  : /tmp/c2-f82_base/flashcore/cli/review_ui.py  (baseline, no skip_card, unconditional Well done)
+Runner       : /home/user/flashcore-c2-f82/.venv/bin/python3 -m pytest … -v --tb=short
+
+=== RUN 1 — safe RED tests (no infinite-loop risk) ===
+Command: cd /tmp/c2-f82_base && python3 -m pytest \
+  tests/cli/test_review_ui.py::test_all_submit_review_fail_output_omits_well_done_guards_against_false_success_message \
+  tests/cli/test_review_ui.py::test_start_review_flow_submit_review_exception \
+  tests/cli/test_review_ui.py::test_start_review_flow_success_emits_well_done \
+  -v --tb=short
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /home/user/flashcore-c2-f82/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /tmp/c2-f82_base
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 3 items
+
+tests/cli/test_review_ui.py::test_all_submit_review_fail_output_omits_well_done_guards_against_false_success_message FAILED [ 33%]
+tests/cli/test_review_ui.py::test_start_review_flow_submit_review_exception FAILED [ 66%]
+tests/cli/test_review_ui.py::test_start_review_flow_success_emits_well_done FAILED [100%]
+
+=================================== FAILURES ===================================
+_ test_all_submit_review_fail_output_omits_well_done_guards_against_false_success_message _
+/tmp/c2-f82_base/tests/cli/test_review_ui.py:237: in test_all_submit_review_fail_output_omits_well_done_guards_against_false_success_message
+    assert "Well done" not in output
+E   AssertionError: assert 'Well done' not in 'Starting re...Well done!\n'
+E
+E     'Well done' is contained here:
+E       Starting review session...
+E       ───────────────────────────────── Card 1 of 1 ──────────────────────────────────
+E       Error submitting review. Card will be reviewed again later.
+E       ───────────────────────────────── Card 2 of 1 ──────────────────────────────────
+E       Error submitting review. Card will be reviewed again later.
+E       Review session finished. Well done!
+E     ?                          +++++++++
+------------------------------ Captured log call -------------------------------
+ERROR    flashcore.cli.review_ui:review_ui.py:107 Failed to submit review for 705517ce-6289-4315-9e22-3dc232116a10: persistent DB error
+ERROR    flashcore.cli.review_ui:review_ui.py:107 Failed to submit review for 705517ce-6289-4315-9e22-3dc232116a10: persistent DB error
+________________ test_start_review_flow_submit_review_exception ________________
+/tmp/c2-f82_base/tests/cli/test_review_ui.py:146: in test_start_review_flow_submit_review_exception
+    mock_manager.skip_card.side_effect = _skip
+    ^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/unittest/mock.py:653: in __getattr__
+    raise AttributeError("Mock object has no attribute %r" % name)
+E   AttributeError: Mock object has no attribute 'skip_card'
+________________ test_start_review_flow_success_emits_well_done ________________
+/tmp/c2-f82_base/tests/cli/test_review_ui.py:350: in test_start_review_flow_success_emits_well_done
+    assert result is True
+E   assert None is True
+=========================== short test summary info ============================
+FAILED tests/cli/test_review_ui.py::test_all_submit_review_fail_output_omits_well_done_guards_against_false_success_message
+FAILED tests/cli/test_review_ui.py::test_start_review_flow_submit_review_exception
+FAILED tests/cli/test_review_ui.py::test_start_review_flow_success_emits_well_done
+============================== 3 failed in 0.14s ==============================
+
+=== RUN 2 — infinite-loop RED test against baseline ===
+Command: cd /tmp/c2-f82_base && timeout 8 python3 -m pytest \
+  tests/cli/test_review_ui.py::test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop \
+  -v --tb=short
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /home/user/flashcore-c2-f82/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /tmp/c2-f82_base
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 1 item
+
+tests/cli/test_review_ui.py::test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop FAILED [100%]
+
+=================================== FAILURES ===================================
+_ test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop _
+/tmp/c2-f82_base/tests/cli/test_review_ui.py:266: in test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop
+    mock_manager.skip_card.side_effect = _skip
+    ^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/unittest/mock.py:653: in __getattr__
+    raise AttributeError("Mock object has no attribute %r" % name)
+E   AttributeError: Mock object has no attribute 'skip_card'
+=========================== short test summary info ----
+FAILED tests/cli/test_review_ui.py::test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop
+============================== 1 failed in 0.09s ==============================
+EXIT_CODE=1
+
+SUMMARY:
+All 4 RED tests FAIL on baseline (5bb2ea2).
+Failure modes map directly to the defect:
+  - test_all_submit_review_fail_output_omits_well_done: AssertionError — "Well done" IS in output (baseline bug B2)
+  - test_start_review_flow_submit_review_exception: AttributeError — skip_card absent from baseline ReviewSessionManager (baseline bug B1: no skip path)
+  - test_start_review_flow_success_emits_well_done: assert None is True — baseline returns None instead of bool (return contract missing)
+  - test_persistent_submit_failure_retries_same_card: AttributeError — skip_card absent from baseline API (B1)
