@@ -2,6 +2,8 @@ from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
 
+import typer
+
 from flashcore.cli.review_ui import start_review_flow
 from flashcore.db.database import FlashcardDatabase
 from flashcore.review_manager import ReviewSessionManager
@@ -40,4 +42,6 @@ def review_logic(
         deck_name=deck_name,
     )
 
-    start_review_flow(manager, tags=tags)
+    result = start_review_flow(manager, tags=tags)
+    if not result:
+        raise typer.Exit(code=1)
