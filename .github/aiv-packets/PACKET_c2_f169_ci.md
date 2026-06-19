@@ -29,6 +29,7 @@ classification:
 1. black -l 79 --check flashcore/ exits 0 after reformatting
 2. 483 tests pass, 1 skipped — identical to pre-reformat baseline
 3. No existing tests were modified or deleted during this change.
+4. (PROVENANCE) `git show b9c7234 --stat` confirms only `flashcore/review_processor.py`, `tests/test_scheduler.py`, `tests/test_review_processor.py`, and `.github/aiv-evidence/EVIDENCE_FLASHCORE_REVIEW_PROCESSOR.md` changed; no hooks bypassed; branch is `feat/c2-fsrs-harness`.
 
 ---
 
@@ -40,11 +41,60 @@ classification:
 
 
 
+### Class A (Behavioral / Direct Evidence)
+
+Live-execution results on this host (Linux, black==25.12.0):
+
+- `black -l 79 --check flashcore/ tests/` after reformatting → **exit 0**; 28 source files unchanged, 24 test files unchanged
+- `make lint` → flake8, black --check, mypy all pass with no errors
+- `pytest tests/ -q --tb=short` → **483 passed, 1 skipped** — identical to pre-reformat baseline; no behavioral regression
+
 ### Class B (Referential Evidence)
 
 **Scope Inventory** (from 1 file references across evidence files)
 
-- `flashcore/review_processor.py#L100-L102`
+- `flashcore/review_processor.py#L100-L102` @ `b9c7234` — black-reformatted; no logic delta
+
+### Class C (Negative Evidence)
+
+Searched for and did NOT find:
+
+- Any assertion deleted from `tests/test_scheduler.py` or `tests/test_review_processor.py` — `git diff HEAD~1 HEAD -- tests/` shows only whitespace/line-wrap changes
+- Any `@pytest.mark.skip` added — confirmed absent
+- Any import, function signature, or variable assignment changed — diffs are pure formatting (line-length wrapping, blank-line normalization)
+- Logic paths in `flashcore/scheduler.py` altered — file not touched in this commit
+
+### Class D (Static Analysis)
+
+- `flake8 flashcore/` → **exit 0**; 0 issues
+- `black -l 79 --check flashcore/` → **exit 0**; 28 files unchanged
+- `black -l 79 --check tests/` → **exit 0**; 24 files unchanged
+- `mypy --ignore-missing-imports flashcore/` → **Success: no issues found in 28 source files**
+
+### Class E (Intent Alignment)
+
+**Intent reference (SHA-pinned):**
+`https://github.com/ImmortalDemonGod/flashcore/blob/cdbe6bf/.taskmaster/tasks/task_008.md`
+
+**Requirement satisfied:** CI lint gate (black --check) must pass on all platforms including macOS (tests_mac 3.10, 3.11). The `make test` target runs `make lint` first; lint was failing because 3 files were not formatted to the pinned black==25.12.0 line-length-79 style. Reformatting with the exact installed version clears the gate without changing any logic.
+
+**Alignment:**
+
+| AC | Criterion | Status |
+|----|-----------|--------|
+| CI-1 | `black -l 79 --check flashcore/` exits 0 | PASS |
+| CI-2 | `black -l 79 --check tests/` exits 0 | PASS |
+| CI-3 | `make lint` exits 0 (flake8 + black + mypy) | PASS |
+| CI-4 | 483 tests pass, 1 skipped — no behavioral regression | PASS |
+| CI-5 | No logic changes in any reformatted file | PASS |
+
+### Class F (Provenance)
+
+Git chain-of-custody for touched test files:
+
+- `tests/test_scheduler.py` — last logic change at `61d6a20` (RED tests for F169); reformatted at `b9c7234`; no assertion removed, no skip added; `git diff HEAD~1 HEAD -- tests/test_scheduler.py` shows only whitespace
+- `tests/test_review_processor.py` — last logic change at `37a0dec` (integration test added); reformatted at `b9c7234`; no assertion removed, no skip added
+- `flashcore/review_processor.py` — last logic change at `37a0dec` (hub DB lookup); reformatted at `b9c7234`; no logic delta
 
 ---
 
