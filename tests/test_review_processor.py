@@ -522,14 +522,26 @@ class TestReviewProcessorIntegration:
 
         # First review at ts1: no prior review in DB → last_review_date=None → elapsed_days=0
         ts1 = datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc)
-        updated_card = processor.process_review(card=review_card, rating=3, reviewed_at=ts1)
+        updated_card = processor.process_review(
+            card=review_card, rating=3, reviewed_at=ts1
+        )
 
         # Second review: on-time (review date == next_due_date from first review)
         # Hub must read ts1 from DB via get_latest_review_for_card, set last_review_date=2024-1-15,
         # and the scheduler must produce elapsed_days = (ts2.date() - 2024-1-15).days > 0
         next_due = updated_card.next_due_date
-        ts2 = datetime(next_due.year, next_due.month, next_due.day, 10, 0, 0, tzinfo=timezone.utc)
-        assert ts2 > ts1, f"FSRS must schedule next_due after ts1 for this test to be valid; got {next_due}"
+        ts2 = datetime(
+            next_due.year,
+            next_due.month,
+            next_due.day,
+            10,
+            0,
+            0,
+            tzinfo=timezone.utc,
+        )
+        assert (
+            ts2 > ts1
+        ), f"FSRS must schedule next_due after ts1 for this test to be valid; got {next_due}"
         processor.process_review(card=updated_card, rating=3, reviewed_at=ts2)
 
         # The second review's persisted elapsed_days_at_review must be > 0
