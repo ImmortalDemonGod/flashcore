@@ -208,8 +208,13 @@ class FSRS_Scheduler(BaseScheduler):
                     datetime.time(0, 0, 0),
                     tzinfo=datetime.timezone.utc,
                 )
-                # Set last_review to due date for elapsed_days calculation
-                fsrs_card.last_review = fsrs_card.due
+            if card.last_review_date is not None:
+                fsrs_card.last_review = datetime.datetime.combine(
+                    card.last_review_date,
+                    datetime.time(0, 0, 0),
+                    tzinfo=datetime.timezone.utc,
+                )
+            # else: last_review unset → elapsed_days=0 (correct for New/first-ever review)
 
         # Capture the state before the new review to determine the review type.
         state_before_review = fsrs_card.state
