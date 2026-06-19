@@ -1,0 +1,27 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.0, pluggy-1.6.0 -- /home/user/fc-c2-harness/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/user/fc-c2-harness
+configfile: pyproject.toml
+plugins: mock-3.15.1
+collecting ... collected 17 items
+
+tests/test_scheduler.py::test_first_review_new_card PASSED               [  5%]
+tests/test_scheduler.py::test_invalid_rating_input PASSED                [ 11%]
+tests/test_scheduler.py::test_rating_impact_on_interval PASSED           [ 17%]
+tests/test_scheduler.py::test_multiple_reviews_stability_increase PASSED [ 23%]
+tests/test_scheduler.py::test_review_lapsed_card PASSED                  [ 29%]
+tests/test_scheduler.py::test_review_early_card PASSED                   [ 35%]
+tests/test_scheduler.py::test_mature_card_lapse PASSED                   [ 41%]
+tests/test_scheduler.py::test_ensure_utc_handles_naive_datetime PASSED   [ 47%]
+tests/test_scheduler.py::test_compute_next_state_with_unknown_fsrs_state PASSED [ 52%]
+tests/test_scheduler.py::test_compute_next_state_review_card_fallback_no_now_kw PASSED [ 58%]
+tests/test_scheduler.py::test_review_processor_process_review_success PASSED [ 64%]
+tests/test_scheduler.py::test_review_processor_logs_and_reraises PASSED  [ 70%]
+tests/test_scheduler.py::test_review_processor_by_uuid_not_found PASSED  [ 76%]
+tests/test_scheduler.py::test_config_impact_on_scheduling PASSED         [ 82%]
+tests/test_scheduler.py::test_compute_next_state_is_constant_time PASSED [ 88%]
+tests/test_scheduler.py::test_on_time_review_elapsed_days_positive PASSED [ 94%]
+tests/test_scheduler.py::test_on_time_vs_same_day_review_stability_distinct PASSED [100%]
+
+============================== 17 passed in 7.41s ==============================

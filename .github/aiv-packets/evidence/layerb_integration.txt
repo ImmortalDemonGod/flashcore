@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.0, pluggy-1.6.0 -- /home/user/fc-c2-harness/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/user/fc-c2-harness
+configfile: pyproject.toml
+plugins: mock-3.15.1
+collecting ... collected 1 item
+
+tests/test_review_processor.py::TestReviewProcessorIntegration::test_on_time_review_persists_positive_elapsed_days PASSED [100%]
+
+============================== 1 passed in 0.15s ===============================
