@@ -46,6 +46,16 @@ classification:
 
 - `.aiv/oracle-corrections/c2-f169-impl.md#L1-L149`
 
+### Class E (Intent Alignment)
+
+Intent: https://github.com/ImmortalDemonGod/flashcore/blob/cdbe6bf/.taskmaster/tasks/task_008.md
+
+This change satisfies the oracle-guard requirement that each edited inherited test have a written
+justification anchored to the finding (F169), independent of the implementation.  The oracle-corrections
+document at `.aiv/oracle-corrections/c2-f169-impl.md` names both modified tests, explains why their
+old setups encoded the F169 elapsed-days defect (not "I changed it to pass"), and provides the
+execution evidence that the old setup would cause both assertions to fail under the corrected code.
+
 ---
 
 ## Verification Methodology
