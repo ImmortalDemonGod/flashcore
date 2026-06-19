@@ -61,7 +61,7 @@ Searched for `ruff` in `pyproject.toml` — not declared; no pin needed. Confirm
 ### Class E (Intent Alignment)
 
 **Intent reference (SHA-pinned):**
-`https://github.com/ImmortalDemonGod/flashcore/blob/97defc9/.taskmaster/tasks/tasks.json`
+`https://github.com/ImmortalDemonGod/flashcore/blob/bc19321bc72cf2467d57ffebc24b92a341ea10d6/audit/02-static-audit.md#L179`
 
 **Requirement satisfied:** DETERMINISM — CI must be reproducible across runners; pin all declared lint/format/type tools (black, isort, flake8, mypy) to the currently-installed exact versions so all runners obtain identical tool versions.
 
