@@ -292,8 +292,7 @@ def test_start_review_flow_all_fail_suppresses_well_done(
     failed' present, and return value is False.
     """
     cards = [
-        Card(deck_name="Test", front=f"Q{i}?", back=f"A{i}")
-        for i in range(3)
+        Card(deck_name="Test", front=f"Q{i}?", back=f"A{i}") for i in range(3)
     ]
     queue = list(cards)
 

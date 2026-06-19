@@ -142,5 +142,7 @@ def start_review_flow(
         console.print("[bold cyan]Review session finished.[/bold cyan]")
         return True
     else:
-        console.print("[bold cyan]Review session finished. Well done![/bold cyan]")
+        console.print(
+            "[bold cyan]Review session finished. Well done![/bold cyan]"
+        )
         return True
