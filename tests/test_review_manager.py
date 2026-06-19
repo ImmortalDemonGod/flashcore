@@ -411,6 +411,28 @@ class TestSkipCard:
 
         assert sample_card in review_manager.review_queue
 
+    def test_skip_card_does_not_inflate_reviewed_cards_in_stats(
+        self, review_manager: ReviewSessionManager, sample_card: Card
+    ):
+        """A skipped card must not appear as reviewed in get_session_stats."""
+        review_manager.review_queue = [sample_card]
+        review_manager.current_session_card_uuids = {sample_card.uuid}
+
+        review_manager.skip_card(sample_card.uuid)
+
+        stats = review_manager.get_session_stats()
+        assert stats["reviewed_cards"] == 0
+
+    def test_skip_card_unknown_uuid_does_not_increment_skipped_count(
+        self, review_manager: ReviewSessionManager, sample_card: Card
+    ):
+        """skip_card with an unknown UUID leaves skipped_card_count unchanged."""
+        review_manager.review_queue = [sample_card]
+
+        review_manager.skip_card(uuid.uuid4())
+
+        assert review_manager.skipped_card_count == 0
+
 
 class TestGetDueCardCount:
     @patch("flashcore.review_manager.date")
