@@ -60,7 +60,10 @@ class Card(BaseModel):
     )
     last_review_date: Optional[date] = Field(
         default=None,
-        description="Date of the prior review (transient; populated by hub from DB before scheduler call).",
+        description=(
+            "Date of the prior review (transient; populated by hub"
+            " from DB before scheduler call)."
+        ),
     )
     next_due_date: Optional[date] = Field(
         default=None,
