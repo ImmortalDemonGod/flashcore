@@ -664,6 +664,31 @@ def test_review_command_unexpected_error(mock_review_logic, tmp_path):
     assert "An unexpected error occurred: Something went wrong" in output
 
 
+@patch("flashcore.cli._review_logic.start_review_flow", return_value=False)
+@patch("flashcore.cli._review_logic.ReviewSessionManager")
+@patch("flashcore.cli._review_logic.FSRS_Scheduler")
+@patch("flashcore.cli._review_logic.FlashcardDatabase")
+@patch("flashcore.cli.main.backup_database")
+def test_review_command_exits_on_total_failure(
+    mock_backup, mock_db, mock_scheduler, mock_manager_cls, mock_start_review, tmp_path
+):
+    """CliRunner exit-code proof: review exits 1 when start_review_flow returns False.
+
+    Patches start_review_flow at flashcore.cli._review_logic.start_review_flow to
+    return False; the real review_logic() runs and exercises the
+    'if not result: raise typer.Exit(code=1)' branch.  result.exit_code == 1
+    confirms the full chain: False return -> if not result: -> typer.Exit(code=1)
+    -> CLI exit code 1.  Evidence class A/B (live-fire at CLI boundary).
+    """
+    db_path = tmp_path / "test.db"
+    mock_backup.return_value = tmp_path / "test.db.bak"
+
+    result = runner.invoke(app, ["review", "TestDeck", "--db", str(db_path)])
+
+    assert result.exit_code == 1
+    mock_start_review.assert_called_once()
+
+
 @patch("flashcore.cli.main.FlashcardDatabase")
 def test_stats_command_no_card_states(mock_db, tmp_path):
     """Tests stats command when cards exist but have no countable states."""
