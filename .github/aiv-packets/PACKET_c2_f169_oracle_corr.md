@@ -82,7 +82,7 @@ Full-suite at branch HEAD (b9c7234): `python -m pytest tests/ -q --tb=no` → **
 
 ### Class E (Intent Alignment)
 
-Intent: https://github.com/ImmortalDemonGod/flashcore/blob/cdbe6bf/.taskmaster/tasks/task_008.md
+Intent: https://github.com/ImmortalDemonGod/flashcore/blob/bc19321bc72cf2467d57ffebc24b92a341ea10d6/audit/02-static-audit.md#L179
 
 This change satisfies the oracle-guard requirement that each edited inherited test have a written
 justification anchored to the finding (F169), independent of the implementation.  The oracle-corrections
