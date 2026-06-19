@@ -88,7 +88,7 @@ Searched for and did NOT find:
 ### Class E (Intent Alignment)
 
 **Intent reference (SHA-pinned):**
-`https://github.com/ImmortalDemonGod/flashcore/blob/27797f4/.taskmaster/tasks/task_008.md`
+`https://github.com/ImmortalDemonGod/flashcore/blob/bc19321bc72cf2467d57ffebc24b92a341ea10d6/audit/02-static-audit.md#L179`
 
 **Requirement satisfied:** D1 (Path A, operator-confirmed 2026-06-19) — consume ground-truth DB-recorded prior-review `ts` via `get_latest_review_for_card` before every `compute_next_state` call; no stability approximation; `elapsed_days=0` only when no prior review exists in DB (genuinely first-ever review).
 
