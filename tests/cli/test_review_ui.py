@@ -127,7 +127,6 @@ def test_start_review_flow_submit_review_exception(
 ):
     """Test that submit_review exception is handled gracefully."""
     card = Card(uuid=uuid4(), deck_name="Test", front="Q?", back="A")
-    card_uuid = card.uuid
 
     mock_manager.review_queue = [card]
     mock_manager.get_next_card.side_effect = [card, None]
@@ -188,3 +187,67 @@ def test_start_review_flow_submit_returns_none(
 
     output = capsys.readouterr().out
     assert "Error submitting review" in output
+
+
+# ---------------------------------------------------------------------------
+# RED tests for Finding F82 — start_review_flow infinite retry loop
+# Bug catalog: tests/cli/test_review_ui.bug-catalog.md
+# ---------------------------------------------------------------------------
+
+
+def test_all_submit_review_fail_output_omits_well_done_guards_against_false_success_message(
+    mock_manager: MagicMock, capsys
+):
+    """When every submit_review call raises, 'Well done!' must NOT appear in output.
+
+    Guards against B2 (review_ui.py:127 prints 'Well done!' unconditionally) and
+    B1 (same card retried via continue+get_next_card returning queue[0]).
+    The side_effect [card, card, None] explicitly simulates the real stuck-queue
+    behavior: after a failed submit the failed card remains at queue[0], so the
+    next get_next_card() call returns it again before the session can terminate.
+    """
+    card = Card(deck_name="Test", front="Q?", back="A")
+    mock_manager.review_queue = [card]
+    mock_manager.get_next_card.side_effect = [card, card, None]
+    mock_manager.submit_review.side_effect = Exception("persistent DB error")
+
+    with patch("flashcore.cli.review_ui._display_card", return_value=500):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(2, 300)
+        ):
+            start_review_flow(mock_manager)
+
+    output = capsys.readouterr().out
+    # RED: current code reaches review_ui.py:127 unconditionally and prints
+    # "Well done!" even when all submit calls raised.
+    assert "Well done" not in output
+
+
+def test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop(
+    mock_manager: MagicMock, capsys
+):
+    """When submit_review raises, each card must be attempted exactly once.
+
+    Guards against B1: the continue at review_ui.py:111 returns to the while
+    header; get_next_card() then returns queue[0] again (review_manager.py:127)
+    because _remove_card_from_queue is only called on the success path
+    (review_manager.py:210), creating an unbounded infinite retry loop.
+
+    The side_effect [card, card, None] simulates two consecutive calls returning
+    the same card — which is the real behavior of a stuck queue. After the correct
+    fix each card is attempted once, so submit_review.call_count must equal 1.
+    """
+    card = Card(deck_name="Test", front="Q?", back="A")
+    mock_manager.review_queue = [card]
+    mock_manager.get_next_card.side_effect = [card, card, None]
+    mock_manager.submit_review.side_effect = Exception("persistent DB error")
+
+    with patch("flashcore.cli.review_ui._display_card", return_value=500):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(2, 300)
+        ):
+            start_review_flow(mock_manager)
+
+    # RED: current buggy code calls submit_review TWICE (same card retried after
+    # the first failure) because continue at line 111 does not advance the queue.
+    assert mock_manager.submit_review.call_count == 1
