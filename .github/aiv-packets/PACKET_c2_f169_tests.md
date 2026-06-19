@@ -45,12 +45,87 @@ classification:
 
 
 
+### Class A (Behavioral / Direct Evidence)
+
+```
+pytest tests/test_scheduler.py -v  (commit 61d6a20)
+  17 collected: 15 PASSED, 2 FAILED (intentional RED state)
+
+FAILED test_on_time_review_elapsed_days_positive
+  AssertionError: elapsed_days=0; assert 0 > 0
+  SchedulerOutput.elapsed_days == 0 for Card(state=Review, next_due_date=2024-03-15)
+  reviewed at 2024-03-15T10:00Z — confirms F169 at scheduler.py:212.
+
+FAILED test_on_time_vs_same_day_review_stability_distinct
+  pydantic_core.ValidationError: extra_forbidden on field 'last_review_date'
+  Card.model_config extra='forbid'; Path A transient field absent — confirms
+  models.py has no last_review_date at HEAD.
+
+Full-suite (464 passed, 2 failed) — 2 failures are the two new RED tests;
+all other 462 tests unaffected.
+```
+
 ### Class B (Referential Evidence)
 
 **Scope Inventory** (from 2 file references across evidence files)
 
-- `tests/test_scheduler.bug-catalog.md#L1-L249`
-- `tests/test_scheduler.py#L695-L803`
+- `tests/test_scheduler.bug-catalog.md#L1-L249` @ commit `3dde24b`
+- `tests/test_scheduler.py#L695-L803` @ commit `61d6a20`
+
+Bug site reference: `flashcore/scheduler.py:211-212` — `fsrs_card.last_review = fsrs_card.due`
+(confirmed via `grep -n "last_review = fsrs_card.due" flashcore/scheduler.py`).
+
+### Class C (Negative Evidence)
+
+Searched and NOT found (confirming no unintended scope creep):
+
+- `grep -n "last_review_date" flashcore/models.py` → 0 matches (field not yet added; RED state)
+- `grep -n "last_review_date" flashcore/scheduler.py` → 0 matches (scheduler unchanged)
+- `grep -n "last_review_date" flashcore/review_processor.py` → 0 matches (hub unchanged)
+- No production file (`flashcore/**/*.py`) was modified in this change — test-only scope preserved.
+
+Bugs explicitly not tested (catalog Skipped section, `tests/test_scheduler.bug-catalog.md#L175-L196`):
+- B2: negative elapsed_days for early reviews → deferred F169b
+- B3: CardState/FSRSState value-parity assumption → deferred
+- B4: REVIEW_TYPE_MAP silent default → deferred (cosmetic)
+
+### Class D (Static Analysis)
+
+```
+ruff:  pre-existing lint errors unrelated to this change (test file import style);
+       no new ruff errors introduced by the two new test functions.
+mypy:  4 errors in 3 files — all pre-existing; 0 new errors introduced;
+       `mypy flashcore/scheduler.py flashcore/models.py --ignore-missing-imports`
+       exits with same error count as baseline.
+```
+
+### Class E (Intent Alignment)
+
+Intent source (SHA-pinned, immutable):
+`https://github.com/ImmortalDemonGod/flashcore/blob/4a15a08/.aiv/launch-briefs/pr-f169-fsrs-elapsed-days/pr-f169-fsrs-elapsed-days-completion-contract.md`
+
+Alignment:
+- VERIFY [1]: `test_on_time_review_elapsed_days_positive` present in `tests/test_scheduler.py` (line 697) — RED as required.
+- VERIFY [2]: `test_on_time_vs_same_day_review_stability_distinct` present in `tests/test_scheduler.py` (line 734) — RED as required.
+- VERIFY [5]: 15 pre-existing tests pass; no regression.
+- Design-tests stage scope: catalog written before tests; catalog committed before test code; path decision (A) documented with rationale; no production code modified.
+
+### Class F (Provenance)
+
+Git chain-of-custody for touched test files:
+
+```
+git log --oneline tests/test_scheduler.py | head -5
+61d6a20  test(scheduler): add RED tests for F169 elapsed_days=0 on-time FSRS review
+(prior history: 15 pre-existing tests, author ImmortalDemonGod)
+
+git log --oneline tests/test_scheduler.bug-catalog.md | head -3
+3dde24b  docs(tests): add F169 design-tests catalog for elapsed_days scheduler finding
+(new file, no prior history)
+```
+
+No test files were deleted or renamed. No pre-existing test was modified.
+Both new test files are on branch `feat/c2-fsrs-harness`, base `origin/main` @ `b5e1c4b`.
 
 ---
 
