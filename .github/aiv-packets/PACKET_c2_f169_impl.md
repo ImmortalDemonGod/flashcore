@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1 — modifies 3 production files (flashcore/models.py, flashcore/scheduler.py, flashcore/review_processor.py) in a correctness-critical FSRS scheduling path; no DB schema migration or security surface, blast radius limited to the scheduler-hub data flow, but incorrect implementation would silently corrupt all Review-state stability updates."
   classified_by: "Claude"
   classified_at: "2026-06-19T05:37:06Z"
 ```
@@ -28,7 +28,7 @@ classification:
 
 1. Card model lacks last_review_date field before this commit; field added as Optional[date] default None at flashcore/models.py:61
 2. ConfigDict extra=forbid preserved at flashcore/models.py:51; field declared on model class so Pydantic accepts it without extra-fields rejection
-3. No existing tests were modified or deleted during this change.
+3. Two pre-existing tests were modified within this change context: test_review_lapsed_card (origin/main:L252) and test_review_early_card (origin/main:L289) had `last_review_date` added to their Card() constructors at commit c829e46 (the impl packet commit). These modifications are justified by the oracle-correction record at `.aiv/oracle-corrections/c2-f169-impl.md`: both old setups constructed Review-state Cards without last_review_date, which under the buggy scheduler produced elapsed_days=0 (on-time) and elapsed_days=-2 (early) — the F169 defect itself — causing both tests to be silent-pass tests that accepted defective output as correct.
 4. Line 212 assignment last_review=due removed at flashcore/scheduler.py:211-217; replaced with conditional on card.last_review_date
 5. When last_review_date is None (hub not populated), last_review remains unset at flashcore/scheduler.py:217; elapsed_days=0 (correct for New/first-ever review)
 6. Scheduler at flashcore/scheduler.py:223-229 does not read DB directly; last_review_date populated by hub before this call (no new import to scheduler)
@@ -82,7 +82,8 @@ Searched for and did NOT find:
 ### Class D (Static Analysis)
 
 - `mypy flashcore/scheduler.py flashcore/models.py --ignore-missing-imports` → no new errors; pre-existing `yaml` stub warning unchanged (not introduced by this PR)
-- `python -m pytest tests/ -q --tb=short` → 467 passed, 1 skipped, 16 errors; the 16 errors are pre-existing (in `tests/test_db.py`, `tests/test_parser.py`, `tests/test_yaml_validators.py`, `tests/cli/`); none in files touched by this PR; net new tests from this PR change set: +2 unit (test_scheduler.py), +1 integration (test_review_processor.py) = +3 tests, all GREEN
+- `python -m pytest tests/ -q --tb=short` at impl HEAD (commit 37a0dec) → 467 passed, 1 skipped, 16 collection errors; the 16 errors were pre-existing (in `tests/test_db.py`, `tests/test_parser.py`, `tests/test_yaml_validators.py`, `tests/cli/`); none in files touched by this change; net new tests: +2 unit (test_scheduler.py), +1 integration (test_review_processor.py) = +3 tests, all GREEN.
+- **Ground truth at branch HEAD** (after deps pinning at 9bbb2ec and black reformat at b9c7234): `python -m pytest tests/ -q --tb=no` → **483 passed, 1 skipped**. The 16 collection errors resolved by deps pinning (9bbb2ec), not by this change's logic. The net effect of this change on the passing count: +3 (from 480 to 483, accounting for the 3 new tests added).
 
 ### Class E (Intent Alignment)
 

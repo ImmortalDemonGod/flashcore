@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1 — adds new test functions (RED state) that detect a correctness defect in a production scheduling path; no production files touched, but test design requires precise behavioral coverage of a FSRS algorithm invariant; R0 excluded because failing or incorrect tests can mask a production bug with real user impact."
   classified_by: "Claude"
   classified_at: "2026-06-19T04:50:42Z"
 ```
@@ -29,7 +29,7 @@ classification:
 1. catalog identifies B1 (last_review=due yields elapsed_days=0 for on-time FSRS reviews) as sole in-scope finding; six entries in Skipped section with explicit reasons
 2. catalog designates Path A (last_review_date transient field on Card) as the correction path with one-sentence rationale contrasting Path B approximation limitations
 3. test design section for B1-A and B1-B passes all four design-tests criteria: failure under non-trivial defect introduction, pass under behavior-preserving refactor, observable behavior, public interface only
-4. No existing tests were modified or deleted during this change.
+4. Within the c2-f169-tests change context (commits 3dde24b, 61d6a20), no pre-existing test functions were modified: `git show 61d6a20 -- tests/test_scheduler.py | grep "^-" | grep -v "^---"` produces no output (only additions, zero deletions). At branch scope, test_review_lapsed_card (origin/main:L252) and test_review_early_card (origin/main:L289) had last_review_date added to their Card() constructors at commit c829e46 (c2-f169-impl packet commit); that modification is outside this change context and is justified by the oracle-correction record at .aiv/oracle-corrections/c2-f169-impl.md.
 5. elapsed_days is 0 instead of >0 when a CardState.Review card (stability=14.0, next_due_date=2024-03-15) is reviewed at 2024-03-15T10:00Z; root cause confirmed at scheduler.py:212 where last_review is assigned fsrs_card.due making the delta zero
 6. Card.model_config extra='forbid' raises pydantic ValidationError when last_review_date is supplied to Card constructor; confirms Path A transient field is absent from flashcore/models.py at time of RED-test commit
 7. 15 pre-existing tests/test_scheduler.py tests continue to pass after adding two intentionally-failing assertions (17 collected, 2 failed, 15 passed); baseline preserved with no regression
@@ -77,14 +77,23 @@ Bug site reference: `flashcore/scheduler.py:211-212` — `fsrs_card.last_review 
 
 ### Class C (Negative Evidence)
 
-Searched and NOT found (confirming no unintended scope creep):
+**Semantic diff check (change-context scope: commits 3dde24b, 61d6a20):**
 
-- `grep -n "last_review_date" flashcore/models.py` → 0 matches (field not yet added; RED state)
-- `grep -n "last_review_date" flashcore/scheduler.py` → 0 matches (scheduler unchanged)
-- `grep -n "last_review_date" flashcore/review_processor.py` → 0 matches (hub unchanged)
-- No production file (`flashcore/**/*.py`) was modified in this change — test-only scope preserved.
+- `git show 61d6a20 -- tests/test_scheduler.py | grep "^-" | grep -v "^---"` → empty output; zero lines deleted from test_scheduler.py; 61d6a20 is additions-only for that file.
+- `git show 3dde24b --name-only` → only `tests/test_scheduler.bug-catalog.md` and evidence file created (new files, no pre-existing file modified).
 
-Bugs explicitly not tested (catalog Skipped section, `tests/test_scheduler.bug-catalog.md#L175-L196`):
+**grep checks (confirming RED state / no production drift):**
+
+- `grep -n "last_review_date" flashcore/models.py` → 0 matches (field not yet added; RED state confirmed)
+- `grep -n "last_review_date" flashcore/scheduler.py` → 0 matches (scheduler unchanged in this context)
+- `grep -n "last_review_date" flashcore/review_processor.py` → 0 matches (hub unchanged in this context)
+- No production file (`flashcore/**/*.py`) was modified in commits 3dde24b or 61d6a20.
+
+**Branch-scope context (beyond this change):**
+
+At branch scope, test_review_lapsed_card and test_review_early_card had `last_review_date` added in commit c829e46 (c2-f169-impl packet commit). Those modifications are in the c2-f169-impl change context, not this one, and are justified in `.aiv/oracle-corrections/c2-f169-impl.md`.
+
+**Bugs explicitly not tested** (catalog Skipped section, `tests/test_scheduler.bug-catalog.md#L175-L196`):
 - B2: negative elapsed_days for early reviews → deferred F169b
 - B3: CardState/FSRSState value-parity assumption → deferred
 - B4: REVIEW_TYPE_MAP silent default → deferred (cosmetic)
