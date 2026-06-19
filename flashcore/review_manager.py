@@ -68,6 +68,7 @@ class ReviewSessionManager:
             db_manager, user_id=str(user_uuid)
         )
         self._session_started = False
+        self.skipped_card_count: int = 0
 
     def initialize_session(
         self, limit: int = 20, tags: Optional[List[str]] = None
@@ -154,7 +155,10 @@ class ReviewSessionManager:
 
     def skip_card(self, card_uuid: UUID) -> None:
         """Remove a card from the queue without recording a review outcome."""
+        before = len(self.review_queue)
         self._remove_card_from_queue(card_uuid)
+        if len(self.review_queue) < before:
+            self.skipped_card_count += 1
 
     def submit_review(
         self,
@@ -230,7 +234,7 @@ class ReviewSessionManager:
                 Additional keys may be present when session analytics are active; those metrics (e.g., performance or timing statistics) are merged into the returned dictionary.
         """
         total_cards = len(self.current_session_card_uuids)
-        reviewed_cards = total_cards - len(self.review_queue)
+        reviewed_cards = total_cards - len(self.review_queue) - self.skipped_card_count
 
         # Include real-time analytics if available
         basic_stats = {
