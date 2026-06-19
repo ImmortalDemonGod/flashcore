@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | c2-f169-determinism |
 | **Commits** | `9bbb2ec` |
 | **Head SHA** | `9bbb2ec` |
@@ -18,7 +18,7 @@ classification:
   risk_tier: R0
   sod_mode: S0
   critical_surfaces: []
-  blast_radius: pyproject.toml
+  blast_radius: local
   classification_rationale: "R0: pure configuration change; no logic or behavior change; installed binaries unchanged; only dependency specifier constraint tightened"
   classified_by: "Claude"
   classified_at: "2026-06-19T07:53:10Z"
@@ -27,7 +27,7 @@ classification:
 ## Claims
 
 1. flake8 pinned to ==7.3.0, black to ==25.12.0, isort to ==8.0.1, mypy to ==2.1.0 — these are the currently installed versions
-2. Unpinned specifiers (>=, ~=) replaced with == to eliminate cross-runner version drift in CI
+2. Unpinned specifiers (>=, ~=) replaced with == to eliminate cross-runner version drift in CI. Scope is limited to direct tool versions declared in `[project.optional-dependencies]`; transitive dependencies of these tools remain subject to pip resolver variability (no lock file present). This is sufficient to eliminate the observed class of drift (differing major/minor tool versions across runners).
 3. No existing tests were modified or deleted during this change.
 
 ---

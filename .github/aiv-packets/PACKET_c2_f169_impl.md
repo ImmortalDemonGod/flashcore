@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | c2-f169-impl |
 | **Commits** | `e0f6519`, `3fa913a`, `37a0dec` |
 | **Head SHA** | `37a0dec` |

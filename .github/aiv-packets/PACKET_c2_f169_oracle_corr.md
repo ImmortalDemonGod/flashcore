@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | c2-f169-oracle-corr |
 | **Commits** | `19499a3` |
 | **Head SHA** | `19499a3` |

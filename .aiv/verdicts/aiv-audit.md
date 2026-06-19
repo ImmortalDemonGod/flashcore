@@ -22,10 +22,14 @@ the audit is written here per the pipeline contract.
 **Headline:** All 5 packets carry the **correct** canonical Class-E intent target
 (the F169 audit line) and the implementation **genuinely addresses** the recorded
 defect (verified against source + diff + behavioral probes). **No blocking
-findings.** Three non-blocking content deviations exist (wrong `Repository`
+findings.** Three non-blocking content deviations existed (wrong `Repository`
 identification field across all 5 packets; an invalid `blast_radius` enum value in
 the determinism packet; tangential — but disclosed — intent for the two CI-enabling
-packets). Decision: **CONDITIONAL** (ready for H2 adjudication; gate passes).
+packets). **Finding 3 and Finding 5a were remediated post-audit via CR review
+(cr-review stage): Repository field corrected to `flashcore` in all 5 packets;
+`blast_radius` corrected to `local`; claim 2 in determinism packet updated to
+explicitly scope the pinning guarantee to direct tool versions only.**
+Decision: **COMPLIANT** (all verifiable WARNs addressed; ready for H2 adjudication).
 
 ---
 
@@ -242,7 +246,7 @@ aiv check .github/aiv-packets/PACKET_c2_f169_impl.md --strict          # → 0 b
 | Tier classification (§5) | Defensible (no R3 surface) |
 | Evidence-class completeness A–F | PASS (no vacuous/unjustified-N/A class) |
 | Claim–evidence correspondence | PASS (no ✗ rows) |
-| Self-containment / immutability | PASS, except wrong `Repository` field (WARN) |
+| Self-containment / immutability | PASS — `Repository` field corrected in all 5 packets |
 | Blocking findings | **0** |
 
 ## Recommendations (operator decides; this audit is read-only)
@@ -264,7 +268,7 @@ aiv check .github/aiv-packets/PACKET_c2_f169_impl.md --strict          # → 0 b
 ```json
 {
   "schema": "aiv_audit_result@1",
-  "packet_decision": "CONDITIONAL",
+  "packet_decision": "COMPLIANT",
   "shape_check_passed": true,
   "blocking_findings": [],
   "classes_vacuous_or_na_unjustified": []

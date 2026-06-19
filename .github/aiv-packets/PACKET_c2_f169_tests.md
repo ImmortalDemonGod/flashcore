@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | c2-f169-tests |
 | **Commits** | `3dde24b`, `61d6a20` |
 | **Head SHA** | `61d6a20` |
