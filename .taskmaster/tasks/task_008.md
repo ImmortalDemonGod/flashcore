@@ -52,3 +52,9 @@ Validate migration completeness and integrity beyond simple row counts.
 **Details:**
 
 In addition to row count comparisons, run integrity checks: (1) Relationship validation: reviews must reference existing cards. (2) Value range validation: stability/difficulty values are within expected ranges. (3) Schema sanity: expected columns exist and are correct types.
+
+## Audit Finding Notes
+
+### F169 — FSRS elapsed_days=0 for on-time reviews (ADDRESSED, 2026-06-19)
+
+Path A chosen (D1, operator-confirmed 2026-06-19). `last_review_date` transient field added to `Card` model (`flashcore/models.py:61`); hub (`review_processor`) reads `reviews.ts` from DB via `get_latest_review_for_card` before every `compute_next_state` call; scheduler uses ground-truth `elapsed_days` for all cards with review history. Commit SHAs: `e0f6519` (models), `3fa913a` (scheduler), `37a0dec` (review_processor). Follow-up: DB migration PR to persist `last_review_date` column (deferred to stage-c2 migration PR); backfill PR for existing DB rows.
