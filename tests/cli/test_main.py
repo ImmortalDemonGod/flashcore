@@ -670,7 +670,12 @@ def test_review_command_unexpected_error(mock_review_logic, tmp_path):
 @patch("flashcore.cli._review_logic.FlashcardDatabase")
 @patch("flashcore.cli.main.backup_database")
 def test_review_command_exits_on_total_failure(
-    mock_backup, mock_db, mock_scheduler, mock_manager_cls, mock_start_review, tmp_path
+    mock_backup,
+    mock_db,
+    mock_scheduler,
+    mock_manager_cls,
+    mock_start_review,
+    tmp_path,
 ):
     """CliRunner exit-code proof: review exits 1 when start_review_flow returns False.
 
