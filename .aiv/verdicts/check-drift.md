@@ -1,16 +1,21 @@
 # check-drift audit — Plan: Fix F169 (FSRS on-time elapsed_days)
 
 Plan audited: `.aiv/plans/c2-f169-plan.md`
-Config: **no `.aiv-workflow.yml`** at repo root (and `$AIV_WORKFLOW_CONFIG` empty) — all values are skill
-defaults; `plans.archetypes.*`, `quality.code_health_*`, `quality.coverage_floor`, `memory.*` all blank.
+Config: **no `.aiv-workflow.yml`** at repo root (`git rev-parse --show-toplevel` = `/home/user/fc-c2-harness`;
+`$AIV_WORKFLOW_CONFIG` empty) — all values are skill defaults. `plans.archetypes.*`,
+`quality.code_health_cmd`, `quality.code_health_changeset_cmd`, `quality.coverage_floor`,
+`memory.dir`/`memory.index`, `ci.local_replica_cmd` all blank/absent.
+Iteration: this is **Loop #1, iteration 2** (plan revision log §"Loop #1, iteration 2" added Commit 5;
+a prior `check-drift.md` verdict from iteration 1 was present and overwritten).
 
 === PHASE 0: R-TIER ===
-Declared: **R1** (plan line 8)
-Inferred: **R1** (basis: 4 atomic commits; 3 source files MOD [`models.py`, `scheduler.py`,
-`review_processor.py`] + 1 test file; 0 migrations; 0 new data-access methods — Commit 3 *consumes*
-the pre-existing `db.get_latest_review_for_card`; transient `exclude=True` field, no persistence)
-Reconciled: **R1** (no mismatch). Caveat: the change spans 3 subsystems (model + hub + scheduler);
-that touches the R2 boundary, but with no migration / no new DB method / no new dispatcher it stays R1.
+Declared: **R1** (plan line 8).
+Inferred: **R1** (basis: 5 atomic commits; 3 source files MOD [`models.py`, `scheduler.py`,
+`review_processor.py`] + 2 test files; 0 migrations; 0 new data-access methods — Commit 3 *consumes* the
+pre-existing `db.get_latest_review_for_card`, verified at `flashcore/db/database.py:834`; the new field is
+transient `exclude=True`, no persistence).
+Reconciled: **R1** (no mismatch). Caveat: the change spans 3 subsystems (model + hub + scheduler),
+brushing the R2 boundary, but with no migration / no new DB method / no new dispatcher it stays R1.
 Audit depth (R1): Phase 1 full; Phase 2 = 2.1, 2.2, 2.3, 2.5, 2.8; Phase 3 = 3.1, 3.5.
 
 === PHASE 1: STRUCTURAL DRIFT ===
@@ -18,147 +23,144 @@ REFERENCE: **NONE** — `1b: no R1 archetype configured (plans.archetypes.R1 bla
 running section-presence + series-gap checks against the canonical list only, no reference diff.`
 
 SECTION-PRESENCE (required-at-R1 checked):
-- §1 Context: PRESENT (finding statement + Goal in brief mirror; plan opens with finding/line cite).
-- §2 Verified state (N Explore agents, YYYY-MM-DD): **MISSING** — the brief says "verify each yourself"
-  but the plan records no verified-state block with agent count + date.
-- §5 Memory + lesson references: **MISSING** in plan (no memory store loaded → see 2.8 for the universal
-  principles check that substitutes).
-- §6 Strict scope boundaries (IN/OUT): PRESENT (OUT = "Scope guard — out of this PR" table with
-  follow-up dispositions; IN = "Files touched" table). No explicit "does NOT do" philosophical line.
+- §1 Context: **PRESENT** — opens with finding statement + `scheduler.py:212` cite (verified: bug is at
+  `flashcore/scheduler.py:211-212`, `fsrs_card.last_review = fsrs_card.due`).
+- §2 Verified state (N Explore agents, YYYY-MM-DD): **MISSING** — no verified-state block with agent
+  count + date. (I independently verified the plan's factual claims; see Phase 2/3 — they hold.)
+- §5 Memory + lesson references: **MISSING** — no memory section (no memory store loaded; universal-
+  principles substitute checked at 2.8).
+- §6 Strict scope boundaries (IN/OUT): **PRESENT** — "Files touched" (IN) + "Scope guard — out of this
+  PR" table (OUT) with follow-up dispositions. No "does NOT do" philosophical line (minor).
 - §7 Locked design decisions (D-numbered, operator-confirmed + date): **PARTIAL** — "Path decision:
-  Option A" with a rationale is present, but it is **not D-numbered** and carries **no operator-confirmed
-  date**. The brief flags Option A as a path-fork requiring operator sign-off before widening to
-  `review_processor.py`; the plan asserts the choice without recording confirmation.
-- §9 Sequenced atomic-commit plan (B0…Bn): PRESENT (Commit 1–4, ordered, one file each). Naming is
-  "Commit N" not "Bn" — cosmetic.
-- §10 Critical files (NEW/MOD/UNTOUCHED): **PARTIAL** — MOD table present; **no UNTOUCHED sub-section**
-  (also flagged at 3.9).
-- §11 Reused utilities (must consume, not reimplement) [literal phrase]: **MISSING** — the plan notes
-  `get_latest_review_for_card` "already exists" inline but has no "Reused utilities" section. Verified:
-  the method does exist at `flashcore/db/database.py:834` returning `Optional[Review]`.
-- §14 Acceptance criteria (outcome-shaped): PRESENT (two named acceptance tests + "Test layers" table).
-- §15 Risks + mitigations + stop conditions (RED): **MISSING** — no risk register, no RED stop
-  conditions in the plan (the iter budget lives in the brief, not the plan).
-- §19 Locked PR sequence position: **PARTIAL** — successors named in scope-guard (backfill / DB-migration
-  follow-ups) but no explicit predecessor / parallel-safe-with declaration.
-- §20 After-merge handoff: **MISSING** in plan (POST-MERGE bookkeeping lives in the completion contract,
-  not the plan; task-tracker row / memory writes not carried into the plan).
-- Extra non-canonical: "E010 / packet hygiene notes" (useful, project-specific) — not a defect.
-- Out-of-order: n/a (plan is not numbered to the canonical scheme).
+  Option A" with a one-sentence rationale is present (satisfies the brief's path-fork requirement to pick
+  one), but it is **not D-numbered** and carries **no operator-confirmed date**. The launch brief
+  explicitly gates this: "Path choice ... wants operator sign-off **before widening scope to
+  `review_processor.py`**" — Commit 3 widens to `review_processor.py` with no recorded confirmation.
+- §9 Sequenced atomic-commit plan (B0…Bn): **PRESENT** — Commit 1–5, ordered, one file each. Named
+  "Commit N" not "Bn" (cosmetic).
+- §10 Critical files (NEW/MOD/**UNTOUCHED**): **PARTIAL** — MOD table present; **no UNTOUCHED
+  sub-section** (also flagged at 3.9 — scope-drift primitive absent).
+- §11 Reused utilities (must consume, not reimplement) [literal phrase]: **MISSING as a section** — plan
+  notes `get_latest_review_for_card` "already exists" inline (verified: `database.py:834`,
+  returns `Optional[Review]`) but no dedicated "Reused utilities" section.
+- §14 Acceptance criteria (outcome-shaped): **PRESENT** — two named acceptance tests + "Test layers"
+  table (elapsed_days>0; stability distinct).
+- §15 Risks + mitigations + stop conditions (RED): **MISSING** — no risk register, no RED thresholds
+  (also flagged at 3.5).
+- §19 Locked PR sequence position (predecessor/successor/parallel-safe): **MISSING** — scope guard names
+  successor follow-ups (backfill PR, stage-c2 DB migration PR) but no locked-position section.
+- §20 After-merge handoff: **PARTIAL** — handoff content (progress-tracker, post-merge bookkeeping)
+  lives in the *completion-contract* artifact, not the plan; the plan itself has only the AIV commit
+  sequence + scope guard.
 
-NUMBERED-SERIES GAPS:
-- Commit-series: Commit 1→4 contiguous, no gaps/dupes. CLEAN.
-- D-decisions: none numbered (single unnumbered path decision) — see §7 flag.
-- R-risks / Q-questions: none present (see §15 flag; no §8 open-questions section).
+NUMBERED-SERIES GAPS (R≥1):
+- B-commits: **clean** — Commit 1–5 contiguous, no gap/duplicate.
+- D-decisions: **none numbered** (Path decision not D-numbered — presence issue, see §7, not a gap).
+- R-risks / Q-questions: **none present** (no risk register / no open-questions section).
 
 STREAM STRUCTURE (R3): n/a (R1).
-
-SUBSTANTIVE LOSSES / ADDITIONS: not computed — no reference configured (1b).
+SUBSTANTIVE LOSSES / ADDITIONS: n/a — no reference available (no archetype configured).
 
 === PHASE 2: PLAN-QUALITY ===
 
 2.1 DESIGN-TESTS COVERAGE:
-| File | Bug-catalog? | Plan to add? |
+
+| File (MOD/NEW) | Bug-catalog? | Plan to add? |
 |---|---|---|
-| `flashcore/models.py` | not present (`models.py.bug-catalog.md` absent) | MISSING — not planned |
-| `flashcore/scheduler.py` | not present | MISSING — relies on 2 pytest acceptance tests |
-| `flashcore/review_processor.py` | not present | MISSING — **no test at all** (see 2.2c) |
-FLAG: bug-catalog-first standard not met. The two new pytest tests are acceptance-shaped (good) but are
-not a substitute for a bug catalog, and they do not cover the processor plumbing.
+| `flashcore/models.py` | none (repo keeps no `.bug-catalog.md`) | not planned |
+| `flashcore/scheduler.py` | none | not planned |
+| `flashcore/review_processor.py` | none | not planned |
 
-2.2a VERIFICATION MATRIX: n/a (R2+ when criteria>3; R1 here).
-2.2b ACCEPTANCE vs VERIFICATION: **distinct** — acceptance = `elapsed_days>0` and `stab` differs (two
-named tests); verification = regression suite / mypy / `aiv check`. Not collapsed.
-2.2c TEST LAYERS (advisory at R1):
-- Layer A unit: PRESENT (the two new scheduler tests).
-- Layer B integration: **MISSING — and load-bearing.** Commit 3 adds a DB-read on the hot path
-  (`db_manager.get_latest_review_for_card(card.uuid)` → `card.last_review_date = prior_review.ts.date()`).
-  This is the *novel Option-A plumbing* and the part most likely to be wrong, yet **no test exercises
-  `review_processor.process_review` end-to-end**. Both new tests set `card.last_review_date` by hand and
-  call the scheduler directly — they would pass even if Commit 3 were never written. The fix can be
-  "green" in tests while the real review path stays broken. This is the single most important finding.
-- Layer C E2E: n/a (no UI/route/auth).
-- Layer D coverage ratchet: `quality.coverage_floor` blank — no numeric target; functional LOC is added,
-  so a ratchet layer *should* at least be named. Not declared.
-- Layer E local-CI replica: PRESENT (full-suite layer + contract [10]).
-- Layer F operator drill: n/a (no subprocess/daemon).
+Flag (soft): not bug-catalog-first. **Mitigation:** the repo corpus keeps no `.bug-catalog.md` files at
+all (`ls **/*.bug-catalog.md` → none), so the standard is not project convention; the two named Layer-A
+acceptance tests + one Layer-B integration test are specified concretely (not "we'll write tests"), which
+substitutes adequately at R1.
 
-2.3 PACKET PRE-READ: none cited. The change touches `review_processor` / scheduler surfaces; no prior
-AIV packet pre-read is named. Minor at R1, but the processor write-path has prior packets worth citing.
+2.2a VERIFICATION MATRIX: n/a (R2+ when criteria >3; R1).
+2.2b ACCEPTANCE vs VERIFICATION: **distinct** — acceptance (elapsed_days>0; on-time stab ≠ same-day stab)
+is separated from mechanical verification (mypy, `aiv check`, regression count) in the Test-layers table.
+2.2c TEST LAYERS: Layer-A (unit) + Layer-B (integration) declared. **Positive — verified executable:**
+the Layer-B test (`test_on_time_review_elapsed_days_persisted`) genuinely exercises the Commit 3→2 chain.
+I traced it: `add_review_and_update_card` → `_update_card_after_review` (`database.py:693`) writes
+`last_review_id = $1`, and `get_card_by_uuid` reloads it, so `card_after_first.last_review_id` is set →
+Commit 3's `if card.last_review_id is not None` guard fires on the second review → `last_review_date` =
+prior review's `2024-06-01` → elapsed_days = 10. The integration gate is not a no-op. Layer-B uses
+`in_memory_db` (real SQLite `:memory:`, the real dialect — not a mock surrogate), satisfying the
+real-DB-write principle. No Layer C/F needed (no UI/route, no subprocess/daemon).
 
-2.4 AUTOMATE-OVER-OPERATOR (advisory): the path-fork (Option A) and code-review read are routed to
-operator AskUserQuestion in the brief — acceptable (genuine design + review gates). No mechanical
-operator-only step that has a code path is parked on the human. OK.
+2.3 PACKET PRE-READ: **none declared.** No AIV packet pre-reads cited for the three MOD files. Acceptable
+at R1 — these surfaces are being modified fresh and the plan reads them by code-view (line cites
+throughout); note only.
 
 2.5 CODE-HEALTH BASELINE:
 - `2.5: no per-file code-health tool configured (quality.code_health_cmd blank) — skipped.`
 - `2.5: no change-set code-health tool configured (quality.code_health_changeset_cmd blank) — skipped.`
 
-2.6 FAN-OUT TRIGGER: n/a at R1 audit depth. (Were it run: borderline-NO — 3 files but one subsystem
-chain, claims already cross-checked in this audit against the live code.)
+2.6 FAN-OUT TRIGGER: n/a at R1 audit depth (2.6 not in R1 table). For the record the trigger would be
+borderline-NO (3 critical files but single well-scoped finding, claims already verified inline here).
 
-2.7 CODE-REVIEW RESILIENCE: n/a at R1 (no prior automated-review contact established).
+2.7 CODE-REVIEW RESILIENCE: n/a (R2+; no prior automated-review contact on this branch).
 
-2.8 MEMORY COVERAGE (no memory store; universal-principles substitute):
+2.8 MEMORY COVERAGE (universal principles — no memory store loaded):
+
 | Principle | Applies? | Honored? |
 |---|---|---|
-| Never merge autonomously; human is merge gate | yes | yes (contract PRE-MERGE AskUserQuestion) |
-| Author packets to shape; validate via `aiv` CLI | yes | yes (AIV commit sequence + `aiv check`) |
-| Merge by rebase, not squash | yes | not stated in plan (brief sets merge.strategy=rebase) — soft |
-| Run local-CI replica before every push | yes | yes (full-suite layer + contract [10]) |
-| Wall-clock e2e drill for subprocess/daemon | n/a | — |
-| **Exercise DB-write/read paths against the real DB, not a surrogate** | **yes** | **NO** — Commit 3's DB read is never exercised against the DB (ties to 2.2c Layer B) |
-| Behavior-pinning + green existing tests for refactor | partial (not a refactor; regression required) | yes (15 existing tests must stay green) |
+| Never merge autonomously; human is merge gate | yes | **yes** — contract PRE-MERGE AskUserQuestion; brief `merge.autonomous=false` |
+| Author packets to shape; validate via `aiv` CLI | yes | **yes** — plan runs `aiv close` + `aiv check` before push |
+| Merge by rebase, not squash (atomic commits) | yes | **yes** — atomic 5-commit sequence; brief `merge.strategy=rebase` |
+| Run local-CI replica before push | yes | **partial** — `ci.local_replica_cmd` unconfigured; plan runs full `pytest tests/` (`aiv check` pre-push) as the replica |
+| Wall-clock drill for subprocess/daemon | no | n/a |
+| Exercise DB-write paths against real DB | yes | **yes** — Layer-B drives real in-memory SQLite |
+| Behavior-pinning + green existing tests (refactor) | partial | **yes** — fix keeps all 15 existing scheduler tests green (else-fallback in Commit 2 specifically preserves `test_review_lapsed_card`) |
 
-=== PHASE 3: PLAN-GRAPH + TEMPORAL (R>=2 sections; R1 runs 3.1, 3.5) ===
+No uncited applicable project memories (none exist). PASS.
 
-3.1 BASE-SHA DRIFT: **base SHA not pinned in the plan.** Plan declares "off `origin/main`" but carries no
-§0 metadata base-SHA. Finding header cites base `origin/main @ b5e1c4b`; current worktree branch
-`feat/c2-fsrs-harness @ 311e046`; the plan's target branch `feat/c2-pr-f169-fsrs-elapsed-days-b1` does
-not yet exist. Risk: **low** (fresh branch, no drift to measure) — but pin the base SHA in §0 before B0.
+=== PHASE 3: PLAN-GRAPH + TEMPORAL (R≥2 depth; R1 runs 3.1, 3.5) ===
 
-3.5 STOP CONDITIONS (RED): **MISSING.** No risk has a RED threshold (LOC drift %, iter cap, CI-fail
-pattern, wall-clock cap) or escalation action in the plan. The brief carries a 2-cycle iter budget with
-one escalation trigger; the plan does not carry it. Flag: add stop conditions / iter budget to the plan.
+3.1 BASE-SHA DRIFT: **0 commits — low risk.** Finding states authored off `origin/main @ b5e1c4b`;
+`git log -1 origin/main` = `b5e1c4b`; `git rev-list --count b5e1c4b..origin/main` = `0`. No drift; the
+pre-authoring verifications need no re-run. (Note: plan has no §0 base-SHA pin — not required at R1, but
+the pin would make this check self-contained rather than relying on the finding header.)
+
+3.5 STOP CONDITIONS (RED): **MISSING.** No §15 risk register → no RED thresholds (LOC drift %, iter#
+cap, CI-fail pattern, wall-clock cap) and no escalation actions in the plan. The launch brief carries an
+iter budget (2 cycles + an escalation-via-AskUserQuestion trigger), but the plan does not import it.
+Flag: add RED stop conditions before execution.
+
+3.2 / 3.3 / 3.4 / 3.6 / 3.7 / 3.8 / 3.9: not in R1 audit depth — but two are cheap and informative:
+- 3.2 CONFLICTS-WITH (informational): only `.aiv/plans/c2-f169-plan.md` exists; no in-flight plan touches
+  the same files → no collision.
+- 3.9 UNTOUCHED FILES (informational): **MISSING** (mirrors §10 PARTIAL) — no `UNTOUCHED` sub-section;
+  scope-drift primitive absent.
 
 === OVERALL VERDICT ===
-Plan structural integrity: **fail** — multiple required-at-R1 sections missing (§2 verified-state,
-§11 reused-utilities, §15 risks/RED-stop-conditions, §20 after-merge) and §7/§10 partial (path decision
-not D-numbered/operator-dated; no UNTOUCHED sub-section).
-Plan quality audit: **partial** — the scheduler fix and acceptance gates are sound and well-specified,
-BUT (a) the Option-A processor plumbing (Commit 3) has zero test coverage — the two new tests pass
-without it; (b) Commit 4's test code references a `make_review_card(...)` helper that **does not exist**
-in `tests/test_scheduler.py` (verified: no `def make_review_card`); (c) the test code uses bare
-`date`/`timedelta`/`time`/`timezone`/`date.today()`/`UTC` while the file imports `import datetime`
-(module form) and accesses `datetime.date(...)` — the plan's claim that "`date`/`timedelta` imports
-should already be present" is false and the tests would `NameError` as written; (d) no bug-catalog.
-Plan-graph readiness: **partial** — base SHA unpinned (low risk) and RED stop conditions absent.
-
-HARD STOPS:
-- **H-A (phase 2.2c / 2.8):** Acceptance gates [1]/[2] cannot be trusted to validate the fix — both new
-  tests bypass `review_processor` (Commit 3) entirely, so a fully green test run does not prove the
-  on-time review path is fixed. Add a Layer-B test that drives `process_review` and asserts the persisted
-  `elapsed_days_at_review > 0`.
-- **H-B (phase 2.1 / Commit 4):** Commit 4's tests are written against a non-existent `make_review_card`
-  helper and bare datetime names not imported in the file; as written they fail to collect/run, so the
-  acceptance commands in the completion contract cannot pass. Resolve before B0 (create the helper +
-  correct imports, or rewrite the tests against the existing `Card(...)` + `scheduler` fixture pattern).
-
-Recommended next action: revise the plan before exiting plan mode — (1) add the missing §2/§11/§15/§20
-sections, D-number + operator-date the Option-A decision, add the §10 UNTOUCHED list; (2) add a Commit
-covering `review_processor` population against a real/seeded DB (Layer B); (3) fix Commit 4's test code
-(non-existent helper + import names) so acceptance [1]/[2] actually run; (4) pin the base SHA and add RED
-stop conditions / the 2-cycle iter budget into the plan.
+Plan structural integrity: **fail** — multiple required-at-R1 sections missing/partial: §2 verified-state
+(MISSING), §5 memory refs (MISSING), §11 reused-utilities section (MISSING), §15 risks + RED stop
+conditions (MISSING), §19 PR sequence position (MISSING); §7 path-decision not D-numbered / no operator
+sign-off despite the brief's explicit gate; §10 no UNTOUCHED sub-section; §20 handoff only in the
+contract, not the plan.
+Plan quality audit: **partial** — testability is strong (Layer-A + verified-executable Layer-B, real-DB
+writes, distinct acceptance vs verification, all universal principles honored); soft gaps are no
+bug-catalog/design-tests-first (mitigated — repo keeps none) and no packet pre-read (acceptable at R1).
+Plan-graph readiness: **partial** — 3.1 base-SHA drift = 0 (clean); 3.5 RED stop conditions MISSING.
+HARD STOPS: **none** — no `blocks-B0` open-question structure is present and Phase 3.3 is not run at R1;
+the §7 operator-sign-off gap is recorded as a structural flag + top revision, not a machine hard-stop.
+Recommended next action: **do not exit plan mode yet — revise, then re-run check-drift.** Priority order:
+(1) §7 — D-number the Option-A decision and record the brief-required operator sign-off for widening to
+`review_processor.py`; (2) add §15 risks + RED stop conditions (import the brief's 2-cycle iter budget +
+escalation trigger); (3) add §10 `UNTOUCHED (explicitly out of scope)` sub-section; (4) add §2
+verified-state block (the claims are already verified above — record them) and a §11 reused-utilities
+line for `get_latest_review_for_card`. Implementation design itself is sound and the acceptance gates are
+real; the failures are plan-structure, not plan-logic.
 
 === SURVIVORSHIP-BIAS DISCLOSURE ===
 This template is induced from the project's own plan corpus (plans.dir), weighted toward plans that
-shipped — a survivorship sample. It tells you what merged plans happened to contain, not what plans need
-to succeed. No archetype/config was available this run, so structural drift was section-presence-only
-against the canonical list (no reference diff). A clean structural pass would mean "matches the surviving
-corpus," not "cannot fail"; this plan did not pass. Sections marked OPTIONAL are observed-rare-but-
-load-bearing; the load-bearing gap here (untested Option-A plumbing) is a quality failure mode the bare
-section-presence check would have missed — it was caught by Phase 2.2c, which is why Phase 2 is not
-skippable.
+shipped. The corpus is a survivorship sample: it tells you what plans that merged happened to contain,
+NOT what plans need to succeed. Sections marked OPTIONAL are observed-rare-but-load-bearing. Sections NOT
+in the template may still be load-bearing for failure modes not yet encountered. A clean structural pass
+means "matches the surviving corpus", not "cannot fail". Here there is no configured archetype, so only
+section-presence + series-gap ran — the substantive vs-reference diff was disabled. Promotion criterion
+for adding any new section: name the specific failure mode it would have prevented.
 
 ## Machine-checkable data
 
@@ -170,11 +172,8 @@ skippable.
   "structural_integrity": "fail",
   "plan_quality": "partial",
   "plan_graph": "partial",
-  "hard_stops": [
-    {"id": "H-A", "phase": "2.2c", "detail": "Acceptance tests [1]/[2] bypass review_processor (Commit 3); a green run does not prove the on-time path is fixed — no Layer-B/integration test drives process_review against the DB."},
-    {"id": "H-B", "phase": "2.1", "detail": "Commit 4 tests reference a non-existent make_review_card helper and use bare datetime names (date/timedelta/time/timezone/UTC) not imported in tests/test_scheduler.py; tests fail to run, so acceptance commands cannot pass."}
-  ],
+  "hard_stops": [],
   "open_substantive_losses": 0,
-  "iteration": 1
+  "iteration": 2
 }
 ```
