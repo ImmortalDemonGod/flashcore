@@ -74,7 +74,7 @@ Searched for and did NOT find:
 ### Class E (Intent Alignment)
 
 **Intent reference (SHA-pinned):**
-`https://github.com/ImmortalDemonGod/flashcore/blob/cdbe6bf/.taskmaster/tasks/task_008.md`
+`https://github.com/ImmortalDemonGod/flashcore/blob/bc19321bc72cf2467d57ffebc24b92a341ea10d6/audit/02-static-audit.md#L179`
 
 **Requirement satisfied:** CI lint gate (black --check) must pass on all platforms including macOS (tests_mac 3.10, 3.11). The `make test` target runs `make lint` first; lint was failing because 3 files were not formatted to the pinned black==25.12.0 line-length-79 style. Reformatting with the exact installed version clears the gate without changing any logic.
 
