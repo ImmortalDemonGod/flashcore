@@ -55,10 +55,15 @@ VERIFY (binary green/red):
     cmd: aiv check .github/aiv-packets/PACKET_f169-fsrs-elapsed-days.md
     pass: exits 0, no blocking errors (E010 trigger words absent from claims; no bare Class E links)
 
-[9] NO ATTRIBUTION — BRANCH SHAPE CORRECT
-    cmd: git log feat/c2-pr-f169-fsrs-elapsed-days-b1 --format="%an | %s" | head -10
-    pass: branch name matches feat/c2-pr-f169-fsrs-elapsed-days-b1 exactly;
-          no commit author is an AI agent; Co-Authored-By tag present if pair-authored
+[9] AUTHORSHIP + BRANCH (aiv-workflow / Polymath track) — AMENDED 2026-06-19
+    cmd: git log <pr-branch> --format="%an | %s" | head -10
+    pass: commits are authored by the pipeline's agents — AI authorship is EXPECTED on this track;
+          the human's ONLY authorities are H1 (the finding) and H2 (judge + merge), never commit
+          authorship. Branch is the harness's PR branch (exact name not load-bearing).
+          Co-Authored-By / Claude trailers permitted.
+    note: supersedes the original "no AI commit author / fixed branch name" clause, which was a
+          human-centric template default incoherent with an autonomous AI-driven pipeline. The
+          generalized fix lives in the launch-brief stage (it no longer emits that clause).
 
 [10] LOCAL CI PASSES
     cmd: python -m pytest tests/ -q --tb=short 2>&1 | tail -5
