@@ -67,13 +67,19 @@ def _display_card(card: Card) -> int:
 
 def start_review_flow(
     manager: ReviewSessionManager, tags: Optional[List[str]] = None
-) -> None:
+) -> bool:
     """
     Manages the command-line review session flow.
 
     Args:
         manager: An instance of ReviewSessionManager.
         tags: Optional list of tags to filter cards by.
+
+    Returns:
+        True when the session is vacuously successful (no cards due), all
+        reviews succeed, or the outcome is mixed.  False only when at least
+        one card was attempted and every submit_review call raised an
+        exception (total failure).
     """
     console.print("[bold cyan]Starting review session...[/bold cyan]")
     manager.initialize_session(tags=tags)
@@ -84,8 +90,10 @@ def start_review_flow(
             "[bold yellow]No cards are due for review.[/bold yellow]"
         )
         console.print("[bold cyan]Review session finished.[/bold cyan]")
-        return
+        return True
 
+    success_count = 0
+    failed_count = 0
     reviewed_count = 0
     while (card := manager.get_next_card()) is not None:
         reviewed_count += 1
@@ -108,8 +116,11 @@ def start_review_flow(
             console.print(
                 "[bold red]Error submitting review. Card will be reviewed again later.[/bold red]"
             )
+            manager.skip_card(card.uuid)
+            failed_count += 1
             continue
 
+        success_count += 1
         if updated_card and updated_card.next_due_date:
             days_until_due = (updated_card.next_due_date - date.today()).days
             due_date_str = updated_card.next_due_date.strftime("%Y-%m-%d")
@@ -124,4 +135,12 @@ def start_review_flow(
             )
         console.print("")  # Add a blank line for spacing
 
-    console.print("[bold cyan]Review session finished. Well done![/bold cyan]")
+    if failed_count > 0 and success_count == 0:
+        console.print("[bold red]Review session failed.[/bold red]")
+        return False
+    elif failed_count > 0:
+        console.print("[bold cyan]Review session finished.[/bold cyan]")
+        return True
+    else:
+        console.print("[bold cyan]Review session finished. Well done![/bold cyan]")
+        return True
