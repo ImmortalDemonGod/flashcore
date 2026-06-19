@@ -1,0 +1,41 @@
+===== HEAD GREEN RUN — c2-f82 =====
+HEAD SHA     : c0f4366d5f05719e2c6c7b2b11238855f475cded  (fix/c2-f82)
+Baseline SHA : 5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb  (origin/main)
+Test file    : tests/cli/test_review_ui.py  (HEAD version — 10 tests including 4 RED tests)
+Worktree     : /home/user/flashcore-c2-f82  (HEAD)
+Code loaded  : /home/user/flashcore-c2-f82/flashcore/cli/review_ui.py  (HEAD, has skip_card, conditional Well done)
+Runner       : /home/user/flashcore-c2-f82/.venv/bin/python3 -m pytest tests/cli/test_review_ui.py -v --tb=short
+
+=== RUN 1 — all review_ui tests at HEAD ===
+Command: python3 -m pytest tests/cli/test_review_ui.py -v --tb=short
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /home/user/flashcore-c2-f82/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/user/flashcore-c2-f82
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 10 items
+
+tests/cli/test_review_ui.py::test_start_review_flow_no_due_cards PASSED  [ 10%]
+tests/cli/test_review_ui.py::test_start_review_flow_with_one_card PASSED [ 20%]
+tests/cli/test_review_ui.py::test_start_review_flow_invalid_rating_input PASSED [ 30%]
+tests/cli/test_review_ui.py::test_start_review_flow_submit_review_exception PASSED [ 40%]
+tests/cli/test_review_ui.py::test_start_review_flow_card_without_next_due_date PASSED [ 50%]
+tests/cli/test_review_ui.py::test_start_review_flow_submit_returns_none PASSED [ 60%]
+tests/cli/test_review_ui.py::test_all_submit_review_fail_output_omits_well_done_guards_against_false_success_message PASSED [ 70%]
+tests/cli/test_review_ui.py::test_persistent_submit_failure_retries_same_card_guards_against_infinite_retry_loop PASSED [ 80%]
+tests/cli/test_review_ui.py::test_start_review_flow_all_fail_suppresses_well_done PASSED [ 90%]
+tests/cli/test_review_ui.py::test_start_review_flow_success_emits_well_done PASSED [100%]
+
+============================== 10 passed in 0.12s ==============================
+
+=== RUN 2 — full test suite at HEAD (regression check) ===
+Command: python3 -m pytest tests/ -q --tb=line
+
+490 passed, 1 skipped in 30.77s
+
+SUMMARY:
+10/10 review_ui tests PASS at HEAD (c0f4366).
+490 total tests pass; 1 pre-existing skip; 0 regressions.
+All 4 RED tests that FAILED on baseline now PASS on HEAD.
