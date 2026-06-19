@@ -415,3 +415,47 @@ on-time and lapsed scenarios would produce `elapsed_days = 0`, causing
 Added `else: fsrs_card.last_review = fsrs_card.due` to preserve the prior approximation
 for cards where `last_review_date` is absent. The exact fix still activates only when
 `review_processor` populates `last_review_date`.
+
+---
+
+## §2 Verified state (Explore-grounded, 2026-06-19)
+
+Grounded via the launch-brief + Stage-0 harness grounding (the pipeline's stand-in for N Explore agents):
+- `flashcore/scheduler.py:212` sets `fsrs_card.last_review = fsrs_card.due`; the elapsed_days calc at line 218 then yields `0` for an on-time review (`review_ts == next_due_date`). [verified: read source]
+- Architecture is hub-and-spoke: `flashcore/` is the pure-logic spoke (no DB handle); `review_processor` is the hub that owns persistence. [verified]
+- The prior-review timestamp is NOT in `Card`'s cached state — `Card` carries only `next_due_date/state/stability/difficulty`. [verified: models.py]
+- `db_manager.get_latest_review_for_card(card_uuid) -> Optional[Review]` EXISTS (db/database.py:834); `Review.ts` is the prior review timestamp. [verified] — this is what makes Option A viable.
+- Baseline on `origin/main` b5e1c4b: 15 scheduler tests pass; full suite 480 passed / 1 skipped.
+
+## §5 Memory + lesson references
+
+Project memory source: flashcore `CLAUDE.md` (no dedicated memory store yet — sparse; we begin building it). Lessons consumed for this plan:
+- E010 bug-fix-word trap: avoid `fix/bug/resolve/patch` in AIV claims, or include a Class F provenance claim.
+- `aiv commit` mandatory (not plain git); intent URL must be SHA-pinned; `--skip-checks` is R0-only.
+- Use `.venv`; baseline is 480 tests / 1 skipped. Hub-and-spoke: the spoke stays pure (no DB handle).
+
+New lessons to CAPTURE post-PR (→ project memory + harness lessons): (1) hub-plumbed fixes need a Layer-B integration test — the by-hand #31 lacked it and check-drift caught it; (2) the prior-review ts is not in cached card state → plumb via the hub; (3) [harness] the leading-dash arg bug in stage prompts.
+
+## §11 Reused utilities (must consume, not reimplement)
+
+- `db_manager.get_latest_review_for_card()` — consume to fetch the prior review; do NOT write a new query.
+- `Review.ts` — the prior review timestamp; consume, do not recompute.
+- `FSRS_Scheduler.compute_next_state` — extend its signature (add `last_review_date`); do NOT fork the scheduler.
+- `Card` (Pydantic model) — add the transient field to the existing model; do not shadow/duplicate it.
+- Existing `test_scheduler.py` patterns — construct `Card(...)` inline (no new `make_review_card` helper — the H-B lesson).
+
+## §15 Risks + mitigations + stop conditions (RED)
+
+| Risk | Mitigation | RED stop-condition (abort/revert) |
+|---|---|---|
+| Scheduler change affects every on-time review (broad interval/stability shift) | fix only changes the elapsed_days input; existing tests pin behavior | **any existing scheduler test regresses, OR full suite < 480 passed** |
+| `last_review_date=None` (Learning/new card) mis-handled | explicit None-fallthrough → elapsed_days=0 (prior behavior) | **any None-arithmetic TypeError in learning/new-card tests** |
+| Transient field leaks into persistence | Pydantic transient field; DB column deferred to stage-c2 migration | **`add_review_and_update_card` breaks / field reaches the cards table** |
+| AIV packet E010 false-positive (fix uses bug-fix words) | phrase claims w/o trigger words or add Class F | **`aiv check` returns a blocking error on the packet** |
+
+## §19 Locked PR sequence position (predecessor / successor / parallel-safe)
+
+- **Predecessor:** F43 spine fix (aiv-protocol PR #10, MERGED) — the AIV gate now fails closed, so this PR's AIV gating is trustworthy.
+- **This PR:** F169 / plan C2 (flashcore) on `feat/c2-fsrs-harness`.
+- **Successors:** backfill PR (`feat/c2-pr-backfill-last-review-date`) · stage-c2 DB-migration (persist `last_review_date` column) · C3 (FSRS weight-vector alignment, depends-on C2) · **F169b** (early-review negative `elapsed_days`, flagged by check-drift's predecessor).
+- **Parallel-safe:** yes — touches `scheduler.py` / `models.py` / `review_processor.py` / tests only; no shared surface with other in-flight flashcore PRs.
