@@ -1,166 +1,106 @@
-# check-drift audit — Plan: Fix F169 (FSRS on-time elapsed_days)
+# check-drift verdict — plan `c2-f169-plan.md` (F169 / plan C2)
 
-Plan audited: `.aiv/plans/c2-f169-plan.md`
-Config: **no `.aiv-workflow.yml`** at repo root (`git rev-parse --show-toplevel` = `/home/user/fc-c2-harness`;
-`$AIV_WORKFLOW_CONFIG` empty) — all values are skill defaults. `plans.archetypes.*`,
-`quality.code_health_cmd`, `quality.code_health_changeset_cmd`, `quality.coverage_floor`,
-`memory.dir`/`memory.index`, `ci.local_replica_cmd` all blank/absent.
-Iteration: this is **Loop #1, iteration 2** (plan revision log §"Loop #1, iteration 2" added Commit 5;
-a prior `check-drift.md` verdict from iteration 1 was present and overwritten).
+> Config: **no `.aiv-workflow.yml` at repo root and `$AIV_WORKFLOW_CONFIG` unset → all defaults**
+> (`plans.dir=~/.claude/plans` [empty], all `plans.archetypes.*` blank, `memory.dir=auto`,
+> `quality.code_health_cmd` blank, `quality.code_health_changeset_cmd` blank,
+> `quality.coverage_floor` blank, `branch.base=origin/main`). Stated per skill.
 
 === PHASE 0: R-TIER ===
-Declared: **R1** (plan line 8).
-Inferred: **R1** (basis: 5 atomic commits; 3 source files MOD [`models.py`, `scheduler.py`,
-`review_processor.py`] + 2 test files; 0 migrations; 0 new data-access methods — Commit 3 *consumes* the
-pre-existing `db.get_latest_review_for_card`, verified at `flashcore/db/database.py:834`; the new field is
-transient `exclude=True`, no persistence).
-Reconciled: **R1** (no mismatch). Caveat: the change spans 3 subsystems (model + hub + scheduler),
-brushing the R2 boundary, but with no migration / no new DB method / no new dispatcher it stays R1.
-Audit depth (R1): Phase 1 full; Phase 2 = 2.1, 2.2, 2.3, 2.5, 2.8; Phase 3 = 3.1, 3.5.
+- **Declared:** R1 (`c2-f169-plan.md:8`)
+- **Inferred:** R1 (basis: 5 atomic commits; 3 prod files MOD — `models.py`/`scheduler.py`/`review_processor.py` — + 2 test files; **0 migrations** [persistence explicitly deferred, `:367`]; no new dispatcher/substrate; transient `exclude=True` field only)
+- **Reconciled:** R1 (declared == inferred, no mismatch)
+- **Audit depth (R1):** Phase 1 full · Phase 2 = 2.1, 2.2, 2.3, 2.5, 2.8 · Phase 3 = 3.1, 3.5
 
 === PHASE 1: STRUCTURAL DRIFT ===
-REFERENCE: **NONE** — `1b: no R1 archetype configured (plans.archetypes.R1 blank, no config file) —
-running section-presence + series-gap checks against the canonical list only, no reference diff.`
+**REFERENCE:** NONE — `plans.archetypes.R1` blank (no config).
+`1b: no R1 archetype configured (plans.archetypes.R1 blank) — running section-presence + series-gap checks against the canonical list only, no reference diff.`
 
-SECTION-PRESENCE (required-at-R1 checked):
-- §1 Context: **PRESENT** — opens with finding statement + `scheduler.py:212` cite (verified: bug is at
-  `flashcore/scheduler.py:211-212`, `fsrs_card.last_review = fsrs_card.due`).
-- §2 Verified state (N Explore agents, YYYY-MM-DD): **MISSING** — no verified-state block with agent
-  count + date. (I independently verified the plan's factual claims; see Phase 2/3 — they hold.)
-- §5 Memory + lesson references: **MISSING** — no memory section (no memory store loaded; universal-
-  principles substitute checked at 2.8).
-- §6 Strict scope boundaries (IN/OUT): **PRESENT** — "Files touched" (IN) + "Scope guard — out of this
-  PR" table (OUT) with follow-up dispositions. No "does NOT do" philosophical line (minor).
-- §7 Locked design decisions (D-numbered, operator-confirmed + date): **PARTIAL** — "Path decision:
-  Option A" with a one-sentence rationale is present (satisfies the brief's path-fork requirement to pick
-  one), but it is **not D-numbered** and carries **no operator-confirmed date**. The launch brief
-  explicitly gates this: "Path choice ... wants operator sign-off **before widening scope to
-  `review_processor.py`**" — Commit 3 widens to `review_processor.py` with no recorded confirmation.
-- §9 Sequenced atomic-commit plan (B0…Bn): **PRESENT** — Commit 1–5, ordered, one file each. Named
-  "Commit N" not "Bn" (cosmetic).
-- §10 Critical files (NEW/MOD/**UNTOUCHED**): **PARTIAL** — MOD table present; **no UNTOUCHED
-  sub-section** (also flagged at 3.9 — scope-drift primitive absent).
-- §11 Reused utilities (must consume, not reimplement) [literal phrase]: **MISSING as a section** — plan
-  notes `get_latest_review_for_card` "already exists" inline (verified: `database.py:834`,
-  returns `Optional[Review]`) but no dedicated "Reused utilities" section.
-- §14 Acceptance criteria (outcome-shaped): **PRESENT** — two named acceptance tests + "Test layers"
-  table (elapsed_days>0; stability distinct).
-- §15 Risks + mitigations + stop conditions (RED): **MISSING** — no risk register, no RED thresholds
-  (also flagged at 3.5).
-- §19 Locked PR sequence position (predecessor/successor/parallel-safe): **MISSING** — scope guard names
-  successor follow-ups (backfill PR, stage-c2 DB migration PR) but no locked-position section.
-- §20 After-merge handoff: **PARTIAL** — handoff content (progress-tracker, post-merge bookkeeping)
-  lives in the *completion-contract* artifact, not the plan; the plan itself has only the AIV commit
-  sequence + scope guard.
+**SECTION-PRESENCE (required at R1):**
+- §1 Context — present (`:1-28`, finding + Path-decision)
+- §2 Verified state (Explore-grounded, 2026-06-19) — present (`:421-428`)
+- §5 Memory + lesson references — present (`:430-437`)
+- §6 Strict scope boundaries (IN/OUT w/ dispositions) — present (Files-touched `:32-41` = IN; Scope-guard table `:363-371` = OUT w/ deferral targets)
+- §7 Locked design decisions (D-numbered, operator-confirmed + date) — **PARTIAL**: decision present & well-argued ("Path decision: Option A" `:12-28`) but **not D-numbered and carries no operator-confirmation date**. Format gap, not absence.
+- §9 Sequenced atomic-commit plan — present (Commit 1–5 `:44-261`; flat, labeled "Commit N" not "B0..Bn" — acceptable at R1)
+- §10 Critical files (NEW/MOD/**UNTOUCHED**) — **PARTIAL**: NEW/MOD present (Files-touched table); **UNTOUCHED sub-section MISSING** (scope-drift-prevention primitive absent — see 3.9 rationale)
+- §11 Reused utilities (must consume, not reimplement) — present, literal phrase (`:439-445`)
+- §14 Acceptance criteria — present via completion-contract VERIFY [1]-[13] + Test-layers table (`:265-277`)
+- §15 Risks + mitigations + stop conditions (RED) — present, 4 risks each with RED (`:447-454`)
+- §19 Locked PR sequence position — present (`:456-461`)
+- §20 After-merge handoff — present (completion-contract POST-MERGE `:96-108` + §5 "lessons to CAPTURE post-PR" `:437`)
 
-NUMBERED-SERIES GAPS (R≥1):
-- B-commits: **clean** — Commit 1–5 contiguous, no gap/duplicate.
-- D-decisions: **none numbered** (Path decision not D-numbered — presence issue, see §7, not a gap).
-- R-risks / Q-questions: **none present** (no risk register / no open-questions section).
+Sections not required at R1 (R2+/R3): §0/§3/§4/§8/§12/§13/§16/§17/§18/§21/§22 — correctly omitted. Bonus: a Revision log (`:384-417`) is present though not required at R1.
 
-STREAM STRUCTURE (R3): n/a (R1).
-SUBSTANTIVE LOSSES / ADDITIONS: n/a — no reference available (no archetype configured).
+**NUMBERED-SERIES GAPS:**
+- D-decisions: not numbered (single Option-A decision; no D1.. series) — see §7 partial above
+- B-commits: clean (Commit 1→5, no gaps/dupes)
+- R-risks: clean (4 rows, no gaps); Q-questions: n/a (R1, none)
+
+**STREAM STRUCTURE:** n/a (R1, not R3)
+
+**SUBSTANTIVE LOSSES / ADDITIONS:** not assessed — no reference available (archetype blank). Per skill, vs-reference diff disabled this run.
 
 === PHASE 2: PLAN-QUALITY ===
 
-2.1 DESIGN-TESTS COVERAGE:
+**2.1 DESIGN-TESTS COVERAGE** — `find . -name '*.bug-catalog.md'` → none.
 
-| File (MOD/NEW) | Bug-catalog? | Plan to add? |
+| File | Bug-catalog? | Plan to add? |
 |---|---|---|
-| `flashcore/models.py` | none (repo keeps no `.bug-catalog.md`) | not planned |
-| `flashcore/scheduler.py` | none | not planned |
-| `flashcore/review_processor.py` | none | not planned |
+| `flashcore/models.py` (MOD) | not present | none planned — relies on Layer-A/B tests |
+| `flashcore/scheduler.py` (MOD) | not present | none planned — relies on Layer-A tests |
+| `flashcore/review_processor.py` (MOD) | not present | none planned — relies on Layer-B test |
 
-Flag (soft): not bug-catalog-first. **Mitigation:** the repo corpus keeps no `.bug-catalog.md` files at
-all (`ls **/*.bug-catalog.md` → none), so the standard is not project convention; the two named Layer-A
-acceptance tests + one Layer-B integration test are specified concretely (not "we'll write tests"), which
-substitutes adequately at R1.
+**FLAG:** No bug-catalog companions; coverage is "we'll write tests" (Layer-A + Layer-B). Bug-catalog-first standard not met. Mitigant: the two correctness gates are sharp and outcome-shaped (elapsed_days>0; on-time stability ≠ same-day stability), and a real prior near-miss (by-hand #31 lacked Layer-B) is explicitly addressed by adding Commit 5. Quality flag, not a stop.
 
-2.2a VERIFICATION MATRIX: n/a (R2+ when criteria >3; R1).
-2.2b ACCEPTANCE vs VERIFICATION: **distinct** — acceptance (elapsed_days>0; on-time stab ≠ same-day stab)
-is separated from mechanical verification (mypy, `aiv check`, regression count) in the Test-layers table.
-2.2c TEST LAYERS: Layer-A (unit) + Layer-B (integration) declared. **Positive — verified executable:**
-the Layer-B test (`test_on_time_review_elapsed_days_persisted`) genuinely exercises the Commit 3→2 chain.
-I traced it: `add_review_and_update_card` → `_update_card_after_review` (`database.py:693`) writes
-`last_review_id = $1`, and `get_card_by_uuid` reloads it, so `card_after_first.last_review_id` is set →
-Commit 3's `if card.last_review_id is not None` guard fires on the second review → `last_review_date` =
-prior review's `2024-06-01` → elapsed_days = 10. The integration gate is not a no-op. Layer-B uses
-`in_memory_db` (real SQLite `:memory:`, the real dialect — not a mock surrogate), satisfying the
-real-DB-write principle. No Layer C/F needed (no UI/route, no subprocess/daemon).
+**2.2a VERIFICATION MATRIX:** n/a (R2+ when criteria>3).
+**2.2b ACCEPTANCE vs VERIFICATION:** distinct — completion-contract separates outcome acceptance ([1] elapsed_days>0, [2] stability distinct) from mechanical verification ([5]/[6]/[7] tests/grep/mypy). Plan's Test-layers table mildly collapses the two but the contract is the gate. OK.
+**2.2c TEST LAYERS:** A (unit, Commit 4) present; **B (integration) present and correctly required** — a DB-write path (`add_review_and_update_card`) is touched, and Commit 5 exercises the full `process_review`→scheduler chain. C (E2E) n/a (no UI/route/auth). D (coverage ratchet): functional LOC added but `quality.coverage_floor` blank → no numeric target to cite; ratchet not declared (acceptable at R1). E (local-CI replica): full-suite run + `aiv check` before push present (`:276-277`). F (operator drill): n/a (no subprocess/daemon). No actionable layer-gap.
 
-2.3 PACKET PRE-READ: **none declared.** No AIV packet pre-reads cited for the three MOD files. Acceptable
-at R1 — these surfaces are being modified fresh and the plan reads them by code-view (line cites
-throughout); note only.
+**2.3 PACKET PRE-READ:** For each MOD file, **code-view sufficient** — these surfaces have no prior AIV packets (fresh harness; §2 grounds via launch-brief, not a prior packet). Packet-pre-read section is R2+ anyway; no gap at R1.
 
-2.5 CODE-HEALTH BASELINE:
+**2.5 CODE-HEALTH BASELINE:**
 - `2.5: no per-file code-health tool configured (quality.code_health_cmd blank) — skipped.`
 - `2.5: no change-set code-health tool configured (quality.code_health_changeset_cmd blank) — skipped.`
 
-2.6 FAN-OUT TRIGGER: n/a at R1 audit depth (2.6 not in R1 table). For the record the trigger would be
-borderline-NO (3 critical files but single well-scoped finding, claims already verified inline here).
-
-2.7 CODE-REVIEW RESILIENCE: n/a (R2+; no prior automated-review contact on this branch).
-
-2.8 MEMORY COVERAGE (universal principles — no memory store loaded):
+**2.8 MEMORY COVERAGE** — §5 cites CLAUDE.md lessons (E010 trap, aiv-mandatory, SHA-pinned intent, .venv/480-baseline, hub-purity). Universal-principle cross-check:
 
 | Principle | Applies? | Honored? |
 |---|---|---|
-| Never merge autonomously; human is merge gate | yes | **yes** — contract PRE-MERGE AskUserQuestion; brief `merge.autonomous=false` |
-| Author packets to shape; validate via `aiv` CLI | yes | **yes** — plan runs `aiv close` + `aiv check` before push |
-| Merge by rebase, not squash (atomic commits) | yes | **yes** — atomic 5-commit sequence; brief `merge.strategy=rebase` |
-| Run local-CI replica before push | yes | **partial** — `ci.local_replica_cmd` unconfigured; plan runs full `pytest tests/` (`aiv check` pre-push) as the replica |
+| Never merge autonomously; human is merge gate | yes | **yes** — contract PRE-MERGE AskUserQuestion `:86-92`, CLAUDE.md |
+| Author packets to shape; validate via `aiv` CLI not by eye | yes | **yes** — `:289-358`, `aiv check` gate |
+| Merge by rebase, not squash | yes | **uncited** — not addressed in plan (minor flag) |
+| Run local-CI replica before every push | yes | **yes** — full suite + `aiv check` pre-push |
 | Wall-clock drill for subprocess/daemon | no | n/a |
-| Exercise DB-write paths against real DB | yes | **yes** — Layer-B drives real in-memory SQLite |
-| Behavior-pinning + green existing tests (refactor) | partial | **yes** — fix keeps all 15 existing scheduler tests green (else-fallback in Commit 2 specifically preserves `test_review_lapsed_card`) |
+| Exercise DB-write paths against the **real** database, not an in-memory surrogate | yes | **FLAG** — Layer-B (`:215-261`) uses `in_memory_db` (in-memory SQLite). Same engine/dialect as prod SQLite, so the dialect-bug risk the principle targets is largely mitigated, but strictly the surrogate is used. Note for the operator. |
+| Behavior-pinning + green existing tests for refactor PRs | partial (this is a fix, not refactor) | **yes** — 15 existing scheduler tests pinned; RED stop = "any existing scheduler test regresses" |
 
-No uncited applicable project memories (none exist). PASS.
+=== PHASE 3: PLAN-GRAPH + TEMPORAL (R1 → 3.1, 3.5 only) ===
 
-=== PHASE 3: PLAN-GRAPH + TEMPORAL (R≥2 depth; R1 runs 3.1, 3.5) ===
+**3.1 BASE-SHA DRIFT:** Plan declares base `origin/main` @ `b5e1c4b` (`:6`, `:428`). Probe: `git rev-list --count b5e1c4b..origin/main` = **0**. origin/main HEAD is still `b5e1c4b`. **Risk: LOW** — zero drift, pre-authoring verifications (§2) remain valid. (Working branch HEAD `cd5f826` is 8 commits ahead of base, but those are pipeline/plan-authoring commits, not the implementation slot.)
 
-3.1 BASE-SHA DRIFT: **0 commits — low risk.** Finding states authored off `origin/main @ b5e1c4b`;
-`git log -1 origin/main` = `b5e1c4b`; `git rev-list --count b5e1c4b..origin/main` = `0`. No drift; the
-pre-authoring verifications need no re-run. (Note: plan has no §0 base-SHA pin — not required at R1, but
-the pin would make this check self-contained rather than relying on the finding header.)
+**3.5 STOP CONDITIONS (RED):** present per risk (`:447-454`) — thresholds named and falsifiable: "full suite < 480 passed", "any None-arithmetic TypeError in learning/new-card tests", "field reaches the cards table", "`aiv check` returns a blocking error". Escalation = abort/revert. **Pass.**
 
-3.5 STOP CONDITIONS (RED): **MISSING.** No §15 risk register → no RED thresholds (LOC drift %, iter#
-cap, CI-fail pattern, wall-clock cap) and no escalation actions in the plan. The launch brief carries an
-iter budget (2 cycles + an escalation-via-AskUserQuestion trigger), but the plan does not import it.
-Flag: add RED stop conditions before execution.
+(3.2 conflicts-with, 3.3 open-questions, 3.4 streams, 3.6–3.9 — not gated at R1. Noted anyway: only one plan in `.aiv/plans/` and `~/.claude/plans` empty → no conflicts-with collisions; no open-questions queue exists; UNTOUCHED-files gap noted under §10 above.)
 
-3.2 / 3.3 / 3.4 / 3.6 / 3.7 / 3.8 / 3.9: not in R1 audit depth — but two are cheap and informative:
-- 3.2 CONFLICTS-WITH (informational): only `.aiv/plans/c2-f169-plan.md` exists; no in-flight plan touches
-  the same files → no collision.
-- 3.9 UNTOUCHED FILES (informational): **MISSING** (mirrors §10 PARTIAL) — no `UNTOUCHED` sub-section;
-  scope-drift primitive absent.
+=== ADVERSARIAL GROUNDING (claims re-executed) ===
+- `flashcore/scheduler.py:211-212` bug confirmed: `fsrs_card.last_review = fsrs_card.due` then elapsed_days from `last_review.date()` → 0 on-time. ✓ (read source)
+- `get_latest_review_for_card` EXISTS at `flashcore/db/database.py:834`. ✓ (plan said :834 — exact)
+- `Card.last_review_id` (`models.py:57`) and `next_due_date` (`:61`) exist; `last_review_date` not yet present (the field this PR adds). ✓
+- **Layer-B test soundness confirmed:** `add_review_and_update_card` sets the card's `last_review_id` (`database.py:693` `SET last_review_id = $1`), so after the first `process_review` the returned card has `last_review_id != None` → Commit 3's guard `if card.last_review_id is not None` fires on the second review and the test exercises the real plumbing (not a false-green). ✓
+- `tests/test_scheduler.py` has 15 `def test_`; `test_review_lapsed_card` (`:252`, asserts `result_lapsed.elapsed_days > result_on_time.elapsed_days`) confirms the else-fallback rationale at `:95-101` is real. ✓
+
+=== COORDINATION FLAG (non-section) ===
+Plan declares branch `feat/c2-pr-f169-fsrs-elapsed-days-b1` (`:6`) but the actual working branch is `feat/c2-fsrs-harness` (matches the FINDING header). Completion-contract VERIFY [9] (`:58-61`) requires the `...-b1` branch name **exactly**. Reconcile before execution/VERIFY [9] — not a plan-structure defect, but it will fail the contract's branch-shape check as written.
 
 === OVERALL VERDICT ===
-Plan structural integrity: **fail** — multiple required-at-R1 sections missing/partial: §2 verified-state
-(MISSING), §5 memory refs (MISSING), §11 reused-utilities section (MISSING), §15 risks + RED stop
-conditions (MISSING), §19 PR sequence position (MISSING); §7 path-decision not D-numbered / no operator
-sign-off despite the brief's explicit gate; §10 no UNTOUCHED sub-section; §20 handoff only in the
-contract, not the plan.
-Plan quality audit: **partial** — testability is strong (Layer-A + verified-executable Layer-B, real-DB
-writes, distinct acceptance vs verification, all universal principles honored); soft gaps are no
-bug-catalog/design-tests-first (mitigated — repo keeps none) and no packet pre-read (acceptable at R1).
-Plan-graph readiness: **partial** — 3.1 base-SHA drift = 0 (clean); 3.5 RED stop conditions MISSING.
-HARD STOPS: **none** — no `blocks-B0` open-question structure is present and Phase 3.3 is not run at R1;
-the §7 operator-sign-off gap is recorded as a structural flag + top revision, not a machine hard-stop.
-Recommended next action: **do not exit plan mode yet — revise, then re-run check-drift.** Priority order:
-(1) §7 — D-number the Option-A decision and record the brief-required operator sign-off for widening to
-`review_processor.py`; (2) add §15 risks + RED stop conditions (import the brief's 2-cycle iter budget +
-escalation trigger); (3) add §10 `UNTOUCHED (explicitly out of scope)` sub-section; (4) add §2
-verified-state block (the claims are already verified above — record them) and a §11 reused-utilities
-line for `get_latest_review_for_card`. Implementation design itself is sound and the acceptance gates are
-real; the failures are plan-structure, not plan-logic.
+- **Plan structural integrity: pass** — every section required at R1 is substantively present; the two gaps are sub-element/format level (§10 UNTOUCHED sub-section missing; §7 not D-numbered/operator-dated), not absent top-level sections.
+- **Plan quality audit: partial** — (1) no bug-catalog companions (test-first, not catalog-first); (2) Layer-B uses in-memory SQLite surrogate (mitigated, same engine); (3) rebase-not-squash uncited. All non-fatal; correctness gates and Layer-B plumbing are sound.
+- **Plan-graph readiness: pass** — base-SHA drift 0 (low risk); RED stop-conditions present per risk; no conflicting in-flight plans.
+- **HARD STOPS: none** (R1 requires no open-questions queue; none block B0).
+- **Recommended next action:** proceed to execution. Before B0, optionally tighten: add a §10 **UNTOUCHED** sub-section (e.g., `db/database.py` consumed-not-modified, no migration), D-number the Option-A decision with the operator-confirm date, and **reconcile the branch name** with completion-contract VERIFY [9].
 
 === SURVIVORSHIP-BIAS DISCLOSURE ===
-This template is induced from the project's own plan corpus (plans.dir), weighted toward plans that
-shipped. The corpus is a survivorship sample: it tells you what plans that merged happened to contain,
-NOT what plans need to succeed. Sections marked OPTIONAL are observed-rare-but-load-bearing. Sections NOT
-in the template may still be load-bearing for failure modes not yet encountered. A clean structural pass
-means "matches the surviving corpus", not "cannot fail". Here there is no configured archetype, so only
-section-presence + series-gap ran — the substantive vs-reference diff was disabled. Promotion criterion
-for adding any new section: name the specific failure mode it would have prevented.
+This template is induced from the project's own plan corpus (`plans.dir`), weighted toward plans that shipped. The corpus is a survivorship sample: it tells you what merged plans happened to contain, NOT what plans need to succeed. Here the corpus is effectively empty (`~/.claude/plans` empty; no archetypes configured), so Phase 1 ran section-presence + series-gap against the canonical list only — there is no reference diff and no calibration to a surviving sample. Sections marked OPTIONAL are observed-rare-but-load-bearing; sections not in the template may still be load-bearing for failure modes not yet encountered. A clean structural pass means "matches the canonical list", not "cannot fail". Promotion criterion for any new template section: name the specific failure mode it would have prevented.
 
 ## Machine-checkable data
 
@@ -169,11 +109,11 @@ for adding any new section: name the specific failure mode it would have prevent
   "schema": "check_drift_verdict@1",
   "r_tier": "R1",
   "audit_depth_complete": true,
-  "structural_integrity": "fail",
+  "structural_integrity": "pass",
   "plan_quality": "partial",
-  "plan_graph": "partial",
+  "plan_graph": "pass",
   "hard_stops": [],
   "open_substantive_losses": 0,
-  "iteration": 2
+  "iteration": 1
 }
 ```
