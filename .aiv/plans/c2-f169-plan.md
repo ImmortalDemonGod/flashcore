@@ -1,31 +1,28 @@
 # Plan: Fix F169 — correct elapsed_days for on-time FSRS reviews
 
-Finding: CRITICAL — `flashcore/scheduler.py:212` sets `fsrs_card.last_review = fsrs_card.due`,
-causing `elapsed_days=0` for any Review-state card reviewed on its due date.
+**Finding:** CRITICAL — `flashcore/scheduler.py:212` sets `fsrs_card.last_review = fsrs_card.due`,
+causing `elapsed_days=0` for any Review-state card reviewed on its due date, which pins FSRS
+retrievability to R=1.0 and corrupts stability updates for the normal (on-time) case.
 
-Branch: `feat/c2-pr-f169-fsrs-elapsed-days-b1` (off `origin/main`)
-AIV change-id: `f169-fsrs-elapsed-days`
-Risk tier: R1
+**Branch:** `feat/c2-pr-f169-fsrs-elapsed-days-b1` (off `origin/main`)  
+**AIV change-id:** `f169-fsrs-elapsed-days`  
+**Risk tier:** R1 (standard logic fix; no DB schema changes)
 
 ---
 
-## Path decision: Option A
+## Path Decision: Option A
 
-**Chosen: Option A** — add `last_review_date: Optional[date]` as a transient field to `Card`
-and populate it in `review_processor.py` from the prior review record before calling the
-scheduler.
+**Chosen:** Option A — Add `last_review_date: Optional[date]` as a transient field to `Card` and populate it in `review_processor.py` before the scheduler call.
 
-**Rationale:** Option A is exact with no approximation; `db_manager.get_latest_review_for_card()`
-already exists and the processor already owns the DB handle, so no new infrastructure is
-needed. Option B's stability-based approximation (`due - timedelta(days=max(1, round(stability)))`)
-breaks for post-lapse cards where stability is reset to a low value — the most common
-failure mode for the CRITICAL path — disqualifying it.
+**One-sentence rationale:** Option A provides an exact fix (no approximation boundaries) while aligning with the hub-and-spoke architecture, requiring only transient model changes (no DB schema widening), and remaining R1-scoped.
+
+**Why not Option B:** Stability-based approximation (`fsrs_card.due - timedelta(days=max(1, round(card.stability)))`) fails for post-lapse cards where stability resets to low values, re-introducing the bug for the most common failure mode and creating hard-to-debug approximation boundaries.
 
 **Scope of Option A (this PR):**
 - `last_review_date` is a transient Pydantic field (`exclude=True`) — NOT persisted to SQLite.
-- DB migration for persistence is deferred → stage-c2 DB migration PR.
-- The extra `get_latest_review_for_card()` query is one indexed lookup (card_uuid PK);
-  acceptable on the hot path for correctness.
+- DB migration for persistence deferred → stage-c2 DB migration PR.
+- Processor fetches prior-review timestamp from existing `reviews` table (one indexed lookup).
+- Scheduler uses `last_review_date` if set, else defaults to `due` (for Learning-state cards).
 
 ---
 
