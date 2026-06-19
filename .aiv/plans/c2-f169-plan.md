@@ -271,6 +271,8 @@ aiv commit flashcore/review_processor.py \
 
 Staged files: `tests/test_scheduler.py` (primary).
 
+**TEST-LAYER CONTRACT (unit layer):** `compute_next_state` consumes two caller-provided inputs: (1) `card.last_review_date` — in production, this is set by the hub (`review_processor`) from the DB lookup; in the unit tests here, the unit test sets it **explicitly on the Card constructor** (simulating the hub). (2) `review_ts` — always passed directly by the caller; tests pass it literally. Neither input is generated inside `compute_next_state`. The unit tests therefore own setting `last_review_date` themselves; the end-to-end production of this value by the real hub is asserted at the integration layer (Commit 4b only).
+
 Add after existing `test_review_lapsed_card`:
 
 ```python
@@ -340,6 +342,8 @@ aiv commit tests/test_scheduler.py \
 ### Commit 4b — Layer-B real-DB integration test in test_review_processor.py
 
 Staged files: `tests/test_review_processor.py` (primary).
+
+**TEST-LAYER CONTRACT (integration layer):** This test drives the full `process_review` stack against a real `FlashcardDatabase(":memory:")` and a real `FSRS_Scheduler()`. The hub (`ReviewProcessor`) is the component-under-test here: it owns calling `get_latest_review_for_card` and populating `card.last_review_date` before `compute_next_state`. The test does NOT set `last_review_date` on the card; instead it relies on the hub to produce it from the DB (which is the production path). The unit tests in Commit 4 cover the scheduler's consumption of that value once set; this test covers the hub's production of it end-to-end.
 
 Add inside the existing `TestReviewProcessorIntegration` class:
 
@@ -489,8 +493,8 @@ All binary green/red. Source: completion contract VERIFY items.
 | `prior_review.ts` is naive datetime (no timezone) | Low | `Review.ts` has `Field(...)` with UTC timezone; `ts.date()` is timezone-independent and always produces a `date` regardless |
 | `mypy` error from `Optional[date]` in Card (e.g., missing `date` import) | Low | `date` is already used in `models.py` for `next_due_date`; no new import needed |
 | Extra DB lookup per review increases latency | Low | One additional round-trip against SQLite (local file/in-memory); review processing already does two round-trips (`add_review_and_update_card`); same-session re-reviews skip lookup via D1.4 cache |
-| Existing `test_review_early_card` breaks after fix | Low | Verified analytically: early card has `last_review_date=None` (no same-session prior review, no DB lookup in unit tests) → `elapsed_days=0`; assertion `result_early.elapsed_days < result_on_time.elapsed_days` holds (`0 < 1`) |
-| `test_review_lapsed_card` breaks | Low | Verified analytically: lapsed card sets explicit `last_review_date`; `elapsed_days=10`; on-time `elapsed_days=1`; `10 > 1` holds |
+| Existing `test_review_early_card` breaks after fix | Low | UNVERIFIED — pending execution at design-tests/write-code. Expected: early card has `last_review_date=None` (no same-session prior review, no DB lookup in unit tests) → `elapsed_days=0`; assertion `result_early.elapsed_days < result_on_time.elapsed_days` predicted to hold (`0 < 1`) but must be confirmed by running `python -m pytest tests/test_scheduler.py -k "early" -v` after Commit 2 |
+| `test_review_lapsed_card` breaks | Low | UNVERIFIED — pending execution at design-tests/write-code. Expected: lapsed card sets explicit `last_review_date`; `elapsed_days=10`; on-time `elapsed_days=1`; `10 > 1` predicted to hold but must be confirmed by running `python -m pytest tests/test_scheduler.py -k "lapsed" -v` after Commit 2 |
 | `add_review_and_update_card` returns a Card without `last_review_date` (reconstructed from DB row) | Medium | `updated_card.last_review_date = ts.date()` assigned after the call; field is Optional with default None so assignment always succeeds |
 | `ConfigDict(extra="forbid")` rejects `last_review_date` | None | Field is declared on the model class, not injected — `extra="forbid"` only rejects undeclared extra fields |
 | AIV primary file deleted or unchanged | Low | Each commit uses an existing modified file; never a deleted file |
@@ -558,3 +562,4 @@ the fc-c2-fsrs-harness work.
 | Loop | Date | Gate failed | Changes made |
 |---|---|---|---|
 | #1 | 2026-06-19 | GATE #1 (check-drift GT-1) | (1) Removed stability-approximation fallback from §7 sub-decisions (D1.2–D1.5 rewritten); (2) Updated PATH-FORK table in §7: Path A criterion (a) now correctly states "fully ground-truth" since hub reads `reviews.ts` via `get_latest_review_for_card` before every `compute_next_state` call; (3) Updated §9 Commit 2 code block to remove `elif stability` branch; (4) Updated §9 Commit 3 code block to add DB lookup before compute_next_state + added new Commit 4b for Layer-B integration test in `tests/test_review_processor.py`; (5) Added §7 D-number (D1) + operator-confirmed date 2026-06-19; (6) Added §10 UNTOUCHED sub-section (db/database.py consumed-not-modified; cards/reviews schema untouched); (7) Updated §6 scope to include test_review_processor.py; (8) Added AC-12, AC-13, AC-14 to §14; (9) Added DB-query and ground-truth risks to §15; (10) Updated §2 with Review.ts and get_latest_review_for_card verified facts. |
+| #2 | 2026-06-19 | Plan-stage hard-stops (EXECUTABLE-CLAIMS RULE + TEST-LAYER CONTRACT) | (1) §15: replaced two "Verified analytically" claims on `test_review_early_card` and `test_review_lapsed_card` risk rows with "UNVERIFIED — pending execution at design-tests/write-code" plus the exact commands to confirm after Commit 2 is applied — these are predictions that require execution, not plan-time verification. (2) §9 Commit 4: added explicit TEST-LAYER CONTRACT prose block stating that `last_review_date` is a hub-produced value, that the unit tests simulate the hub by setting it explicitly on the Card constructor, and that its end-to-end production is verified only at Commit 4b. (3) §9 Commit 4b: added explicit TEST-LAYER CONTRACT prose block stating that the integration test does NOT set `last_review_date` itself and thereby verifies the hub's production of it from the real DB — the contract role the unit layer cannot cover. No section was removed; all prior decisions and commit sequence preserved verbatim. |
