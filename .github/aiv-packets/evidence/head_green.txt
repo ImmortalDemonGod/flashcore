@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.0, pluggy-1.6.0 -- /home/user/fc-c2-harness/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/user/fc-c2-harness
+configfile: pyproject.toml
+plugins: mock-3.15.1
+collecting ... collected 2 items
+
+tests/test_scheduler.py::test_on_time_review_elapsed_days_positive PASSED [ 50%]
+tests/test_scheduler.py::test_on_time_vs_same_day_review_stability_distinct PASSED [100%]
+
+============================== 2 passed in 0.14s ===============================

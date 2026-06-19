@@ -1,0 +1,6 @@
+[probe] flashcore source: /home/user/fc-c2-harness
+[probe] scheduler module: flashcore.scheduler
+[probe] Card has last_review_date field: True
+[probe] elapsed_days = 14
+[probe] stability = 44.8064
+[probe] RESULT: FIX CONFIRMED — elapsed_days=14 > 0 (F169 absent)
