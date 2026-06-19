@@ -459,3 +459,37 @@ New lessons to CAPTURE post-PR (→ project memory + harness lessons): (1) hub-p
 - **This PR:** F169 / plan C2 (flashcore) on `feat/c2-fsrs-harness`.
 - **Successors:** backfill PR (`feat/c2-pr-backfill-last-review-date`) · stage-c2 DB-migration (persist `last_review_date` column) · C3 (FSRS weight-vector alignment, depends-on C2) · **F169b** (early-review negative `elapsed_days`, flagged by check-drift's predecessor).
 - **Parallel-safe:** yes — touches `scheduler.py` / `models.py` / `review_processor.py` / tests only; no shared surface with other in-flight flashcore PRs.
+
+---
+
+## §6 Strict scope boundaries
+
+- **IN:** add transient `last_review_date` to `Card`; consume it in `compute_next_state`; populate it in `review_processor.process_review` via `get_latest_review_for_card`; unit + Layer-B integration tests.
+- **OUT (with disposition):** historical backfill → `feat/c2-pr-backfill-last-review-date`; persist `last_review_date` as a DB column → stage-c2 migration; FSRS weight-vector alignment → C3; early-review negative elapsed_days → F169b.
+- **Does NOT do (philosophical):** does not change FSRS parameters, the review UI/CLI, or the cards/reviews DB schema; alters scheduling only via the corrected elapsed_days input.
+
+## §7 Locked design decisions
+
+- **D1 — Option A (model-carried prior-review date).** Add `last_review_date: Optional[date]` (transient) to `Card`; the hub (`review_processor`) populates it from `get_latest_review_for_card().ts`; the scheduler consumes it. Rejected Option B (scheduler-only stability approximation) as inexact. **Operator-confirmed: 2026-06-19.**
+
+## §10 Critical files — UNTOUCHED (explicitly out of scope)
+
+- `flashcore/db/database.py` — **consumed, not modified** (`get_latest_review_for_card` reused as-is).
+- `cards` / `reviews` DB schema + migrations — **UNTOUCHED** (no column added this PR; deferred to stage-c2).
+- `flashcore/cli/` and `review_ui.py` — **UNTOUCHED** (no UI/CLI change).
+
+## §14 Acceptance criteria (outcome-shaped, measurable)
+
+- On-time Review-state review → `elapsed_days > 0` (was 0).
+- On-time vs same-day re-review → distinct stability.
+- Layer-B: persisted `Review.elapsed_days_at_review > 0` through `process_review` against a real DB.
+- No regression: all 15 scheduler tests pass; full suite ≥ 480 passed / 1 skipped.
+- `grep "last_review = fsrs_card.due"` → no output (bug site gone).
+- `aiv check` on the packet → exit 0, no blocking errors.
+
+## §20 After-merge handoff
+
+- **Progress-tracker:** mark F169/C2 addressed in `.taskmaster/tasks/` (+ Option A chosen + commit SHA).
+- **Memory writes (executed by the pipeline's retro step at terminal state):** (1) hub-plumbed fixes require a Layer-B integration test — check-drift caught the gap the by-hand #31 missed; (2) prior-review ts is not in cached card state → plumb via the hub; (3) [harness] stage prompts must not start with `--`. → project memory store + `LEARNINGS_CARRYFORWARD`.
+- **Follow-up issues:** backfill PR; stage-c2 DB migration; C3 (FSRS weights); F169b (early-review).
+- **Coord checkpoint:** update `queue.jsonl` (F169 → judged_merged) at H2 merge.
