@@ -152,6 +152,10 @@ class ReviewSessionManager:
             card for card in self.review_queue if card.uuid != card_uuid
         ]
 
+    def skip_card(self, card_uuid: UUID) -> None:
+        """Remove a card from the queue without recording a review outcome."""
+        self._remove_card_from_queue(card_uuid)
+
     def submit_review(
         self,
         card_uuid: UUID,
