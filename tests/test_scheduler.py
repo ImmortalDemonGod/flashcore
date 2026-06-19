@@ -692,3 +692,112 @@ def test_compute_next_state_is_constant_time(scheduler: FSRS_Scheduler):
     print(f"  100 reviews: {time_100*1000:.3f}ms")
     print(f"  500 reviews: {time_500*1000:.3f}ms")
     print(f"  Ratio (500/1): {time_500/time_1:.2f}x")
+
+
+# ---------------------------------------------------------------------------
+# F169 RED tests — guards against elapsed_days=0 for on-time FSRS reviews.
+# Both tests must FAIL until the F169 correction lands.
+# Catalog: tests/test_scheduler.bug-catalog.md  Bug: B1.
+# ---------------------------------------------------------------------------
+
+
+def test_on_time_review_elapsed_days_positive(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
+    """
+    Guards against F169/B1: last_review=due zeroes elapsed_days for on-time reviews.
+
+    A Review-state card reviewed on its next_due_date must produce elapsed_days > 0.
+    With the bug (scheduler.py:212 sets last_review=due), elapsed_days = 0 for any
+    on-time review, which pins FSRS retrievability to R=1.0 and corrupts the
+    stability update for the single most common review path.
+
+    RED state: fails because result.elapsed_days == 0 with current code.
+    """
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.Review,
+        stability=14.0,
+        difficulty=5.0,
+        next_due_date=datetime.date(2024, 3, 15),
+    )
+    # Caller (hub) explicitly supplies stability, difficulty, next_due_date.
+    # review_ts is the on-time review: date matches next_due_date exactly.
+    review_ts = datetime.datetime(2024, 3, 15, 10, 0, 0, tzinfo=UTC)
+
+    result = scheduler.compute_next_state(card, 3, review_ts)
+
+    assert result.elapsed_days > 0, (
+        f"On-time Review-state review must have elapsed_days > 0 "
+        f"(got {result.elapsed_days}). "
+        "F169: last_review=due pins elapsed_days=0, corrupting stability update."
+    )
+
+
+def test_on_time_vs_same_day_review_stability_distinct(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
+    """
+    Guards against F169/B1: on-time and same-day re-reviews must produce distinct
+    stability because they represent different elapsed times since the last review.
+
+    Path A contract: the caller (hub/review_processor) sets card.last_review_date
+    after each persisted review; compute_next_state consumes it to determine elapsed_days.
+    This unit test explicitly sets last_review_date (simulating the hub caller) to
+    distinguish the two review contexts:
+      - on-time: last_review_date = 14 days before due → elapsed should = 14
+      - same-day re-review: last_review_date = due date itself → elapsed should = 0
+
+    RED state: Card.model_config = extra="forbid"; last_review_date is not yet a field
+    on Card, so constructing card_on_time raises pydantic.ValidationError → test ERRORS.
+    After Path A correction: field accepted, scheduler uses it, elapsed and stability differ.
+    """
+    from uuid import uuid4
+
+    review_ts = datetime.datetime(2024, 3, 15, 10, 0, 0, tzinfo=UTC)
+    due_date = datetime.date(2024, 3, 15)
+
+    # On-time review: last review was 14 days ago (matching the stability/scheduled interval).
+    # Hub sets last_review_date = previous_review_ts.date() after persisting each review.
+    card_on_time = Card(
+        uuid=uuid4(),
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.Review,
+        stability=14.0,
+        difficulty=5.0,
+        next_due_date=due_date,
+        last_review_date=datetime.date(2024, 3, 1),  # 14 days before due
+    )
+
+    # Same-day re-review: the card was already reviewed today (elapsed should = 0).
+    # Hub sets last_review_date = today when a second review occurs on the same date.
+    card_same_day = Card(
+        uuid=uuid4(),
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.Review,
+        stability=14.0,
+        difficulty=5.0,
+        next_due_date=due_date,
+        last_review_date=due_date,  # already reviewed today
+    )
+
+    result_on_time = scheduler.compute_next_state(card_on_time, 3, review_ts)
+    result_same_day = scheduler.compute_next_state(card_same_day, 3, review_ts)
+
+    assert result_on_time.elapsed_days > result_same_day.elapsed_days, (
+        f"On-time elapsed_days ({result_on_time.elapsed_days}) must exceed "
+        f"same-day elapsed_days ({result_same_day.elapsed_days}). "
+        "F169: both incorrectly yield 0 with the current code."
+    )
+    assert result_on_time.stab != result_same_day.stab, (
+        f"On-time stability ({result_on_time.stab:.4f}) must differ from "
+        f"same-day stability ({result_same_day.stab:.4f}). "
+        "Different elapsed_days must produce different FSRS stability updates."
+    )

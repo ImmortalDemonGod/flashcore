@@ -228,14 +228,17 @@ Both reviewed at `review_ts = Mar 15 10:00 UTC`, rating=3.
 
 | Test | First run outcome | Status |
 |---|---|---|
-| `test_on_time_review_elapsed_days_positive` | _TBD_ | RED (expected) |
-| `test_on_time_vs_same_day_review_stability_distinct` | _TBD_ | RED (expected) |
+| `test_on_time_review_elapsed_days_positive` | `AssertionError: elapsed_days=0, expected >0` | RED ✓ |
+| `test_on_time_vs_same_day_review_stability_distinct` | `ValidationError: last_review_date extra inputs not permitted` | RED ✓ |
 
-**Bugs caught** (test failed first run): B1 (both tests red as designed).
+**Bugs caught** (test failed first run): B1 confirmed present in both dimensions —
+(A) `elapsed_days=0` for on-time Review card, (B) `Card` rejects `last_review_date`
+proving Path A model field absent.
 
-**Bugs characterized**: 0 (no new tests pass first run — intentional RED stage).
+**Bugs characterized**: 0 (intentional RED stage; no new test passed first run).
 
 **Bugs discovered during writing**: None beyond the catalog above.
+Existing 15 tests: all PASS (no regression introduced by adding new tests).
 
 ---
 
