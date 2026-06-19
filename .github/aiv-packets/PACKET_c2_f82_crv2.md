@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1 — correctness patch: adds skipped_card_count counter to ReviewSessionManager to prevent skip_card() from inflating reviewed_cards in get_session_stats(); component blast radius (review_manager and its tests only); not R0 (behavior change in a public method return value); not R2/R3 (no security, auth, schema, or data-migration surfaces touched)."
   classified_by: "Claude"
   classified_at: "2026-06-19T23:42:32Z"
 ```
@@ -42,6 +42,15 @@ classification:
 
 
 
+### Class A (Behavioral / Direct Execution Evidence)
+
+| Commit | pytest result | ruff | mypy |
+|--------|--------------|------|------|
+| 599ddc8 (review_manager.py) | 493 passed, 0 failed | clean | no issues |
+| 3210a0f (tests/test_review_manager.py) | 493 passed, 0 failed | clean | 17 pre-existing errors in test_main.py / integration tests (unrelated to this change) |
+
+New tests (`test_skip_card_does_not_inflate_reviewed_cards_in_stats`, `test_skip_card_unknown_uuid_does_not_increment_skipped_count`) added to `TestSkipCard`; 2 new tests pass GREEN. Total test count advanced from 491 to 493.
+
 ### Class B (Referential Evidence)
 
 **Scope Inventory** (from 5 file references across evidence files)
@@ -51,6 +60,33 @@ classification:
 - `flashcore/review_manager.py#L160-L161`
 - `flashcore/review_manager.py#L237`
 - `tests/test_review_manager.py#L414-L435`
+
+### Class C (Negative Evidence)
+
+- No other callers of `get_session_stats()` besides the two test methods in `tests/test_review_manager.py` — confirmed by grep; `start_review_flow()` tracks its own local `success_count`/`failed_count` and does not call `get_session_stats()`.
+- `skipped_card_count` was absent before this change; no prior test asserted a reviewed_cards value after a `skip_card()` call.
+
+### Class D (Static Analysis)
+
+- ruff: clean on `flashcore/review_manager.py` (commit 599ddc8).
+- mypy: no issues in `flashcore/review_manager.py`; 17 pre-existing errors in `tests/test_main.py` and integration tests (present before this branch, confirmed by `git blame`, unrelated to this change).
+
+### Class E (Intent Alignment)
+
+**Source:** `https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92`
+
+CodeRabbit CR comment on commit 58a44e1 (inline on `flashcore/review_manager.py:157`): "`skip_card()` now makes failed cards look 'reviewed' in session stats. `get_session_stats()` derives `reviewed_cards` from queue shrinkage (`total_cards - len(review_queue)`), so failed/skipped cards are now counted as reviewed even though no review outcome was recorded."
+
+This change directly addresses that finding. The F82 audit record is the canonical intent source because `skip_card()` was introduced as part of the F82 fix and the stats inaccuracy is a direct consequence of that fix.
+
+### Class F (Provenance)
+
+Touched file git chain-of-custody:
+- `a714d09` fix(review_manager): add skip_card public method (original F82 impl)
+- `599ddc8` fix(review_manager): track skipped_card_count to prevent stats over-count (this change)
+- `3210a0f` test(review_manager): verify skip_card does not inflate reviewed_cards in stats (this change)
+
+No existing tests were modified or deleted.
 
 ---
 
