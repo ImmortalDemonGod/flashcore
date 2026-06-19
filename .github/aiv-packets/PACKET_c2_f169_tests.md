@@ -111,7 +111,7 @@ mypy:  4 errors in 3 files — all pre-existing; 0 new errors introduced;
 ### Class E (Intent Alignment)
 
 Intent source (SHA-pinned, immutable):
-`https://github.com/ImmortalDemonGod/flashcore/blob/4a15a08/.aiv/launch-briefs/pr-f169-fsrs-elapsed-days/pr-f169-fsrs-elapsed-days-completion-contract.md`
+`https://github.com/ImmortalDemonGod/flashcore/blob/bc19321bc72cf2467d57ffebc24b92a341ea10d6/audit/02-static-audit.md#L179`
 
 Alignment:
 - VERIFY [1]: `test_on_time_review_elapsed_days_positive` present in `tests/test_scheduler.py` (line 697) — RED as required.
