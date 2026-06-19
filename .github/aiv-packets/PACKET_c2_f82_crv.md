@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1 — adds one new test function to close an elif-branch coverage gap; test-only change with no production code modifications; component blast radius (review CLI tests only); not R0 (executable test code, not trivial docs/formatting); not R2/R3 (no security, auth, or data-migration surfaces touched)."
   classified_by: "Claude"
   classified_at: "2026-06-19T22:06:16Z"
 ```
