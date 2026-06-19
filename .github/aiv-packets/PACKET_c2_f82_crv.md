@@ -40,11 +40,45 @@ classification:
 
 
 
+### Class A (Behavioral / Direct Execution)
+
+- pytest: 491 passed, 0 failed (full suite, including new test)
+- ruff: clean
+- mypy: Success: no issues found in 1 source file
+- New test `test_start_review_flow_mixed_outcome_no_well_done` exercises `review_ui.py:141-143` (elif branch); all 11 review_ui tests pass.
+
 ### Class B (Referential Evidence)
 
 **Scope Inventory** (from 1 file references across evidence files)
 
 - `tests/cli/test_review_ui.py#L352-L401`
+
+### Class C (Negative Evidence)
+
+Searched for any existing test covering `elif failed_count > 0` with `success_count > 0` in `tests/cli/test_review_ui.py` — none found prior to this commit. All 10 pre-existing tests remain unchanged.
+
+Coverage-catalog Skipped set: N/A — this commit adds test coverage only; no production logic is modified.
+
+### Class D (Static Analysis)
+
+- ruff: no lint errors
+- mypy: no type errors in the changed file
+
+### Class E (Intent Alignment)
+
+Finding F82 / Codecov PR review comment: 2 lines missing in `flashcore/cli/review_ui.py` changed code (85.71% changed-line coverage). The canonical audit record that produced the original finding is:
+https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92
+
+This commit addresses the Codecov CR comment by closing the elif-branch gap. The requirement satisfied is: all reachable branches in the F82 correction (review_ui.py:138-148) are now covered by tests.
+
+### Class F (Provenance)
+
+Touched test file git chain-of-custody:
+- `c0f4366` style: apply black formatting to review_ui, test_review_ui, test_main
+- `e3b95d5` test(review_ui): strengthen exception test; add all-fail and success regression tests [F82]
+- `076e8e0` test(review_ui): add RED tests for infinite retry loop and false success message (F82)
+
+This commit (`6c25cc4`) adds one new test function only; no prior test was modified or deleted.
 
 ---
 
