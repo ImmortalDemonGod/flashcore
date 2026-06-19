@@ -492,3 +492,52 @@ class TestReviewProcessorIntegration:
         assert reviews[0].session_uuid == session_uuid
         # Second review (chronologically) should have no session_uuid
         assert reviews[1].session_uuid is None
+
+    def test_on_time_review_persists_positive_elapsed_days(
+        self, in_memory_db, real_scheduler
+    ):
+        """Layer-B: process_review against real DB + real scheduler; persisted elapsed_days_at_review > 0.
+
+        Uses a Review-state card so FSRS schedules the next review days (not minutes) later,
+        guaranteeing ts2 > ts1. The hub (ReviewProcessor) reads the prior-review ts from the
+        DB via get_latest_review_for_card and populates last_review_date before compute_next_state;
+        this test verifies that end-to-end path without mocking.
+        """
+        import datetime as _dt
+        from uuid import uuid4 as _uuid4
+        from flashcore.models import CardState
+
+        review_card = Card(
+            uuid=_uuid4(),
+            deck_name="Integration Test Deck",
+            front="Layer-B test Q",
+            back="Layer-B test A",
+            state=CardState.Review,
+            stability=14.0,
+            difficulty=5.0,
+            next_due_date=_dt.date(2024, 1, 15),
+        )
+        in_memory_db.upsert_cards_batch([review_card])
+        processor = ReviewProcessor(in_memory_db, real_scheduler)
+
+        # First review at ts1: no prior review in DB → last_review_date=None → elapsed_days=0
+        ts1 = datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc)
+        updated_card = processor.process_review(card=review_card, rating=3, reviewed_at=ts1)
+
+        # Second review: on-time (review date == next_due_date from first review)
+        # Hub must read ts1 from DB via get_latest_review_for_card, set last_review_date=2024-1-15,
+        # and the scheduler must produce elapsed_days = (ts2.date() - 2024-1-15).days > 0
+        next_due = updated_card.next_due_date
+        ts2 = datetime(next_due.year, next_due.month, next_due.day, 10, 0, 0, tzinfo=timezone.utc)
+        assert ts2 > ts1, f"FSRS must schedule next_due after ts1 for this test to be valid; got {next_due}"
+        processor.process_review(card=updated_card, rating=3, reviewed_at=ts2)
+
+        # The second review's persisted elapsed_days_at_review must be > 0
+        reviews = in_memory_db.get_reviews_for_card(
+            review_card.uuid, order_by_ts_desc=True
+        )
+        second_review = reviews[0]
+        assert second_review.elapsed_days_at_review > 0, (
+            f"expected elapsed_days_at_review > 0 for on-time review; "
+            f"got {second_review.elapsed_days_at_review}"
+        )
