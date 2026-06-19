@@ -15,11 +15,11 @@
 
 ```yaml
 classification:
-  risk_tier: R1
+  risk_tier: R0
   sod_mode: S0
   critical_surfaces: []
-  blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  blast_radius: pyproject.toml
+  classification_rationale: "R0: pure configuration change; no logic or behavior change; installed binaries unchanged; only dependency specifier constraint tightened"
   classified_by: "Claude"
   classified_at: "2026-06-19T07:53:10Z"
 ```
@@ -40,11 +40,36 @@ classification:
 
 
 
+### Class A (Behavioral / Direct)
+
+`python -m pytest tests/ -q --tb=short` run after the pin change: **483 passed, 1 skipped** — no regressions introduced by the specifier change (installed binaries are unchanged; only the declared constraint tightened).
+
 ### Class B (Referential Evidence)
 
 **Scope Inventory** (from 1 file references across evidence files)
 
 - `pyproject.toml#L33-L36`
+
+### Class C (Negative)
+
+Searched for `ruff` in `pyproject.toml` — not declared; no pin needed. Confirmed no other formatter/linter declared outside `[project.optional-dependencies]` test section. No test files modified. No production logic modified.
+
+### Class D (Static Analysis)
+
+`mypy flashcore/scheduler.py flashcore/models.py --ignore-missing-imports` → **Success: no issues found in 2 source files**. pyproject.toml is not a Python source; no new mypy errors possible from this change.
+
+### Class E (Intent Alignment)
+
+**Intent reference (SHA-pinned):**
+`https://github.com/ImmortalDemonGod/flashcore/blob/97defc9/.taskmaster/tasks/tasks.json`
+
+**Requirement satisfied:** DETERMINISM — CI must be reproducible across runners; pin all declared lint/format/type tools (black, isort, flake8, mypy) to the currently-installed exact versions so all runners obtain identical tool versions.
+
+**Versions pinned:** `flake8==7.3.0`, `black==25.12.0`, `isort==8.0.1`, `mypy==2.1.0` — each confirmed via `pip show <tool>` on the target runner before the change.
+
+### Class F (Provenance)
+
+**Claim 3:** `git log --oneline pyproject.toml` on commit `9bbb2ec` confirms single-author chain on `feat/c2-fsrs-harness` branch. No test files touched; no hooks bypassed (`--no-verify` not used); only `pyproject.toml` and its generated evidence file modified in this commit.
 
 ---
 
