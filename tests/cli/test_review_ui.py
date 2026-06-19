@@ -125,23 +125,39 @@ def test_start_review_flow_invalid_rating_input(
 def test_start_review_flow_submit_review_exception(
     mock_manager: MagicMock, capsys
 ):
-    """Test that submit_review exception is handled gracefully."""
-    card = Card(uuid=uuid4(), deck_name="Test", front="Q?", back="A")
+    """Test that submit_review exception advances the queue via skip_card (not masked by [card, None]).
 
-    mock_manager.review_queue = [card]
-    mock_manager.get_next_card.side_effect = [card, None]
-    mock_manager.get_due_card_count.return_value = 1
+    Uses a closure-based side_effect so skip_card actually empties the queue;
+    this ensures the loop terminates because the card was skipped, not because
+    the mock coincidentally returned None after one call.
+    """
+    card = Card(uuid=uuid4(), deck_name="Test", front="Q?", back="A")
+    queue = [card]
+
+    def _get_next():
+        return queue[0] if queue else None
+
+    def _skip(uuid):
+        nonlocal queue
+        queue = [c for c in queue if c.uuid != uuid]
+
+    mock_manager.review_queue = list(queue)
+    mock_manager.get_next_card.side_effect = _get_next
+    mock_manager.skip_card.side_effect = _skip
     mock_manager.submit_review.side_effect = ValueError("Card not found")
 
     with patch("flashcore.cli.review_ui._display_card", return_value=1000):
         with patch(
             "flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)
         ):
-            start_review_flow(mock_manager)
+            result = start_review_flow(mock_manager)
 
     output = capsys.readouterr().out
     assert "Error submitting review" in output
-    assert "Review session finished." in output
+    assert mock_manager.get_next_card.call_count == 2  # card once, None once
+    assert mock_manager.skip_card.call_count == 1
+    assert mock_manager.skip_card.call_args[0][0] == card.uuid
+    assert result is False
 
 
 def test_start_review_flow_card_without_next_due_date(
@@ -218,8 +234,6 @@ def test_all_submit_review_fail_output_omits_well_done_guards_against_false_succ
             start_review_flow(mock_manager)
 
     output = capsys.readouterr().out
-    # RED: current code reaches review_ui.py:127 unconditionally and prints
-    # "Well done!" even when all submit calls raised.
     assert "Well done" not in output
 
 
@@ -233,13 +247,23 @@ def test_persistent_submit_failure_retries_same_card_guards_against_infinite_ret
     because _remove_card_from_queue is only called on the success path
     (review_manager.py:210), creating an unbounded infinite retry loop.
 
-    The side_effect [card, card, None] simulates two consecutive calls returning
-    the same card — which is the real behavior of a stuck queue. After the correct
-    fix each card is attempted once, so submit_review.call_count must equal 1.
+    Uses a closure-based side_effect so skip_card actually advances the queue;
+    this verifies the loop is bounded because skip_card was called (not because
+    of a coincidental [card, None] shortcut in the mock).
     """
     card = Card(deck_name="Test", front="Q?", back="A")
-    mock_manager.review_queue = [card]
-    mock_manager.get_next_card.side_effect = [card, card, None]
+    queue = [card]
+
+    def _get_next():
+        return queue[0] if queue else None
+
+    def _skip(uuid):
+        nonlocal queue
+        queue = [c for c in queue if c.uuid != uuid]
+
+    mock_manager.review_queue = list(queue)
+    mock_manager.get_next_card.side_effect = _get_next
+    mock_manager.skip_card.side_effect = _skip
     mock_manager.submit_review.side_effect = Exception("persistent DB error")
 
     with patch("flashcore.cli.review_ui._display_card", return_value=500):
@@ -248,6 +272,81 @@ def test_persistent_submit_failure_retries_same_card_guards_against_infinite_ret
         ):
             start_review_flow(mock_manager)
 
-    # RED: current buggy code calls submit_review TWICE (same card retried after
-    # the first failure) because continue at line 111 does not advance the queue.
+    # After the correct fix: skip_card advances the queue, so get_next_card
+    # returns None after the first failure. submit_review is called exactly once.
     assert mock_manager.submit_review.call_count == 1
+
+
+# ---------------------------------------------------------------------------
+# New tests for F82 completion contract
+# ---------------------------------------------------------------------------
+
+
+def test_start_review_flow_all_fail_suppresses_well_done(
+    mock_manager: MagicMock, capsys
+):
+    """Three-card queue where all submit_review calls raise.
+
+    Verifies: loop bounded (get_next_card called exactly 4 times: 3 cards + 1
+    final None), skip_card called 3 times, 'Well done' absent, 'Review session
+    failed' present, and return value is False.
+    """
+    cards = [
+        Card(deck_name="Test", front=f"Q{i}?", back=f"A{i}")
+        for i in range(3)
+    ]
+    queue = list(cards)
+
+    def _get_next():
+        return queue[0] if queue else None
+
+    def _skip(uuid):
+        nonlocal queue
+        queue = [c for c in queue if c.uuid != uuid]
+
+    mock_manager.review_queue = list(queue)
+    mock_manager.get_next_card.side_effect = _get_next
+    mock_manager.skip_card.side_effect = _skip
+    mock_manager.submit_review.side_effect = Exception("persistent DB error")
+
+    with patch("flashcore.cli.review_ui._display_card", return_value=500):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(2, 300)
+        ):
+            result = start_review_flow(mock_manager)
+
+    output = capsys.readouterr().out
+    assert "Well done" not in output
+    assert "Review session failed" in output
+    assert mock_manager.get_next_card.call_count == 4  # 3 cards + 1 final None
+    assert mock_manager.skip_card.call_count == 3
+    assert result is False
+
+
+def test_start_review_flow_success_emits_well_done(
+    mock_manager: MagicMock, capsys
+):
+    """One-card success path: 'Well done!' present and return value is True.
+
+    The [card, None] pattern is valid here because we are testing the success
+    path — submit_review itself (in real code) calls _remove_card_from_queue,
+    so the queue is empty after success. skip_card must NOT be called.
+    """
+    card = Card(uuid=uuid4(), deck_name="Test", front="Q?", back="A")
+    mock_manager.review_queue = [card]
+    mock_manager.get_next_card.side_effect = [card, None]
+
+    updated_card = MagicMock()
+    updated_card.next_due_date = date.today() + timedelta(days=1)
+    mock_manager.submit_review.return_value = updated_card
+
+    with patch("flashcore.cli.review_ui._display_card", return_value=1000):
+        with patch(
+            "flashcore.cli.review_ui._get_user_rating", return_value=(3, 500)
+        ):
+            result = start_review_flow(mock_manager)
+
+    output = capsys.readouterr().out
+    assert "Review session finished. Well done!" in output
+    assert result is True
+    mock_manager.skip_card.assert_not_called()

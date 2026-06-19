@@ -388,6 +388,30 @@ class TestSubmitReviewAndHelpers:
         assert sample_card.uuid in review_manager.current_session_card_uuids
 
 
+class TestSkipCard:
+    def test_skip_card_removes_card_from_queue(
+        self, review_manager: ReviewSessionManager, sample_card: Card
+    ):
+        """skip_card advances past the given card by removing it from the queue."""
+        other_card = Card(**{**sample_card.model_dump(), "uuid": uuid.uuid4()})
+        review_manager.review_queue = deque([sample_card, other_card])
+
+        review_manager.skip_card(sample_card.uuid)
+
+        assert sample_card not in review_manager.review_queue
+        assert other_card in review_manager.review_queue
+
+    def test_skip_card_unknown_uuid_is_noop(
+        self, review_manager: ReviewSessionManager, sample_card: Card
+    ):
+        """skip_card with a UUID not in the queue is a safe no-op."""
+        review_manager.review_queue = deque([sample_card])
+
+        review_manager.skip_card(uuid.uuid4())
+
+        assert sample_card in review_manager.review_queue
+
+
 class TestGetDueCardCount:
     @patch("flashcore.review_manager.date")
     def test_get_due_card_count_calls_db(
