@@ -96,6 +96,11 @@ class ReviewProcessor:
         )
 
         try:
+            # Step 1b: Populate last_review_date from DB so scheduler uses ground-truth elapsed_days
+            prior_review = self.db_manager.get_latest_review_for_card(card.uuid)
+            if isinstance(prior_review, Review):
+                card.last_review_date = prior_review.ts.date()
+
             # Step 2: Compute next state using scheduler (O(1) with cached card state)
             scheduler_output: SchedulerOutput = (
                 self.scheduler.compute_next_state(
@@ -124,6 +129,8 @@ class ReviewProcessor:
             updated_card = self.db_manager.add_review_and_update_card(
                 review=new_review, new_card_state=scheduler_output.state
             )
+            # Cache last_review_date so same-session re-reviews skip the extra DB lookup
+            updated_card.last_review_date = ts.date()
 
             logger.debug(
                 f"Review processed successfully for card {card.uuid}. "
