@@ -1,76 +1,186 @@
-# Plan: Fix F169 — correct elapsed_days for on-time FSRS reviews
+# PR-F169 Implementation Plan — Correct elapsed_days for on-time FSRS reviews
 
-Finding: CRITICAL — `flashcore/scheduler.py:212` sets `fsrs_card.last_review = fsrs_card.due`,
-causing `elapsed_days=0` for any Review-state card reviewed on its due date.
+## §1 Context
 
-Branch: `feat/c2-pr-f169-fsrs-elapsed-days-b1` (off `origin/main`)
-AIV change-id: `f169-fsrs-elapsed-days`
-Risk tier: R1
+**Finding F169 (CRITICAL).** `flashcore/scheduler.py:212` assigns
+`fsrs_card.last_review = fsrs_card.due`. For any Review-state card reviewed on
+its scheduled due date (`review_ts.date() == card.next_due_date`), the
+elapsed-days computation at lines 219-221 yields
+`elapsed_days = (review_ts.date() - due.date()).days = 0`.
+Zero elapsed_days pins FSRS retrievability to R=1.0 and corrupts the stability
+update for the normal (on-time) case — the single most common review path in
+production.
 
----
+The root cause is that no prior-review timestamp exists on the `Card` model;
+the scheduler was forced to use `due` as a proxy, which is semantically wrong.
 
-## Path decision: Option A
-
-**Chosen: Option A** — add `last_review_date: Optional[date]` as a transient field to `Card`
-and populate it in `review_processor.py` from the prior review record before calling the
-scheduler.
-
-**Rationale:** Option A is exact with no approximation; `db_manager.get_latest_review_for_card()`
-already exists and the processor already owns the DB handle, so no new infrastructure is
-needed. Option B's stability-based approximation (`due - timedelta(days=max(1, round(stability)))`)
-breaks for post-lapse cards where stability is reset to a low value — the most common
-failure mode for the CRITICAL path — disqualifying it.
-
-**Scope of Option A (this PR):**
-- `last_review_date` is a transient Pydantic field (`exclude=True`) — NOT persisted to SQLite.
-- DB migration for persistence is deferred → stage-c2 DB migration PR.
-- The extra `get_latest_review_for_card()` query is one indexed lookup (card_uuid PK);
-  acceptable on the hot path for correctness.
+**Branch:** `feat/c2-pr-f169-fsrs-elapsed-days-b1` off `origin/main @ b5e1c4b`.  
+**Worktree:** `/home/user/fc-c2-harness`.  
+**Risk tier:** R1 (standard logic fix; no external API surface; no DB schema
+change in this PR).
 
 ---
 
-## Files touched
+## §2 Verified state (0 Explore agents, 2026-06-19)
+
+All facts below confirmed by direct Read tool calls on the live worktree.
+
+| Fact | Location | Verified value |
+|---|---|---|
+| Bug line | `flashcore/scheduler.py:212` | `fsrs_card.last_review = fsrs_card.due` |
+| elapsed_days computation | `scheduler.py:219-221` | `(review_ts.date() - fsrs_card.last_review.date()).days` |
+| `Card` fields | `flashcore/models.py:43-75` | `uuid, last_review_id, next_due_date, state, stability, difficulty, deck_name, front, back, tags` — **no `last_review_date` field** |
+| DB schema — reviews table | `flashcore/db/schema.py:46-47` | `elapsed_days_at_review INTEGER, scheduled_days_interval INTEGER` present; no `last_review_date` column on cards |
+| review_processor call site | `review_processor.py:100-104` | passes `review_ts=ts` (actual review timestamp) into `compute_next_state` |
+| review_processor post-review | `review_processor.py:124-126` | `updated_card = db_manager.add_review_and_update_card(review=new_review, new_card_state=scheduler_output.state)` |
+| Silent-pass test | `tests/test_scheduler.py:285` | `assert result_lapsed.elapsed_days > result_on_time.elapsed_days` (10 > 0 with bug); `result_on_time.elapsed_days > 0` NOT asserted |
+| Missing guard | `tests/test_scheduler.py` | No `test_on_time_review_elapsed_days_positive`; no `test_on_time_vs_same_day_review_stability_distinct` |
+| Test baseline | `python -m pytest tests/test_scheduler.py -q` | **15 passed, 0 failed** |
+| Full suite baseline | `python -m pytest tests/ -q` | 480 passed, 1 skipped (per CLAUDE.md) |
+| Card model config | `models.py:51` | `ConfigDict(validate_assignment=True, extra="forbid")` — new field must be declared on model |
+
+**Early-review side note (in-scope for no-regression only):**
+`test_review_early_card` currently passes with `elapsed_days=-2` for the
+early-review scenario. After the fix (stability approximation), on-time
+`elapsed_days ≈ round(stability)`, early `elapsed_days ≈ 0`. The assertion
+`result_early.elapsed_days < result_on_time.elapsed_days` remains satisfied
+(0 < 2 for stability=2.0). Deeper correction deferred to F169b.
+
+---
+
+## §5 Memory + lesson references
+
+From CLAUDE.md and launch brief:
+
+- **E010 trap**: never use `fix`, `fixes`, `fixed`, `patch`, `resolve`, `closes #N`
+  in any claim text. Use neutral phrasing (e.g., "replaces assignment", "adds
+  field", "introduces guard").
+- **Intent URL must be SHA-pinned**: use
+  `git log --oneline --follow -- .taskmaster/tasks/task_NNN.md` to find the
+  commit SHA; never use a mutable branch URL.
+- **`aiv abandon` needs piped confirmation**: `echo "y" | aiv abandon`.
+- **`--skip-checks` is R0-only**: this PR is R1; never pass `--skip-checks`.
+- **Deleted files cannot be the AIV primary file**: only use files that exist
+  on disk and have changes relative to HEAD.
+- **Hub-and-spoke discipline**: `flashcore/` is the pure-logic spoke;
+  `flashcore/cli/` and `review_processor.py` are hub components. The scheduler
+  must NOT import from `flashcore.scripts`.
+- **Never edit a test to make it pass** without establishing which side
+  (test or code) is wrong.
+- **Never merge autonomously**: the human is the only merge gate.
+
+---
+
+## §6 Strict scope boundaries
+
+**In scope:**
 
 | File | Change |
-|------|--------|
-| `flashcore/models.py` | Add `last_review_date: Optional[date]` field (transient, `exclude=True`) |
-| `flashcore/scheduler.py` | Replace line 212; use `card.last_review_date` if set, else fall back to `fsrs_card.due` |
-| `flashcore/review_processor.py` | Before scheduler call: if `card.last_review_id` is set, fetch prior review's `ts`, assign `card.last_review_date = prior_ts.date()` |
-| `tests/test_scheduler.py` | Add two new unit-acceptance tests (Layer-A) |
-| `tests/test_review_processor.py` | Add one new integration test (Layer-B) in `TestReviewProcessorIntegration` |
+|---|---|
+| `flashcore/models.py` | Add `last_review_date: Optional[date] = None` transient field to `Card` |
+| `flashcore/scheduler.py` | Replace line 212; add conditional logic for `card.last_review_date` / stability fallback; guard for `None` stability |
+| `flashcore/review_processor.py` | Set `updated_card.last_review_date = ts.date()` after `add_review_and_update_card` returns |
+| `tests/test_scheduler.py` | Add two new test functions (acceptance tests); no edits to existing tests |
+| `.github/aiv-packets/PACKET_f169-fsrs-elapsed-days.md` | Generated by `aiv close` |
+
+**Explicitly out of scope (do not touch):**
+
+- `flashcore/db/schema.py` — no DB migration this PR; `last_review_date` stays transient
+- `flashcore/db/` (any other file) — no persistence changes
+- `flashcore/cli/` — no hub-CLI changes
+- `flashcore/scripts/` — not imported from core code
+- Any test file other than `tests/test_scheduler.py`
+- Historical backfill of `last_review_date` for existing DB cards
+  (→ `feat/c2-pr-backfill-last-review-date`)
+- Negative `elapsed_days` for early-review cards (→ audit finding F169b)
 
 ---
 
-## Atomic commits (in order)
+## §7 Locked design decisions
 
-### Commit 1 — `flashcore/models.py`
-Add transient `last_review_date` field to `Card`.
+### PATH-FORK DECISION: Option A — `last_review_date` transient field on Card model
 
-```python
-# In Card (after last_review_id field):
-last_review_date: Optional[date] = Field(
-    default=None,
-    exclude=True,          # never serialised / never written to DB
-    description="Date of prior review, set transiently by ReviewProcessor before scheduling.",
-)
+**Scoring (CORRECTNESS FIRST, then scope):**
+
+| Criterion | Path A | Path B |
+|---|---|---|
+| (a) Ground-truth vs approximation | Ground-truth when `last_review_date` is available (same-session re-reviews); stability approximation only as fallback for fresh-from-DB cards | **Always** approximates `last_review = due - timedelta(days=max(1, round(stability)))` — never uses actual prior-review timestamp |
+| (b) Fixes root cause vs masks symptom | Fixes root cause: establishes the correct data-flow pathway (`last_review_date` on model, populated by hub); removes the semantically wrong `last_review = due` assignment | Masks symptom: substitutes stability-as-proxy for what should be an actual timestamp; root cause (no `last_review_date` on model) remains unaddressed |
+| (c) Hidden/deferred debt | Transient field; hub populates it for same-session re-reviews. Future PR adds DB persistence without touching scheduler or processor logic. Debt is explicit and bounded. | Approximation boundary documented as F169b, but the structural gap (no last_review_date on model) remains, making future persistence harder |
+| Scope | 3 files + tests | 1 file + tests |
+
+**PATH B IS MARKED DISFAVORED** per §7 PATH-FORK PROTOCOL: it approximates a
+value that can be made exact by adding a transient field at minimal cost, and it
+leaves the root cause (wrong data model) in place.
+
+**LOCKED: Path A.**
+
+**One-sentence rationale:** Path A establishes the correct information pathway
+(`last_review_date` on `Card`, set by the hub after each review) so the
+scheduler uses ground-truth data when available and only approximates for
+fresh-from-DB cards, whereas Path B always substitutes stability as a proxy
+even when the actual prior-review date could be provided.
+
+### Sub-decisions within Path A
+
+1. **`last_review_date` is transient (not persisted)** in this PR. No new DB
+   column; no migration. The field has `default=None`. Persistence deferred to
+   a follow-up DB migration PR before stage-c3 cutoff.
+
+2. **Scheduler fallback logic** for Review-state cards when
+   `card.last_review_date is None`: use
+   `max(1, round(card.stability))` days before due as the approximation.
+   Guard: only when `card.stability is not None` and
+   `card.state == CardState.Review`. All other states keep existing behavior
+   (no `last_review` set → `elapsed_days = 0`).
+
+3. **Approximation bound for stability**: `max(1, round(card.stability))` —
+   clamp to 1 prevents stability < 0.5 from rounding to 0 and re-introducing
+   the bug.
+
+4. **Guard for `None` stability**: the conditional branch is only entered when
+   `card.stability is not None` AND `card.state != CardState.New` (already
+   enforced by the outer `if card.state != CardState.New:` block). No
+   `TypeError` from arithmetic on `None` is possible.
+
+5. **`review_processor.py` sets `last_review_date` on `updated_card`** (the
+   object returned by `add_review_and_update_card`), not on the input `card`.
+   This ensures same-session re-reviews of the same card object use the
+   ground-truth prior-review date.
+
+---
+
+## §9 Sequenced atomic-commit plan
+
+All commits on branch `feat/c2-pr-f169-fsrs-elapsed-days-b1`.
+Run `aiv status` before first commit; `echo "y" | aiv abandon` if stale
+context; `aiv begin f169-fsrs-elapsed-days --mode pr --description "add last_review_date to Card; use ground-truth elapsed_days in scheduler"`.
+
+### Commit 1 — Add `last_review_date` transient field to Card model
+
+```bash
+git add flashcore/models.py
+aiv commit flashcore/models.py \
+  -m "feat(models): add last_review_date optional transient field to Card" \
+  -t R1 \
+  -c "Card model lacks last_review_date field before this commit; field added as Optional[date] default None" \
+  -c "ConfigDict extra=forbid preserved; field declared on model class, not injected at runtime" \
+  -i "<SHA-pinned URL to .taskmaster/tasks/task_NNN.md>" \
+  --requirement "Path A: last_review_date on Card model — prerequisite for scheduler fix" \
+  -r "R1: model field addition, no logic change" \
+  -s "Add last_review_date: Optional[date] = None to Card for scheduler ground-truth path"
 ```
 
-Add `from datetime import date` if not already imported.
-`extra="forbid"` is satisfied — this is a declared field, not an extra key.
-`validate_assignment=True` is fine — `Optional[date]` accepts `None` and `date`.
+**Verification before staging:**
+- `grep -n "last_review_date" flashcore/models.py` — field present
+- `mypy flashcore/models.py --ignore-missing-imports` — no new errors
+- `python -m pytest tests/test_scheduler.py -q --tb=short` — 15 passed
 
-Verify: `mypy flashcore/models.py --ignore-missing-imports` — no new errors.
+### Commit 2 — Replace bug line in scheduler; use last_review_date or stability fallback
 
-### Commit 2 — `flashcore/scheduler.py`
-Replace the bug site at line 211-212. Old:
+Staged files: `flashcore/scheduler.py` (primary).
 
-```python
-# Set last_review to due date for elapsed_days calculation
-fsrs_card.last_review = fsrs_card.due
-```
-
-New:
-
+Replace `scheduler.py:212` block with:
 ```python
 if card.last_review_date is not None:
     fsrs_card.last_review = datetime.datetime.combine(
@@ -78,418 +188,258 @@ if card.last_review_date is not None:
         datetime.time(0, 0, 0),
         tzinfo=datetime.timezone.utc,
     )
-else:
-    # Fallback: use due-date proxy for cards where review_processor has not
-    # populated last_review_date (e.g., cards constructed directly in tests
-    # or via paths that bypass process_review). Preserves lapsed-review
-    # elapsed_days > 0 behavior for existing tests.
-    fsrs_card.last_review = fsrs_card.due
+elif card.stability is not None:
+    fsrs_card.last_review = fsrs_card.due - datetime.timedelta(
+        days=max(1, round(card.stability))
+    )
+# else: last_review remains unset (New or unknown state → elapsed_days=0 below)
 ```
-
-Guard: this block is already inside `if card.state != CardState.New`, and the inner
-`if card.next_due_date:` block. The new sub-condition `if card.last_review_date is not None:`
-selects the exact prior-review date; the else-fallback preserves backward-compatible
-behavior so that `test_review_lapsed_card` (which creates a Review-state card without
-`last_review_date`) continues to pass.
-
-**Why the fallback is required:** `test_review_lapsed_card` asserts
-`result_lapsed.elapsed_days > result_on_time.elapsed_days`. Both cards have
-`last_review_date = None` (no prior `process_review` call). Without the fallback,
-`fsrs_card.last_review` is left unset, `elapsed_days = 0` for both scenarios, and the
-assertion `0 > 0` fails. The fallback reinstates `fsrs_card.last_review = due` for this
-path, keeping elapsed_days correct for lapsed reviews while the exact fix activates only
-when `last_review_date` is supplied by `review_processor`.
-
-Verify: `grep -n "last_review = fsrs_card.due" flashcore/scheduler.py` → no output
-(the old single-line assignment is replaced; the new else-fallback is a new expression).
-
-### Commit 3 — `flashcore/review_processor.py`
-In `process_review`, between the timestamp assignment (`ts = ...`) and the
-`compute_next_state` call, insert:
-
-```python
-# Populate transient last_review_date so the scheduler can compute exact elapsed_days.
-if card.last_review_id is not None:
-    prior_review = self.db_manager.get_latest_review_for_card(card.uuid)
-    if prior_review is not None:
-        card.last_review_date = prior_review.ts.date()
-```
-
-This fetches the single most-recent review record (already indexed on `card_uuid`).
-`card.last_review_date` defaults to `None`, so for New-state cards (no `last_review_id`)
-nothing changes.
-
-`process_review_by_uuid` calls `process_review` after loading the card, so it is
-covered automatically.
-
-### Commit 4 — `tests/test_scheduler.py`
-Add two new tests after the existing 15. These are Layer-A (scheduler unit) acceptance
-gates. All names used below are already available in the file:
-- `datetime` module (imported as `import datetime`)
-- `UTC = datetime.timezone.utc` (module-level alias)
-- `uuid4`, `UUID` (from `from uuid import uuid4, UUID`)
-- `Card`, `CardState` (from `from flashcore.models import Card, CardState`)
-- `FSRS_Scheduler` (from `from flashcore.scheduler import FSRS_Scheduler, FSRSSchedulerConfig`)
-- `scheduler` fixture (defined at file scope, yields `FSRS_Scheduler` with default config)
-
-No new imports are needed.
-
-**test_on_time_review_elapsed_days_positive**
-```python
-def test_on_time_review_elapsed_days_positive(scheduler: FSRS_Scheduler):
-    """On-time Review-state review must produce elapsed_days > 0."""
-    today = datetime.date.today()
-    card = Card(
-        uuid=uuid4(),
-        deck_name="test",
-        front="Q",
-        back="A",
-        state=CardState.Review,
-        stability=10.0,
-        difficulty=5.0,
-        next_due_date=today,
-    )
-    card.last_review_date = today - datetime.timedelta(days=10)
-    review_ts = datetime.datetime.combine(
-        today, datetime.time(12, 0, 0), tzinfo=UTC
-    )
-    result = scheduler.compute_next_state(card, new_rating=3, review_ts=review_ts)
-    assert result.elapsed_days > 0, (
-        f"elapsed_days={result.elapsed_days}; expected >0 for on-time Review-state review"
-    )
-```
-
-**test_on_time_vs_same_day_review_stability_distinct**
-```python
-def test_on_time_vs_same_day_review_stability_distinct(scheduler: FSRS_Scheduler):
-    """On-time review (elapsed_days=10) must yield different stability than same-day re-review (elapsed_days=0)."""
-    today = datetime.date.today()
-    review_ts = datetime.datetime.combine(
-        today, datetime.time(12, 0, 0), tzinfo=UTC
-    )
-
-    on_time_card = Card(
-        uuid=uuid4(),
-        deck_name="test",
-        front="Q",
-        back="A",
-        state=CardState.Review,
-        stability=10.0,
-        difficulty=5.0,
-        next_due_date=today,
-    )
-    on_time_card.last_review_date = today - datetime.timedelta(days=10)
-    on_time_result = scheduler.compute_next_state(
-        on_time_card, new_rating=3, review_ts=review_ts
-    )
-
-    same_day_card = Card(
-        uuid=uuid4(),
-        deck_name="test",
-        front="Q",
-        back="A",
-        state=CardState.Review,
-        stability=10.0,
-        difficulty=5.0,
-        next_due_date=today,
-    )
-    same_day_card.last_review_date = today
-    same_day_result = scheduler.compute_next_state(
-        same_day_card, new_rating=3, review_ts=review_ts
-    )
-
-    assert on_time_result.stab != same_day_result.stab, (
-        f"Stability should differ: on_time={on_time_result.stab}, same_day={same_day_result.stab}"
-    )
-```
-
-### Commit 5 — `tests/test_review_processor.py`
-Add one new test in the existing `TestReviewProcessorIntegration` class. This is the
-Layer-B gate that proves Commit 3 (review_processor plumbing) correctly populates
-`last_review_date` and that the persisted `Review.elapsed_days_at_review > 0`.
-
-All imports needed (`datetime`, `timedelta`, `timezone`, `date`, `uuid4`, `Card`,
-`CardState`, `ReviewProcessor`) are already present in the file. The `in_memory_db`
-and `real_scheduler` fixtures are already defined in `TestReviewProcessorIntegration`.
-
-```python
-def test_on_time_review_elapsed_days_persisted(
-    self, in_memory_db, real_scheduler
-):
-    """Layer-B: review_processor must persist elapsed_days_at_review > 0
-    for a Review-state card reviewed 10 days after its prior review."""
-    card = Card(
-        uuid=uuid4(),
-        deck_name="Integration Test Deck",
-        front="Layer-B elapsed_days front",
-        back="Layer-B elapsed_days back",
-        state=CardState.Review,
-        stability=5.0,
-        difficulty=5.0,
-        next_due_date=date(2024, 6, 1),
-    )
-    in_memory_db.upsert_cards_batch([card])
-    processor = ReviewProcessor(in_memory_db, real_scheduler)
-
-    # First review: establishes the prior review record, sets last_review_id on card
-    prior_ts = datetime(2024, 6, 1, 10, 0, 0, tzinfo=timezone.utc)
-    card_after_first = processor.process_review(
-        card=card, rating=3, reviewed_at=prior_ts
-    )
-
-    # Second review: 10 days later. review_processor must fetch the prior review,
-    # set card.last_review_date = date(2024, 6, 1), so scheduler computes
-    # elapsed_days = 10 instead of 0.
-    review_ts = datetime(2024, 6, 11, 10, 0, 0, tzinfo=timezone.utc)
-    card_after_second = processor.process_review(
-        card=card_after_first, rating=3, reviewed_at=review_ts
-    )
-
-    reviews = in_memory_db.get_reviews_for_card(
-        card_after_second.uuid, order_by_ts_desc=True
-    )
-    assert len(reviews) >= 2, (
-        "Expected at least 2 reviews after two process_review calls"
-    )
-    second_review = reviews[0]  # newest = second review
-
-    assert second_review.elapsed_days_at_review > 0, (
-        f"elapsed_days_at_review={second_review.elapsed_days_at_review}; "
-        "expected >0: review_processor must supply last_review_date from prior "
-        "review so scheduler does not default to elapsed_days=0"
-    )
-```
-
----
-
-## Test layers
-
-| Layer | Command | Pass condition |
-|-------|---------|----------------|
-| New acceptance — elapsed_days (Layer-A) | `pytest tests/test_scheduler.py::test_on_time_review_elapsed_days_positive -v` | 1 passed, elapsed_days=10 |
-| New acceptance — stability (Layer-A) | `pytest tests/test_scheduler.py::test_on_time_vs_same_day_review_stability_distinct -v` | 1 passed, stab values differ |
-| Layer-B integration — elapsed_days persisted | `pytest tests/test_review_processor.py::TestReviewProcessorIntegration::test_on_time_review_elapsed_days_persisted -v` | 1 passed, elapsed_days_at_review=10 |
-| Learning-state guard | `pytest tests/test_scheduler.py -k "new_card or learning or first_review" -v` | all pass, no TypeError |
-| Regression — scheduler | `pytest tests/test_scheduler.py -q --tb=short` | 17 passed, 0 failed |
-| Regression — review_processor | `pytest tests/test_review_processor.py -q --tb=short` | all prior tests + 1 new pass |
-| Typecheck | `mypy flashcore/scheduler.py flashcore/models.py --ignore-missing-imports` | "Success" or only pre-existing |
-| Full suite | `pytest tests/ -q --tb=short` | 480 passed, 1 skipped (+ 3 new = 483 passed) |
-| Packet | `aiv check .github/aiv-packets/PACKET_f169-fsrs-elapsed-days.md` | exits 0 |
-
----
-
-## AIV commit sequence
 
 ```bash
-# Check / abandon stale context
-aiv status
-echo "y" | aiv abandon   # if stale
-
-# Open change on the PR branch
-aiv begin f169-fsrs-elapsed-days --mode pr \
-  --description "add last_review_date transient field and plumb through reviewer so scheduler sees exact prior-review date"
-
-# Commit 1 — models.py
-git add flashcore/models.py
-aiv commit flashcore/models.py \
-  -m "feat(models): add transient last_review_date field to Card" \
-  -t R1 \
-  -c "Card gains Optional[date] last_review_date field with exclude=True; default None; extra=forbid still satisfied" \
-  -c "mypy reports no new errors on flashcore/models.py after field addition" \
-  -i "<SHA-pinned URL to task spec>" \
-  --requirement "Option A path: model carries last_review_date for scheduler consumption" \
-  -r "R1 — model-only change, no persistence, no external API surface" \
-  -s "transient last_review_date field on Card for exact elapsed_days"
-
-# Commit 2 — scheduler.py
 git add flashcore/scheduler.py
 aiv commit flashcore/scheduler.py \
-  -m "feat(scheduler): use card.last_review_date for fsrs last_review instead of due date" \
+  -m "feat(scheduler): replace due-date proxy with last_review_date or stability fallback" \
   -t R1 \
-  -c "line 212 replaced: fsrs_card.last_review now set from card.last_review_date when not None, else falls back to fsrs_card.due" \
-  -c "grep for 'last_review = fsrs_card.due' returns no output after change (old single-line assignment is gone)" \
-  -c "Learning-state cards and cards without last_review_date retain prior elapsed_days behavior via else-fallback to fsrs_card.due" \
-  -i "<SHA-pinned URL to task spec>" \
-  --requirement "bug site scheduler.py:212 replaced; elapsed_days > 0 for on-time Review-state reviews when last_review_date is supplied" \
-  -r "R1 — logic-only change, isolated to scheduler computation, no DB or API changes" \
-  -s "replace due-date proxy with actual last_review_date for elapsed_days; fallback to due when absent"
+  -c "Line 212 assignment last_review=due removed; replaced with conditional using card.last_review_date when set" \
+  -c "Fallback for Review-state cards with stability: last_review = due - max(1, round(stability)) days" \
+  -c "Guard: branch entered only when card.stability is not None (outer block already excludes New state)" \
+  -i "<SHA-pinned URL to .taskmaster/tasks/task_NNN.md>" \
+  --requirement "VERIFY [6]: offending assignment gone; VERIFY [1]: on-time review produces elapsed_days > 0" \
+  -r "R1: logic change in core scheduler; covered by new tests in commit 4" \
+  -s "Use ground-truth last_review_date when set; stability approximation otherwise; remove wrong due-date proxy"
+```
 
-# Commit 3 — review_processor.py
+**Verification before staging:**
+- `grep -n "last_review = fsrs_card.due" flashcore/scheduler.py` — no output
+- `python -m pytest tests/test_scheduler.py -q --tb=short` — 15 passed (pre-new-tests baseline)
+
+### Commit 3 — review_processor: populate last_review_date on updated card
+
+Staged files: `flashcore/review_processor.py` (primary).
+
+After the `updated_card = self.db_manager.add_review_and_update_card(...)` call
+(current line 124), add:
+```python
+updated_card.last_review_date = ts.date()
+```
+
+```bash
 git add flashcore/review_processor.py
 aiv commit flashcore/review_processor.py \
-  -m "feat(review_processor): populate card.last_review_date before scheduler call" \
+  -m "feat(review_processor): set last_review_date on updated card after review persisted" \
   -t R1 \
-  -c "process_review fetches prior review via get_latest_review_for_card when card.last_review_id is set" \
-  -c "card.last_review_date set to prior_review.ts.date() before compute_next_state is called" \
-  -c "New-state cards (last_review_id=None) are unaffected; last_review_date remains None" \
-  -i "<SHA-pinned URL to task spec>" \
-  --requirement "hub supplies exact last_review_date so scheduler computes correct elapsed_days" \
-  -r "R1 — adds one indexed DB read per review; no new error paths; existing exception handling unchanged" \
-  -s "populate last_review_date transient field in processor before scheduler call"
+  -c "updated_card.last_review_date populated from review ts after add_review_and_update_card returns" \
+  -c "Same-session re-reviews of Review-state cards will use ground-truth elapsed_days via scheduler path" \
+  -i "<SHA-pinned URL to .taskmaster/tasks/task_NNN.md>" \
+  --requirement "Path A: hub sets last_review_date so scheduler has ground-truth for same-session re-reviews" \
+  -r "R1: one-line hub change; no new import; no DB change" \
+  -s "Hub populates Card.last_review_date after persistence so same-session re-reviews use exact prior-review date"
+```
 
-# Commit 4 — tests/test_scheduler.py  (Layer-A unit acceptance)
+**Verification before staging:**
+- `python -m pytest tests/ -q --tb=short` — 480 passed, 1 skipped
+
+### Commit 4 — Add two acceptance tests
+
+Staged files: `tests/test_scheduler.py` (primary).
+
+Add after existing `test_review_lapsed_card`:
+
+```python
+def test_on_time_review_elapsed_days_positive(scheduler, sample_card_uuid):
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.Review,
+        stability=1.5,
+        difficulty=6.0,
+        next_due_date=datetime.date(2024, 1, 1),
+    )
+    review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
+    result = scheduler.compute_next_state(card, 2, review_ts)
+    assert result.elapsed_days > 0
+
+def test_on_time_vs_same_day_review_stability_distinct(scheduler, sample_card_uuid):
+    import uuid as _uuid
+    # On-time Review-state card
+    card_review = Card(
+        uuid=sample_card_uuid,
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.Review,
+        stability=1.5,
+        difficulty=6.0,
+        next_due_date=datetime.date(2024, 1, 1),
+    )
+    review_ts = datetime.datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC)
+    result_on_time = scheduler.compute_next_state(card_review, 2, review_ts)
+
+    # Same-day: New card (no prior stability; elapsed_days=0)
+    card_new = Card(
+        uuid=_uuid.uuid4(),
+        deck_name="test",
+        front="Q",
+        back="A",
+        state=CardState.New,
+    )
+    result_same_day = scheduler.compute_next_state(card_new, 2, review_ts)
+
+    assert result_on_time.stab != result_same_day.stab
+```
+
+```bash
 git add tests/test_scheduler.py
 aiv commit tests/test_scheduler.py \
-  -m "test(scheduler): add Layer-A acceptance tests for on-time elapsed_days and stability correctness" \
+  -m "test(scheduler): add on-time elapsed_days>0 and stability-distinct acceptance tests" \
   -t R1 \
-  -c "test_on_time_review_elapsed_days_positive asserts elapsed_days > 0 for Review-state on-time review with last_review_date set 10 days prior" \
-  -c "test_on_time_vs_same_day_review_stability_distinct asserts stability differs between elapsed_days=10 and elapsed_days=0" \
-  -c "tests use only names already imported in test_scheduler.py (datetime module, UTC alias, uuid4, Card, CardState, scheduler fixture) — no new imports" \
-  -c "all 15 prior scheduler tests still pass after addition" \
-  -i "<SHA-pinned URL to task spec>" \
-  --requirement "Layer-A acceptance gates [1] and [2] from completion contract are covered by new tests" \
-  -r "R1 — test-only addition; no production code changes" \
-  -s "two new scheduler unit acceptance tests for F169 closure (Layer-A)"
+  -c "test_on_time_review_elapsed_days_positive: Review-state card on due date produces elapsed_days > 0" \
+  -c "test_on_time_vs_same_day_review_stability_distinct: on-time stability != same-day (New) stability" \
+  -i "<SHA-pinned URL to .taskmaster/tasks/task_NNN.md>" \
+  --requirement "VERIFY [1] and VERIFY [2] from completion contract" \
+  -r "R1: test-only changes; no production code modified" \
+  -s "Add two acceptance tests that would have caught F169 regression"
+```
 
-# Commit 5 — tests/test_review_processor.py  (Layer-B integration)
-git add tests/test_review_processor.py
-aiv commit tests/test_review_processor.py \
-  -m "test(review_processor): add Layer-B integration test for elapsed_days_at_review persistence" \
-  -t R1 \
-  -c "test_on_time_review_elapsed_days_persisted drives ReviewProcessor.process_review against a real in-memory SQLite DB with a real FSRS_Scheduler" \
-  -c "second review persists Review.elapsed_days_at_review > 0, proving review_processor supplies last_review_date from prior review record" \
-  -c "test placed in TestReviewProcessorIntegration; uses existing in_memory_db and real_scheduler fixtures; no new imports needed" \
-  -i "<SHA-pinned URL to task spec>" \
-  --requirement "Layer-B integration gate: end-to-end proof that Commit 3 plumbing produces correct elapsed_days in the persisted Review row" \
-  -r "R1 — test-only addition; no production code changes" \
-  -s "Layer-B integration test: persisted elapsed_days_at_review > 0 for on-time Review-state review"
+**Verification before staging:**
+- `python -m pytest tests/test_scheduler.py -v --tb=short` — **17 passed**, 0 failed
+- `python -m pytest tests/ -q --tb=short` — 482 passed, 1 skipped (2 new tests)
 
+### Commit 5 — AIV packet + task tracker update
+
+```bash
 aiv close
 aiv check .github/aiv-packets/PACKET_f169-fsrs-elapsed-days.md
+# Fix any E010 or blocking errors, then:
+git add .github/aiv-packets/PACKET_f169-fsrs-elapsed-days.md
+git commit -m "docs(aiv): add packet for f169-fsrs-elapsed-days change"
+# Update task tracker:
+git add .taskmaster/tasks/
+git commit -m "chore(tasks): mark F169 addressed in task tracker — Path A, scheduler + model + processor"
 ```
 
 ---
 
-## Scope guard — out of this PR
+## §10 Critical files
 
-| Item | Deferred to |
-|------|-------------|
-| Persisting `last_review_date` as a SQLite column | stage-c2 DB migration PR |
-| Backfill of historical `last_review_date` for existing cards | `feat/c2-pr-backfill-last-review-date` |
-| Negative `elapsed_days` for early-review cards (F169b) | New audit finding F169b; stage-c2 audit pass |
-| Existing `test_review_lapsed_card` asserts `result_on_time.elapsed_days > 0` gap | Covered by new Commit 4 tests; existing test untouched |
+| File | Role | Change type |
+|---|---|---|
+| `flashcore/scheduler.py` | Bug site; core FSRS computation | Replace lines 211-212; add conditional block |
+| `flashcore/models.py` | Card data model | Add one optional field |
+| `flashcore/review_processor.py` | Hub; owns persistence and card update | Add one line after `add_review_and_update_card` |
+| `tests/test_scheduler.py` | Acceptance gate | Add two new test functions |
+| `.github/aiv-packets/PACKET_f169-fsrs-elapsed-days.md` | AIV audit trail | Generated by `aiv close` |
+| `.taskmaster/tasks/tasks.json` / `task_NNN.md` | Progress tracker | Mark F169 addressed |
 
----
-
-## E010 / packet hygiene notes
-
-- Avoid trigger words in claims: use "replaced" not "fixed", "updated" not "patched",
-  "removed" not "resolved".
-- All intent links must target a commit SHA, not `main`.
-- `aiv check` must exit 0 before push. Correct packet errors with a new commit
-  (`docs(aiv): correct packet — <what changed>`), never amend.
+**Read before touching:**
+1. `flashcore/scheduler.py:190-270` — full `compute_next_state` method
+2. `flashcore/models.py:43-95` — Card model fields and config
+3. `flashcore/review_processor.py:85-140` — review processing pipeline
+4. `tests/test_scheduler.py:252-320` — existing lapsed/early tests (must stay green)
 
 ---
-
-## Revision log
-
-### Loop #1, iteration 2 — hard-stops H-A and H-B
-
-**H-A (structural) — resolved by adding Commit 5:**
-The original plan's Layer-A tests (Commit 4) test the scheduler in isolation; a green
-scheduler unit test does not prove the on-time path is repaired in production because
-Commit 3's `review_processor` plumbing is never exercised. Added
-`TestReviewProcessorIntegration::test_on_time_review_elapsed_days_persisted` in
-`tests/test_review_processor.py` (Commit 5). The test drives two sequential
-`process_review` calls against a real in-memory SQLite DB and a real `FSRS_Scheduler`,
-then fetches the persisted `Review` row and asserts
-`elapsed_days_at_review > 0`. This is a Layer-B integration gate that exercises the
-full Commit 3 → Commit 2 chain end-to-end.
-
-**H-B (correctness) — resolved in Commit 4 and Commit 2:**
-
-*Commit 4 test rewrite:* Removed the non-existent `make_review_card` helper. Tests now
-construct `Card(...)` inline (identical pattern used throughout the file). Replaced all
-bare datetime names with their `datetime.*` prefixed equivalents (`datetime.date.today()`,
-`datetime.timedelta(days=N)`, `datetime.datetime.combine(...)`, `datetime.time(H, M, S)`)
-and use the already-defined `UTC = datetime.timezone.utc` alias. Both new tests accept the
-existing `scheduler: FSRS_Scheduler` pytest fixture instead of constructing their own
-scheduler, keeping them consistent with the rest of the file.
-
-*Commit 2 else-fallback (implicit H-B correctness):* The original Commit 2 omitted an
-else-branch, leaving `fsrs_card.last_review` unset when `card.last_review_date is None`.
-This silently broke `test_review_lapsed_card` (lines 252-286 of `tests/test_scheduler.py`),
-which creates a Review-state card directly without a prior `process_review` call. Both the
-on-time and lapsed scenarios would produce `elapsed_days = 0`, causing
-`assert result_lapsed.elapsed_days > result_on_time.elapsed_days` (`0 > 0`) to fail.
-Added `else: fsrs_card.last_review = fsrs_card.due` to preserve the prior approximation
-for cards where `last_review_date` is absent. The exact fix still activates only when
-`review_processor` populates `last_review_date`.
-
----
-
-## §2 Verified state (Explore-grounded, 2026-06-19)
-
-Grounded via the launch-brief + Stage-0 harness grounding (the pipeline's stand-in for N Explore agents):
-- `flashcore/scheduler.py:212` sets `fsrs_card.last_review = fsrs_card.due`; the elapsed_days calc at line 218 then yields `0` for an on-time review (`review_ts == next_due_date`). [verified: read source]
-- Architecture is hub-and-spoke: `flashcore/` is the pure-logic spoke (no DB handle); `review_processor` is the hub that owns persistence. [verified]
-- The prior-review timestamp is NOT in `Card`'s cached state — `Card` carries only `next_due_date/state/stability/difficulty`. [verified: models.py]
-- `db_manager.get_latest_review_for_card(card_uuid) -> Optional[Review]` EXISTS (db/database.py:834); `Review.ts` is the prior review timestamp. [verified] — this is what makes Option A viable.
-- Baseline on `origin/main` b5e1c4b: 15 scheduler tests pass; full suite 480 passed / 1 skipped.
-
-## §5 Memory + lesson references
-
-Project memory source: flashcore `CLAUDE.md` (no dedicated memory store yet — sparse; we begin building it). Lessons consumed for this plan:
-- E010 bug-fix-word trap: avoid `fix/bug/resolve/patch` in AIV claims, or include a Class F provenance claim.
-- `aiv commit` mandatory (not plain git); intent URL must be SHA-pinned; `--skip-checks` is R0-only.
-- Use `.venv`; baseline is 480 tests / 1 skipped. Hub-and-spoke: the spoke stays pure (no DB handle).
-
-New lessons to CAPTURE post-PR (→ project memory + harness lessons): (1) hub-plumbed fixes need a Layer-B integration test — the by-hand #31 lacked it and check-drift caught it; (2) the prior-review ts is not in cached card state → plumb via the hub; (3) [harness] the leading-dash arg bug in stage prompts.
 
 ## §11 Reused utilities (must consume, not reimplement)
 
-- `db_manager.get_latest_review_for_card()` — consume to fetch the prior review; do NOT write a new query.
-- `Review.ts` — the prior review timestamp; consume, do not recompute.
-- `FSRS_Scheduler.compute_next_state` — extend its signature (add `last_review_date`); do NOT fork the scheduler.
-- `Card` (Pydantic model) — add the transient field to the existing model; do not shadow/duplicate it.
-- Existing `test_scheduler.py` patterns — construct `Card(...)` inline (no new `make_review_card` helper — the H-B lesson).
-
-## §15 Risks + mitigations + stop conditions (RED)
-
-| Risk | Mitigation | RED stop-condition (abort/revert) |
+| Utility | Location | Usage in this PR |
 |---|---|---|
-| Scheduler change affects every on-time review (broad interval/stability shift) | fix only changes the elapsed_days input; existing tests pin behavior | **any existing scheduler test regresses, OR full suite < 480 passed** |
-| `last_review_date=None` (Learning/new card) mis-handled | explicit None-fallthrough → elapsed_days=0 (prior behavior) | **any None-arithmetic TypeError in learning/new-card tests** |
-| Transient field leaks into persistence | Pydantic transient field; DB column deferred to stage-c2 migration | **`add_review_and_update_card` breaks / field reaches the cards table** |
-| AIV packet E010 false-positive (fix uses bug-fix words) | phrase claims w/o trigger words or add Class F | **`aiv check` returns a blocking error on the packet** |
+| `datetime.timedelta` | stdlib | `fsrs_card.due - timedelta(days=max(1, round(card.stability)))` in scheduler fallback |
+| `datetime.datetime.combine` | stdlib | Combine `card.last_review_date` with `time(0,0,0,utc)` for `fsrs_card.last_review` |
+| `CardState` enum | `flashcore/models.py:32-40` | Guard check `card.state != CardState.New` — already enforced by outer block |
+| `FSRSCard.last_review` | `fsrs` library (`FSRSCard`) | Assigned by scheduler; consumed by `fsrs_scheduler.review_card` for elapsed_days |
+| `ConfigDict` / Pydantic `Field` | `pydantic` (already imported in models.py) | Used for new `last_review_date` field declaration |
+| `Optional`, `date` | `typing`, `datetime` (already imported in models.py) | Type annotation for new field |
 
-## §19 Locked PR sequence position (predecessor / successor / parallel-safe)
-
-- **Predecessor:** F43 spine fix (aiv-protocol PR #10, MERGED) — the AIV gate now fails closed, so this PR's AIV gating is trustworthy.
-- **This PR:** F169 / plan C2 (flashcore) on `feat/c2-fsrs-harness`.
-- **Successors:** backfill PR (`feat/c2-pr-backfill-last-review-date`) · stage-c2 DB-migration (persist `last_review_date` column) · C3 (FSRS weight-vector alignment, depends-on C2) · **F169b** (early-review negative `elapsed_days`, flagged by check-drift's predecessor).
-- **Parallel-safe:** yes — touches `scheduler.py` / `models.py` / `review_processor.py` / tests only; no shared surface with other in-flight flashcore PRs.
+Do NOT introduce new imports to `flashcore/scheduler.py` — `datetime` and
+`CardState` are already present.
 
 ---
 
-## §6 Strict scope boundaries
+## §14 Acceptance criteria
 
-- **IN:** add transient `last_review_date` to `Card`; consume it in `compute_next_state`; populate it in `review_processor.process_review` via `get_latest_review_for_card`; unit + Layer-B integration tests.
-- **OUT (with disposition):** historical backfill → `feat/c2-pr-backfill-last-review-date`; persist `last_review_date` as a DB column → stage-c2 migration; FSRS weight-vector alignment → C3; early-review negative elapsed_days → F169b.
-- **Does NOT do (philosophical):** does not change FSRS parameters, the review UI/CLI, or the cards/reviews DB schema; alters scheduling only via the corrected elapsed_days input.
+All binary green/red. Source: completion contract VERIFY items.
 
-## §7 Locked design decisions
+| # | Criterion | Command |
+|---|---|---|
+| AC-1 | `test_on_time_review_elapsed_days_positive` passes; `elapsed_days > 0` | `python -m pytest tests/test_scheduler.py::test_on_time_review_elapsed_days_positive -v` |
+| AC-2 | `test_on_time_vs_same_day_review_stability_distinct` passes | `python -m pytest tests/test_scheduler.py::test_on_time_vs_same_day_review_stability_distinct -v` |
+| AC-3 | Bug line gone | `grep -n "last_review = fsrs_card.due" flashcore/scheduler.py` → no output |
+| AC-4 | Path A structural evidence | `grep -n "last_review_date" flashcore/models.py flashcore/review_processor.py flashcore/scheduler.py` → present in all three |
+| AC-5 | Learning-state guard correct | `python -m pytest tests/test_scheduler.py -k "new_card or learning or first_review" -v` → all pass |
+| AC-6 | No regression — all 15 existing tests pass | `python -m pytest tests/test_scheduler.py -q --tb=short` → 15 existing + 2 new = 17 passed |
+| AC-7 | Typecheck clean | `mypy flashcore/scheduler.py flashcore/models.py --ignore-missing-imports 2>&1 \| tail -5` → no new errors |
+| AC-8 | AIV packet validates | `aiv check .github/aiv-packets/PACKET_f169-fsrs-elapsed-days.md` → exits 0 |
+| AC-9 | Full suite passes | `python -m pytest tests/ -q --tb=short` → 482 passed, 1 skipped (or better) |
+| AC-10 | Branch shape correct | `git log feat/c2-pr-f169-fsrs-elapsed-days-b1 --format="%an \| %s" \| head -10` → branch name matches exactly |
+| AC-11 | F169 in task tracker | `grep -r "F169" .taskmaster/tasks/ --include="*.md" --include="*.json" \| head -5` → at least one entry |
 
-- **D1 — Option A (model-carried prior-review date).** Add `last_review_date: Optional[date]` (transient) to `Card`; the hub (`review_processor`) populates it from `get_latest_review_for_card().ts`; the scheduler consumes it. Rejected Option B (scheduler-only stability approximation) as inexact. **Operator-confirmed: 2026-06-19.**
+---
 
-## §10 Critical files — UNTOUCHED (explicitly out of scope)
+## §15 Risks + mitigations + stop conditions (RED)
 
-- `flashcore/db/database.py` — **consumed, not modified** (`get_latest_review_for_card` reused as-is).
-- `cards` / `reviews` DB schema + migrations — **UNTOUCHED** (no column added this PR; deferred to stage-c2).
-- `flashcore/cli/` and `review_ui.py` — **UNTOUCHED** (no UI/CLI change).
+| Risk | Likelihood | Mitigation |
+|---|---|---|
+| E010 AIV error from trigger words in claims | Medium | Use "replaces", "introduces", "adds" — never "fix", "patch", "resolve" in claim text |
+| `round(stability)` rounds 0.5 → 0 re-introducing bug | Low | `max(1, round(...))` clamp is locked in design decision §7.3 |
+| `card.stability is None` for New/Learning state causes TypeError | Very low | Outer block `if card.state != CardState.New:` already guards; elif adds explicit stability None check |
+| `mypy` error from `Optional[date]` in Card (e.g., missing `date` import) | Low | `date` is already used in `models.py` for `next_due_date`; no new import needed |
+| Existing `test_review_early_card` breaks after fix | Low | Verified analytically: stability=2.0, on-time `elapsed_days=2`, early `elapsed_days=0`; assertion `0 < 2` holds |
+| `test_review_lapsed_card` breaks | Low | Verified analytically: on-time `elapsed_days=2`, lapsed `elapsed_days=12`; `12 > 2` holds |
+| `add_review_and_update_card` returns a Card without `last_review_date` (e.g., reconstructed from DB row) | Medium | `updated_card.last_review_date = ts.date()` is set AFTER the DB call; field is Optional with default None so assignment will succeed |
+| `ConfigDict(extra="forbid")` rejects `last_review_date` | None | Field is declared on the model class, not injected — `extra="forbid"` only rejects undeclared extra fields |
+| AIV primary file deleted or unchanged | Low | Each commit uses an existing modified file; never a deleted file |
 
-## §14 Acceptance criteria (outcome-shaped, measurable)
+**RED STOP CONDITIONS** — escalate via AskUserQuestion before proceeding:
 
-- On-time Review-state review → `elapsed_days > 0` (was 0).
-- On-time vs same-day re-review → distinct stability.
-- Layer-B: persisted `Review.elapsed_days_at_review > 0` through `process_review` against a real DB.
-- No regression: all 15 scheduler tests pass; full suite ≥ 480 passed / 1 skipped.
-- `grep "last_review = fsrs_card.due"` → no output (bug site gone).
-- `aiv check` on the packet → exit 0, no blocking errors.
+- Any of the 15 existing scheduler tests requires editing to pass after the fix
+  (stop: determine which side is wrong before touching test)
+- `mypy` introduces a new error that cannot be resolved without changing the
+  public interface of `Card` or `SchedulerOutput`
+- `aiv check` exits non-zero after two correction attempts
+- Path A: any doubt arises about whether `last_review_date` should be persisted
+  to SQLite in this PR (this widens scope to R2 — escalate before proceeding)
+
+---
+
+## §19 Locked PR sequence position
+
+This PR (`feat/c2-pr-f169-fsrs-elapsed-days-b1`) is part of **stage c2** of
+the fc-c2-fsrs-harness work.
+
+- **Base:** `origin/main @ b5e1c4b`
+- **Precedes:** `feat/c2-pr-backfill-last-review-date` (deferred backfill)
+  and the stage-c2 DB migration PR (persistence of `last_review_date`)
+- **Blocked by:** nothing (no open prerequisite PRs)
+- **Merge authority:** human operator only; never autonomous
+
+---
 
 ## §20 After-merge handoff
 
-- **Progress-tracker:** mark F169/C2 addressed in `.taskmaster/tasks/` (+ Option A chosen + commit SHA).
-- **Memory writes (executed by the pipeline's retro step at terminal state):** (1) hub-plumbed fixes require a Layer-B integration test — check-drift caught the gap the by-hand #31 missed; (2) prior-review ts is not in cached card state → plumb via the hub; (3) [harness] stage prompts must not start with `--`. → project memory store + `LEARNINGS_CARRYFORWARD`.
-- **Follow-up issues:** backfill PR; stage-c2 DB migration; C3 (FSRS weights); F169b (early-review).
-- **Coord checkpoint:** update `queue.jsonl` (F169 → judged_merged) at H2 merge.
+1. **Bookkeeping**: Update `.taskmaster/tasks/tasks.json` — mark F169 sub-item
+   complete. Add a one-line note to the relevant `task_NNN.md` recording:
+   "Path A chosen; commit SHA `<SHA>`; `last_review_date` transient field on
+   Card; scheduler uses ground-truth when set, stability approximation
+   otherwise."
+
+2. **Follow-up PRs to open immediately after merge:**
+   - `feat/c2-pr-backfill-last-review-date` — backfill `last_review_date` for
+     existing DB cards using `elapsed_days_at_review` and
+     `scheduled_days_interval` from the reviews table.
+   - Stage-c2 DB migration PR — add `last_review_date DATE` column to the
+     cards table; update `add_review_and_update_card` to persist the value.
+     Must be open before stage-c3 cutoff.
+
+3. **Audit finding F169b** — file in the stage-c2 audit pass:
+   "Early-review cards produce `elapsed_days=0` after F169 fix
+   (improvement over `-2` but still approximate); correct value requires
+   persisted `last_review_date`."
+
+4. **Post-merge CI check**: Run `python -m pytest tests/ -q --tb=short`.
+   Expected: 482 passed, 1 skipped. Confirm before closing the review window.
+
+5. **Retro-verify (post-integration)**: After a real review session against
+   a live DB, spot-check `elapsed_days_at_review` values in the `reviews` table
+   are > 0 for on-time reviews. N/A until integration testing is available.
