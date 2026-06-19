@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1 — standard correctness correction: adds public method, changes return type, updates control flow, wires CLI exit code; component blast radius (review session loop and CLI only); not R0 (non-trivial behavior changes across 5 production and test files); not R2/R3 (no security, authentication, schema, or data-migration surfaces touched)."
   classified_by: "Claude"
   classified_at: "2026-06-19T21:40:56Z"
 ```
