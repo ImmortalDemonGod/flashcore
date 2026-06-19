@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1 — touches a production file (flashcore/review_processor.py) and two test files (tests/test_scheduler.py, tests/test_review_processor.py); changes are cosmetic black formatting only but production-file contact and the CI gate certification function (483 passed, 1 skipped) merit R1 over R0."
   classified_by: "Claude"
   classified_at: "2026-06-19T08:48:19Z"
 ```
@@ -28,7 +28,7 @@ classification:
 
 1. black -l 79 --check flashcore/ exits 0 after reformatting
 2. 483 tests pass, 1 skipped — identical to pre-reformat baseline
-3. No existing tests were modified or deleted during this change.
+3. In commit b9c7234, the only changes to test files (tests/test_scheduler.py, tests/test_review_processor.py) are black line-length reformatting: `git diff HEAD~1 HEAD -- tests/` shows only whitespace and line-wrap changes, zero assertion removed or logic altered. At branch scope, test_review_lapsed_card and test_review_early_card (origin/main:L252, L289) had last_review_date added at c829e46 per oracle justification in .aiv/oracle-corrections/c2-f169-impl.md; those modifications are outside this commit's scope.
 4. (PROVENANCE) `git show b9c7234 --stat` confirms only `flashcore/review_processor.py`, `tests/test_scheduler.py`, `tests/test_review_processor.py`, and `.github/aiv-evidence/EVIDENCE_FLASHCORE_REVIEW_PROCESSOR.md` changed; no hooks bypassed; branch is `feat/c2-fsrs-harness`.
 
 ---
