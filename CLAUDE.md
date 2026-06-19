@@ -111,17 +111,31 @@ at `-t R0`.
 
 ## Intent URL format (Class E)
 
-Intent links must target a **commit SHA**, not a mutable branch:
+Intent (Class E) links must target a **commit SHA**, not a mutable branch, so the
+referenced intent can never drift out from under the packet.
+
+**For audit-driven findings, the intent IS the audit record.** Point Class E at the
+in-repo audit artifact that actually raised the finding (e.g.
+`audit/02-static-audit.md#L179`) — not at an unrelated task file. Do **not** copy a
+`task_NNN.md` URL from an example without verifying it genuinely records the intent
+for *this* change. A Class E link that doesn't trace to the work is cargo-cult
+provenance and defeats the purpose of the evidence class — verify before you cite.
 
 ```
-# CORRECT — immutable
-https://github.com/ImmortalDemonGod/flashcore/blob/27797f4/.taskmaster/tasks/task_008.md
+# CORRECT — audit-driven finding: the audit record is the intent (SHA-pinned)
+https://github.com/ImmortalDemonGod/flashcore/blob/<full-40-char-sha>/audit/02-static-audit.md#L179
 
-# WRONG — mutable
-https://github.com/ImmortalDemonGod/flashcore/blob/main/.taskmaster/tasks/task_008.md
+# CORRECT — task-driven work: a taskmaster task that genuinely specifies it (SHA-pinned)
+https://github.com/ImmortalDemonGod/flashcore/blob/<full-40-char-sha>/.taskmaster/tasks/task_NNN.md
+
+# WRONG — mutable branch ref (drifts out from under the packet)
+https://github.com/ImmortalDemonGod/flashcore/blob/main/audit/02-static-audit.md
+
+# WRONG — a file copied from an example that does not record THIS change's intent
 ```
 
-Find the right SHA: `git log --oneline --follow -- .taskmaster/tasks/task_NNN.md`
+Find the right SHA for whatever artifact records the intent:
+`git log --oneline --follow -- <path/to/intent/artifact>`
 
 ---
 
