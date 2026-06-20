@@ -1,167 +1,180 @@
 # Orchestrator Review — PR fix/c2-f82 (Finding F82)
 
 **Round:** 1
-**HEAD:** `4bdf9f485828f0317065e5a07b57c6f4fcf3b3c3`
+**HEAD:** `4be582595f30cf428ea4a3a2b9e75828291b47a4`
 **Branch:** `fix/c2-f82`
-**Baseline:** `origin/main` (`5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb`)
-**Mode:** STRICT — human-written contract found at
-`.aiv/launch-briefs/c2-f82/pr-f82-completion-contract.md` (12 items).
-**Verdict:** ✅ **PASS — ready for the human to judge and merge (H2)**
+**Verdict:** ✅ **PASS — READY for human (H2) to judge and merge**
+**Contract:** STRICT — human-written `.aiv/launch-briefs/c2-f82/pr-f82-completion-contract.md`
 
-> One-shot independent review. `gh` unavailable in this worktree, so this verdict is written
-> to file instead of posted as a PR comment. CI = GREEN and CodeRabbit = success / 0 actionable
-> were confirmed by the harness poll-ci gate *before* this stage; I rely on that and did not re-run CI.
-> The merge act and final operator confirmation are H2 by definition and are **out of scope** for this verdict.
+> One-shot independent review. Read-only: no merge, no commit, no full-suite run.
+> `gh` unavailable in this worktree → verdict written here instead of a PR comment.
+> CI green + CodeRabbit success (0 actionable) confirmed by the harness poll-ci gate
+> BEFORE this stage; relied upon, not re-run.
 
 ---
 
-## Finding under review
+## Verdict question (the only one this stage answers)
 
-**F82 (critical)** — `flashcore/cli/review_ui.py:100-111`, correctness/logic.
-In `start_review_flow()`, a `continue` in the exception handler after `submit_review()` raises
-leaves the failed card at `review_queue[0]`; `get_next_card()` (`review_manager.py:127`) always
-returns `review_queue[0]`, producing an **unbounded infinite retry loop** under any persistent
-error, and "Well done!" was printed unconditionally on total failure.
-Canonical intent (Class E): `audit/02-static-audit.md#L92` @ `5bb2ea2`.
+**Is this PR ready for the human to judge and merge?** — i.e. all verifiable claims
+verified, evidence complete, 0 load-bearing claims falsified/unverified.
 
-## What the fix does (verified against the diff at HEAD)
-
-1. **Bounds the loop** — exception handler now calls `manager.skip_card(card.uuid)`
-   (`review_ui.py:119`), which removes the failed card from the queue, so the next
-   `get_next_card()` no longer returns the same card. Root-cause fix, not a symptom patch.
-2. **Suppresses false success** — terminal message is conditional (`review_ui.py:135-145`):
-   all-fail → "Review session failed." + `return False`; mixed → "Review session finished."
-   (no "Well done") + `return True`; all-success → "Well done!" + `return True`.
-3. **Wires a CLI failure signal** — `start_review_flow` return type changed `None → bool`;
-   sole caller `_review_logic.py:45-47` raises `typer.Exit(code=1)` on `False`.
-4. **Prevents stats over-count from the new skip path** — `skip_card` increments
-   `skipped_card_count` only when a card was actually removed (`review_manager.py:156-161`);
-   `get_session_stats()` subtracts it (`review_manager.py:237-239`) so skipped cards are not
-   counted as reviewed (ground-truth count, not approximation).
+**Answer: YES.** All 12 STRICT contract items verified against the diff + behavioral
+evidence + `aiv check`. 0 load-bearing claims falsified. 0 unverified. No stop
+condition tripped. The merge act itself and "final operator confirmation" are H2
+by definition and are out of scope for this verdict.
 
 ---
 
-## Contract verification (12/12 items)
+## The fix (what F82 asked for vs. what landed)
 
-| # | Item | Status | Evidence |
+Finding F82 (`audit/02-static-audit.md#L92`): in `start_review_flow()` the exception
+handler did `continue` after `submit_review()` raised; the failed card was never
+removed from `review_queue[0]`, so `get_next_card()` returned the same card forever
+→ unbounded infinite retry under any persistent error. Plus a false
+"Well done!" printed even when every card failed.
+
+Landed fix (Path A — skip-and-advance, the operator-selected mechanism):
+- `flashcore/review_manager.py:156` — new public `skip_card(uuid)` removes the failed
+  card from the queue (delegates to `_remove_card_from_queue`), bounding the loop.
+- `flashcore/cli/review_ui.py:119` — exception handler now calls `manager.skip_card(card.uuid)`
+  before `continue`, advancing past the failed card.
+- `flashcore/cli/review_ui.py:135-148` — outcome counters; "Well done!" emitted only
+  when `failed_count == 0`; `return False` only on total failure (≥1 attempt, 0 success).
+- `flashcore/cli/_review_logic.py:45-47` — `if not result: raise typer.Exit(code=1)`,
+  wiring the failure signal to the CLI exit code (single caller; confirmed).
+- `flashcore/review_manager.py:237-239` — `reviewed_cards` stats now subtract
+  `skipped_card_count` so skipped cards are not over-counted as reviewed (ground-truth
+  correctness, commit 599ddc8).
+
+---
+
+## Contract items — 12/12 verified (N = 12, contiguous [1]–[12])
+
+| # | Item | Result | Evidence |
 |---|------|--------|----------|
-| 1 | Loop bounded — failed card does not repeat | ✅ VERIFIED | `review_ui.py:119` calls `skip_card`; `skip_card` removes from queue (`review_manager.py:156-161`). `test_persistent_submit_failure_retries_same_card…` asserts `submit_review.call_count == 1`. (Contract's informal "≤ len(queue)" is n; actual is n+1 due to the terminating `None` call — loop is provably bounded; trivial off-by-one in the prose check, not a defect.) |
-| 2 | Session terminates in finite time — no hang | ✅ VERIFIED | All-fail tests use closure-based mocks that drain the queue; suite runs in 0.12 s with no timeout (`head_green.txt §RUN1`). Logically bounded by queue length. |
-| 3 | "Well done" absent on total failure | ✅ VERIFIED | `review_ui.py:135-138`; `test_start_review_flow_all_fail_suppresses_well_done` asserts `"Well done" not in output` and `"Review session failed" in output`. |
-| 4 | "Well done" present on all-success (anti-regression) | ✅ VERIFIED | `review_ui.py:143-145` else-branch; `test_start_review_flow_success_emits_well_done` asserts `"Review session finished. Well done!"`. |
-| 5 | Failure signal wired to CLI layer | ✅ VERIFIED | Path A (return-bool): `start_review_flow → bool`; `_review_logic.py:45-47` raises `typer.Exit(code=1)`. `test_review_command_exits_on_total_failure` asserts `result.exit_code == 1` via CliRunner. |
-| 6 | Existing exception test strengthened | ✅ VERIFIED | `test_start_review_flow_submit_review_exception` now uses a closure-based `skip_card` side-effect (not the masked `get_next_card=[card,None]` shortcut) and asserts `skip_card.call_count == 1`, `call_args == card.uuid`, `result is False`. |
-| 7 | Advance mechanism recorded in commit log | ✅ VERIFIED | `599ddc8 fix(review_manager): track skipped_card_count…`, `3210a0f test(review_manager): verify skip_card…`, plus `skip_card`-method commit `a714d09` (per audit note). Mechanism (public `skip_card`) identifiable from log without reading diff. |
-| 8 | Typecheck + local-CI passes | ✅ VERIFIED | Harness-confirmed CI GREEN at HEAD; `head_green.txt`: 490 passed / 1 skipped at `c0f4366`; +3 additive tests landed since (493 at HEAD), all additive; black formatting applied (`6d2ab98`). Per skill, full suite not re-run from this read-only reviewer. |
-| 9 | AIV packet validates | ✅ VERIFIED | `aiv check` on all 5 F82 packets → **0 blocking errors** each (warnings only; see note below). |
-| 10 | Progress tracker closure | ✅ VERIFIED (N/A) | `grep -rn F82 .taskmaster/tasks/` returns nothing → contract's N/A branch satisfied. |
-| 11 | Review quiet window | ✅ VERIFIED | CodeRabbit status = success, 0 unresolved actionable comments (harness-confirmed). Review settled. |
-| 12 | Finding closed | ✅ VERIFIED | `audit/02-static-audit.md` F82 row updated with `CORRECTED:` note citing `c029942`/`a714d09`/`aab9d20`; packets/commits reference F82. |
-
-**Denominator:** N = 12 (actual `^[N]` items in the contract; no gaps).
+| 1 | Loop bounded — failed card does not repeat (Path A) | ✅ VERIFIED | `review_ui.py:119` calls `skip_card`; `test_persistent_submit_failure_retries_same_card…` + `test_start_review_flow_submit_review_exception` assert `skip_card.call_count` bounded; PASS at HEAD (head_green.txt RUN1) |
+| 2 | Session terminates in finite time — no hang | ✅ VERIFIED | Baseline `test_persistent…` looped (skip_card absent → AttributeError, baseline_red §RUN2); HEAD passes in 0.12 s, no timeout |
+| 3 | "Well done" absent on total failure | ✅ VERIFIED | `review_ui.py:135-137` (`return False`, "Review session failed."); `test_all_submit_review_fail_output_omits_well_done…` asserts absence, PASS at HEAD |
+| 4 | "Well done" present on all-success (anti-regression) | ✅ VERIFIED | `review_ui.py:144-148` else-branch; `test_start_review_flow_success_emits_well_done` PASS at HEAD |
+| 5 | Failure signal wired to CLI (Path A bool) | ✅ VERIFIED | `start_review_flow → bool`; `_review_logic.py:45-47` raises `typer.Exit(code=1)`; `test_review_command_exits_on_total_failure` asserts `result.exit_code == 1` |
+| 6 | Existing exception test strengthened | ✅ VERIFIED | `test_review_ui.py:128-159` uses closure `skip_card.side_effect` (not masked `[card, None]`) + asserts `call_count == 1`; masked pattern removed |
+| 7 | Advance mechanism recorded in commit log | ✅ VERIFIED | `a714d09 feat(review_manager): add public skip_card method to advance past failed card` |
+| 8 | Typecheck + local-CI passes | ✅ VERIFIED | head_green.txt RUN2 = 490 passed, 1 skipped at c0f4366; CI confirmed GREEN at HEAD 4be5825 by poll-ci gate; ≥482 collected (see freshness note below) |
+| 9 | AIV packet validates | ✅ VERIFIED | `aiv check` on all 5 PACKET_c2_f82_*.md → **0 blocking error(s)** each (warnings only; see note) |
+| 10 | Progress-tracker closure | ✅ VERIFIED (N/A) | `grep F82 .taskmaster/tasks/` returns nothing → pass-condition's N/A branch (no taskmaster entry for this finding) |
+| 11 | Review quiet window | ✅ VERIFIED | CodeRabbit status = success, 0 unresolved actionable (poll-ci gate) |
+| 12 | Finding closed | ✅ VERIFIED | `git log --grep=F82` → 8 commits incl. `c029942`, `aab9d20`, `e3b95d5`, `3dfa9be` |
 
 ---
 
-## 4a–4d adversarial claim verification
+## 5-angle review
 
-| # | Load-bearing claim | Probe | Result |
-|---|--------------------|-------|--------|
-| C1 | `skip_card` is called on the exception path | `git show HEAD:flashcore/cli/review_ui.py` → line 119 `manager.skip_card(card.uuid)` | ✅ VERIFIED |
-| C2 | `skip_card` actually drains the queue | `review_manager.py:156-161` delegates to `_remove_card_from_queue` (filters out uuid) | ✅ VERIFIED |
-| C3 | Return type is `bool`, all branches return | `review_ui.py:69` `-> bool`; returns at 113/137/140/145 | ✅ VERIFIED |
-| C4 | Sole caller acts on `False` with exit 1 | `grep -rn start_review_flow flashcore/` → only `_review_logic.py:45`; lines 46-47 `raise typer.Exit(code=1)` | ✅ VERIFIED |
-| C5 | No other caller silently broke from the `None→bool` change | single-caller grep confirms no other call site | ✅ VERIFIED |
-| C6 | Stats not inflated by skip | `review_manager.py:237-239` subtracts `skipped_card_count`; `test_skip_card_does_not_inflate_reviewed_cards_in_stats` asserts `reviewed_cards == 0` | ✅ VERIFIED |
-| C7 | Green evidence represents HEAD | `c0f4366` is an ancestor of HEAD; files changed since are **additive only** (stats hardening + 3 new tests); core `review_ui.py` untouched since `c0f4366` | ✅ VERIFIED |
-| C8 | All packets carry Class A–F, none vacuous | `grep '### Class [A-F]'` → all 5 packets have A,B,C,D,E,F; no `N/A`/`vacuous` markers | ✅ VERIFIED |
+**A1 Correctness / contract conformance.** The root cause is genuinely removed: the
+failed card leaves the queue via `skip_card` before `continue`, so `get_next_card()`
+(`review_queue[0]`) cannot return it again. `skip_card` is a safe no-op on an unknown
+UUID (`test_skip_card_unknown_uuid_is_noop`) and increments `skipped_card_count` only
+on an actual removal. The three end-states (total-failure→False, mixed→True+plain
+message, all-success→True+"Well done!") are exhaustive and each is test-covered.
 
-**Falsified load-bearing claims: 0. Unverified load-bearing claims: 0.**
+**A2 Test integrity (no masked loops / vacuous asserts).** The previously masked
+termination (`get_next_card.side_effect=[card, None]`) is replaced by a closure that
+empties the queue through the real `skip_card` mock, so the loop terminates *because of
+the fix*, not because the mock ran out of values. RED→GREEN is real: all 4 RED tests
+fail on baseline 5bb2ea2 for the right reasons (AttributeError: skip_card absent;
+"Well done" present; `return None`) and pass at HEAD.
 
----
+**A3 Scope discipline.** Diff stays within the contract: review_ui + review_manager +
+_review_logic + their tests + the stats over-count correction. Explicit out-of-scope
+items (retry-with-backoff, F85 DB-leak, _review_all_logic, iterator refactor) are
+untouched. The stats `skipped_card_count` subtraction is correct widening (ground-truth:
+a skipped card must not count as reviewed) with its own test — not scope creep.
 
-## Five-angle synthesis
+**A4 Provenance / evidence chain.** Class A behavioral evidence (baseline_red.txt,
+head_green.txt) is SHA-pinned and hash-listed in MANIFEST.md with a baseline→HEAD
+claim map. Class F provenance present (e.g. PACKET_c2_f82_ci has a PROVENANCE claim
+clearing the E010 bug-fix-detection trap). Class E intent points at the canonical
+audit record `audit/02-static-audit.md#L92`.
 
-- **Correctness / root-cause.** The fix addresses the actual invariant — a failed card must leave
-  the queue so `get_next_card()` advances — rather than masking the symptom (e.g., a retry counter).
-  All three required behaviors (bounded loop, conditional message, CLI exit signal) are present and
-  test-pinned. PASS.
-- **Test integrity.** Tests deliberately avoid the masked-loop trap: the old `[card, None]` shortcut
-  is replaced by closure-based mocks where `skip_card` genuinely empties the queue, so termination is
-  proven to come from the fix, not from a coincidental mock. RED-on-baseline / GREEN-on-HEAD is
-  documented for the four guard tests. Strong. PASS.
-- **Scope discipline.** The diff touches exactly the invariant's sites (review_ui flow, the
-  `skip_card` mechanism, CLI wiring) plus the stats correction the new skip path necessitates.
-  Out-of-scope reminders (retry-backoff, F85 DB leak, `_review_all_logic.py`) are respected — none
-  appear in the diff. PASS.
-- **Evidence / provenance.** MANIFEST is SHA-pinned with sha256 digests; baseline_red and head_green
-  are concrete, re-runnable, and class-tagged. The only nuance is the evidence run sits at ancestor
-  `c0f4366`; the post-`c0f4366` changes are additive and HEAD is harness-confirmed CI-green (C7). PASS.
-- **Packet hygiene.** All 5 packets validate with 0 blocking errors and full Class A–F coverage.
-  Residual warnings are expected/benign (below). PASS.
+**A5 Discipline / hygiene.** No `--no-verify`, no `--amend`-to-dodge-hook found. Single
+caller of `start_review_flow` confirmed (`_review_logic.py:45`) so the `None→bool`
+return-type change breaks no other site. `skip_card` is used only at the intended call
+site + tests. `audit/02-static-audit.md` F82 row annotated "CORRECTED" with landing SHAs.
 
 ---
 
-## Facts for H2 adjudication (verified, non-load-bearing — NOT failures)
+## Verification-claims probe (4a–4d)
 
-These are presented as verified facts for the operator to adjudicate at merge; none block readiness:
+| # | Load-bearing claim | Probe | Verdict |
+|---|--------------------|-------|---------|
+| C1 | Exception handler advances the queue | read `review_ui.py:104-121` — `skip_card(card.uuid)` then `continue` | VERIFIED |
+| C2 | Baseline genuinely had the defect | `baseline_red.txt`: 4 RED tests fail on 5bb2ea2 (skip_card AttributeError; "Well done" present; `None is True`) | VERIFIED |
+| C3 | Fix is green at HEAD | `head_green.txt`: 10/10 review_ui tests + 490 passed / 1 skipped | VERIFIED |
+| C4 | CLI exit code wired | `_review_logic.py:45-47` + `test_review_command_exits_on_total_failure` asserts exit_code==1 | VERIFIED |
+| C5 | All 5 packets shape-valid | `aiv check` → 0 blocking errors each | VERIFIED |
+| C6 | Mechanism in git history | `git log` shows `a714d09` naming `skip_card` | VERIFIED |
+| C7 | Stats don't over-count skips | `review_manager.py:237-239` subtracts `skipped_card_count`; `test_skip_card_does_not_inflate_reviewed_cards_in_stats` | VERIFIED |
+| C8 | No hook bypass / no merge | `git log` bodies: no `--no-verify`/`--amend`; no `gh pr merge` | VERIFIED |
 
-1. **AI commit authorship.** Every PR commit is authored by `Claude <noreply@anthropic.com>` with a
-   `Co-Authored-By: Claude Sonnet 4.6` trailer. On the generic or-review scaffold this would be a
-   stop condition, but here it is **expected and sanctioned**: (a) the contract's AI-DRIVEN TRACK
-   clause states "Commits are agent-authored… No 'no-AI-author' pass-condition applies", and (b)
-   `CLAUDE.md` *mandates* the `Co-Authored-By: Claude` trailer on every commit. Not a violation.
-2. **`aiv check` exit code.** The CLI exits non-zero whenever *any* warning is present, so all 5
-   packets show "Validation Failed" despite **0 blocking errors**. The contract's operative gate is
-   "no blocking errors" (per `CLAUDE.md`), which holds. Warnings are: E012 (Class A evidence is a
-   text ref, not a CI URL — unavoidable offline; a CI link cannot be minted in this worktree), E004
-   (Class E plain-text ref — `CLAUDE.md` documents this as informational only), and E016/E017/E011
-   (Class B line-anchor / Class C framing / Class F justification quality nudges).
-3. **Evidence commit vs HEAD.** `head_green.txt`/`MANIFEST` reference `c0f4366`; current HEAD is
-   `4bdf9f4`. The delta is additive (stats over-count hardening + 3 tests); core fix unchanged.
-   Regenerating evidence at exact HEAD would be tidier but is not required — HEAD is CI-green.
-4. **Branch name** `fix/c2-f82` deviates from the `feat/task-<N>-<slug>` convention in `CLAUDE.md`;
-   this is the fix-pipeline's own naming scheme and is cosmetic.
+0 falsified. 0 unverifiable.
 
-## Stop conditions
+---
 
-| Condition | Result |
-|-----------|--------|
-| `--no-verify` / `--amend` hook bypass | ✅ none found |
-| Agent attribution as a *violation* | ✅ N/A — sanctioned on this AI-driven track (see fact 1) |
-| 4a–4d falsifies a load-bearing claim | ✅ none |
-| Patch without PR-body/contract explanation | ✅ none — every change traces to the contract |
+## Facts surfaced for H2 adjudication (VERIFIED FACTS — not unverified, not blocking)
 
-**stop_condition_tripped: none**
+These are non-load-bearing deviations / judgment calls. They are presented as
+established facts for the human to weigh at merge; none gate readiness.
+
+1. **AI commit authorship (project-sanctioned).** All 36 PR commits are
+   `author=Claude <noreply@anthropic.com>` and 6 carry `Co-Authored-By: Claude Sonnet 4.6`.
+   The skill's generic "agent attribution = stop condition" is *explicitly overridden*
+   here: the STRICT contract's "AI-DRIVEN TRACK" clause states commits are agent-authored
+   and "No 'no-AI-author' pass-condition applies," and the project's own CLAUDE.md mandates
+   the `Co-Authored-By` trailer. Stop condition **not** tripped.
+
+2. **`aiv check` exit code is 1 on all 5 packets — but 0 blocking errors.** Exit 1 is
+   driven entirely by non-blocking warnings/info: E004 (Class E plain-text — CLAUDE.md
+   documents this as informational), E012 (Class A is a text ref to local evidence files
+   rather than a CI URL — expected, `gh`/Actions URLs not available in this worktree),
+   E016 (some Class B sections in the impl packet lack inline file:line refs), E017/E011
+   (tests packet Class C/F phrasing nudges). The load-bearing criterion — "no blocking
+   errors" — holds for every packet. Quality nudges, operator's call whether to tighten.
+
+3. **Behavioral evidence pinned to intermediate SHA c0f4366, current HEAD is 4be5825.**
+   head_green.txt / MANIFEST were captured at c0f4366. Commits after it are docs/packets/
+   pipeline-artifacts plus one functional commit `599ddc8` (the `skipped_card_count` stats
+   correction). The *F82 fix itself* is fully present and proven at c0f4366; the later stats
+   correction is covered by its own test (`3210a0f`) and by CI-green-at-HEAD (poll-ci gate).
+   So no F82 load-bearing claim is stale; evidence freshness is a presentational gap, not a
+   verification gap.
+
+4. **Stray scratch file `aiv_validation_result.json` committed at repo root** reports
+   `overall_result: FAIL / E001 Missing packet header` — but on inspection its
+   `packet_id`/`pr_id`/`head_sha` are empty: it validated an *empty* packet, not any F82
+   packet. Leftover artifact; does not reflect the real packets (which pass with 0 blocking
+   errors). Operator may wish to remove it; non-blocking.
+
+5. **Cosmetic message wording.** The exception handler prints "Card will be reviewed
+   again later" while the card is `skip_card`-removed from *this* session's queue. Accurate
+   in spirit (no review outcome was recorded, so the card remains due in a future session),
+   but the wording is loose. Non-load-bearing.
 
 ---
 
 ## Recommendation
 
-**READY FOR HUMAN (H2).** All 12 contract items verified, 0 load-bearing claims
-falsified or unverified, all 5 AIV packets validate with 0 blocking errors and full
-Class A–F coverage, CI green and CodeRabbit settled (0 actionable). The fix is a clean
-root-cause correction with strong, non-masking test coverage and SHA-pinned evidence.
-The remaining items are non-blocking judgment calls (AI authorship sanctioned by the
-track + project convention; warning-only packet exit code; evidence at an additive
-ancestor commit) presented above for the operator to adjudicate at merge. Nothing here
-requires the human to perform verification work.
+**READY FOR MERGE (H2).** The critical infinite-retry defect is removed at the root
+(skip-and-advance), the false "Well done!" is suppressed, the failure signal reaches the
+CLI exit code, and every claim is backed by SHA-pinned RED→GREEN evidence and 5
+zero-blocking-error AIV packets. CI is green and CodeRabbit reports 0 actionable at HEAD
+4be5825. Nothing verifiable remains unverified. The five facts above are placed before
+the operator as verified context for the merge decision; none blocks readiness. The merge
+act itself is H2 and out of scope for this verdict.
 
-<!-- machine-readable verdict below -->
+*Round 1 · one-shot · independent · read-only.*
 
+<!--
 ## Machine-checkable data
-
 ```or_review_verdict
-{
-  "round": 1,
-  "head_ref_oid": "4bdf9f485828f0317065e5a07b57c6f4fcf3b3c3",
-  "verdict": "PASS",
-  "contract_total": 12,
-  "contract_verified": 12,
-  "falsified_load_bearing": 0,
-  "unverified": 0,
-  "stop_condition_tripped": "none",
-  "coderabbit_actionable": 0,
-  "aiv_classes_present": ["A", "B", "C", "D", "E", "F"],
-  "aiv_classes_vacuous": []
-}
+{"round":1,"head_ref_oid":"4be582595f30cf428ea4a3a2b9e75828291b47a4","verdict":"PASS","contract_total":12,"contract_verified":12,"falsified_load_bearing":0,"unverified":0,"stop_condition_tripped":"none","coderabbit_actionable":0,"aiv_classes_present":["A","B","C","D","E","F"],"aiv_classes_vacuous":[]}
 ```
+-->
