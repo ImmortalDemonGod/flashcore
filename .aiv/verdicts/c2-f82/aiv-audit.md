@@ -1,166 +1,192 @@
 # AIV spec audit — c2-f82 (content audit; follow-up to shape review)
 
-Shape (`aiv check --strict --audit-links`) was run for each packet and recorded below. This
-audit verifies packet **content** against the spec at `/home/user/aiv-protocol/SPECIFICATION.md`
-(AIV Canonical Specification; packets self-declare format v2.2). No `.aiv-workflow.yml` exists at
-the repo root — defaults assumed (`packets_dir=.github/aiv-packets`, `base=origin/main`,
-`mandate_all_classes=true`, `exclude_classes=[G]`); stated per the skill's config rule.
+Shape (`aiv check --strict --audit-links`) was run separately and recorded below.
+This audit verifies packet **content** against the spec at
+`/home/user/aiv-protocol/SPECIFICATION.md` (version `AIV-SPEC-V1.0.0-CANONICAL`, 1.0.0).
+`.aiv-workflow.yml` is absent → defaults used (`packets_dir=.github/aiv-packets`,
+`mandate_all_classes=true`, `exclude_classes=[G]`, `base=origin/main`).
+`gh` is unavailable → no PR comment posted; written to this verdict file per the stage contract.
 
-**Scope sampled (all packets on the branch):** `PACKET_c2_f82_impl.md` (functional fix),
-`PACKET_c2_f82_tests.md` (RED tests + bug catalog), `PACKET_c2_f82_crv.md` (coverage test),
-`PACKET_c2_f82_crv2.md` (stats-correctness follow-up), `PACKET_c2_f82_ci.md` (R0 formatting).
+**Scope sampled:** all 5 finding packets — `PACKET_c2_f82_impl.md` (functional fix),
+`PACKET_c2_f82_tests.md` (RED tests + bug catalog), `PACKET_c2_f82_ci.md` (R0 format),
+`PACKET_c2_f82_crv.md` (coverage), `PACKET_c2_f82_crv2.md` (stats-correctness follow-up).
 
-**Headline:** All five packets are content-conformant — the load-bearing **Class E intent target
-is correct and identical across every packet** (the canonical audit source, not a taskmaster task
-or launch-brief), the intent-alignment is **real and verified against the diff**, risk tiers are
-defensible, and the all-class A–F mandate is met with no vacuous/unjustified N/A. Remaining items
-are **WARN-level** (no immutable CI-run permalink; metadata mislabel) with **no read-only harvest
-path in this environment** (`gh` unavailable). **No blocking findings.**
+**Headline:** Content is sound — Class E intent-target is **correct** on all 5 packets
+(every Class E points to the finding's canonical audit URL, not a taskmaster task or
+launch-brief), intent-alignment is concrete and matches the actual diff, no class is
+vacuous, claims correspond to code verified at HEAD (`493 passed, 1 skipped`), and the
+Class F hash manifest is byte-accurate. **0 blocking findings.** Decision: **COMPLIANT**.
+Several **non-load-bearing WARN deviations** are surfaced below as verified facts for
+operator adjudication.
 
 ---
 
-## Shape-check verdict (recorded, not re-derived)
+## Shape result (recorded, not re-derived)
 
-| Packet | Blocking errors | Warnings | Notes |
+| Packet | `aiv check --strict --audit-links` | Blocking | Warnings |
 |---|---|---|---|
-| PACKET_c2_f82_ci.md | **0** | 2 (E012, E004) | `--strict` reports "Validation Failed" via warnings only |
-| PACKET_c2_f82_crv.md | **0** | 1 (E004; E012) | "" |
-| PACKET_c2_f82_crv2.md | **0** | 1 (E004; E012) | "" |
-| PACKET_c2_f82_impl.md | **0** | 9 (E016×2, E004, …) | "" |
-| PACKET_c2_f82_tests.md | **0** | 5 (E016×2, E004, …) | "" |
+| PACKET_c2_f82_impl.md | Validation Failed (strict) | **0** | 9 (E016 ×8, E004 ×1) |
+| PACKET_c2_f82_tests.md | Validation Failed (strict) | **0** | 5 (E016, E004) |
+| PACKET_c2_f82_ci.md | Validation Failed (strict) | **0** | 2 (E012, E004) |
+| PACKET_c2_f82_crv.md | Validation Failed (strict) | **0** | 1 (E012/E004) |
+| PACKET_c2_f82_crv2.md | Validation Failed (strict) | **0** | 1 (E012/E004) |
 
-All packets are **structurally valid (0 blocking errors)**. `--strict` escalates warnings to a
-non-zero exit ("Validation Failed"); that is the strict-mode behavior, not a blocking shape defect.
-`shape_check_passed = true` is scored on **0 blocking errors**.
-
----
-
-## Finding 1 — Class E intent-target correctness (the load-bearing check) — PASS
-
-> Spec §6.6.2 / E-001 (BLOCK): "The requirement reference MUST be immutable per §3.3."
-> Operator mandate (this stage): every packet's Class E intent MUST point to the **original audit
-> source** that produced the finding — not a taskmaster task or the pipeline's launch-brief.
-
-**Every one of the five packets cites the exact canonical audit URL:**
-
-```
-https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92
-```
-
-Verified by `git grep` across all five packet bodies (identical SHA-pinned target, deduped to one
-string). None points to `.taskmaster/task_NNN.md`, `tasks.json`, or `.aiv/launch-briefs/`.
-Intent-provenance is **intact**. This is the most important check and it passes for all packets.
-
-## Finding 2 — Class E intent-alignment (actual, not URL-only) — PASS
-
-The cited source genuinely records this defect. Verified by reading
-`git show 5bb2ea2…:audit/02-static-audit.md` line 92:
-
-> "F82 | critical | verified | flashcore/cli/review_ui.py:100-111 | correctness/logic | In
-> start_review_flow()… Because the failed card is never removed, the next get_next_card() call
-> returns the same card again, creating an unbounded infinite retry loop for any persistent error…"
-
-**Source records → diff does → addresses:** confirmed against `git diff origin/main..HEAD`:
-
-| Defect recorded in audit L92 | What the diff does | Addresses? |
-|---|---|---|
-| B1 — failed card never removed → infinite retry (`get_next_card()` always returns `review_queue[0]`) | `review_manager.py` adds `skip_card()` (delegates to `_remove_card_from_queue`); `review_ui.py` calls `manager.skip_card(card.uuid)` in the `except` handler before `continue` → loop bounded by queue length | ✓ |
-| B2 — `"Well done!"` printed unconditionally | `review_ui.py` adds `success_count`/`failed_count`; gates end-of-session message: "Review session failed." (total fail) / "Review session finished." (mixed) / "Well done!" (all-success) | ✓ |
-| B3 — `start_review_flow` returns `None`, no failure signal | return type `-> None`→`-> bool`; `_review_logic.py` raises `typer.Exit(code=1)` when result is `False` | ✓ |
-
-The `crv2` packet additionally addresses a **direct consequence** of B1's fix (skip_card inflating
-`reviewed_cards` in `get_session_stats`) — `review_manager.py` adds `skipped_card_count` and
-subtracts it in the stats derivation. Its Class E correctly anchors to the same canonical F82 record
-and explains the causal link (not a bare URL). `crv` (coverage of the new elif branch) and `ci`
-(black formatting prerequisite) likewise carry alignment prose, not bare URLs. **Alignment is real
-across all packets, not theater.**
-
-## Finding 3 — Risk-tier classification — DEFENSIBLE (no misclassification)
-
-Spec §5.2 critical surfaces = authentication, **authorization**, secrets, cryptography, financial,
-PII, privilege boundaries, audit/logging. The change touches `review_ui.py` (CLI review loop),
-`_review_logic.py` (CLI wiring), `review_manager.py` (queue/session stats) and their tests —
-**none of these is a §5.2 critical surface**, so no mandatory R3 escalation (§5.2-F1 does not fire).
-
-- `impl` **R1** — isolated logic change, component blast radius, full test coverage. Defensible (§5.1).
-- `tests`/`crv`/`crv2` **R1** — executable test/correctness code, component radius. Defensible.
-- `ci` **R0** — pure `black -l 79` reformat of `review_manager.py:L237-L239`, zero runtime effect,
-  no test changes (verified: `git diff … -- tests/` is empty). Defensible (§5.1 R0 row).
-
-Unlike the calibration example, **there is no authorization/ACL landmine here** — no tier finding.
-
-## Finding 4 — Evidence-class completeness (all-class A–F mandate) — PASS
-
-`mandate_all_classes=true`, exclude `[G]`. Spec floor: R1 requires A,B,E (§6.1); R0 requires A,B.
-The operator mandate requires **all of A–F addressed regardless of tier**, with falsifiable N/A
-where a class does not apply.
-
-| Packet | A | B | C | D | E | F | Vacuous/unjustified N/A? |
-|---|---|---|---|---|---|---|---|
-| impl | ✓ per-commit pytest/ruff/mypy + live-fire CliRunner | ✓ 21-ref scope inventory | ✓ caller/pattern search + bug-catalog Skipped set | ✓ ruff/mypy/return-type/import analysis | ✓ defect→fix table | ✓ test chain-of-custody | none |
-| tests | ✓ RED 483P/2F at 076e8e0 | ✓ 2-ref + catalog cross-ref | ✓ masked-test + grep | ✓ ruff/mypy | ✓ | ✓ | none |
-| crv | ✓ 491P | ✓ 1-ref | ✓ + "N/A — coverage only" *(falsifiable rationale)* | ✓ | ✓ | ✓ | none |
-| crv2 | ✓ 493P per-commit | ✓ 5-ref | ✓ caller search | ✓ ruff/mypy | ✓ | ✓ | none |
-| ci (R0) | ✓ black/ruff/mypy/pytest 493P,1S | ✓ SHA-pinned blob URL | ✓ empty-diff under tests/ | ✓ | ✓ | ✓ | none |
-
-No class is empty or N/A-without-rationale. The single explicit N/A (`crv` Class C) carries a
-falsifiable rationale ("adds test coverage only; no production logic modified"). **Mandate met.**
-
-## Finding 5 — Class A immutable CI-run reference absent (E012) — WARN (no harvest path)
-
-> Spec §6.2.1: "CI Run Reference — Immutable link to CI run bound to exact `commit_sha`" (all tiers).
-
-No packet carries a CI-run permalink; Class A is local `pytest`/`ruff`/`mypy` output captured at
-each commit. The shape validator flags this as **E012 (WARN)**, not BLOCK. **No read-only harvest
-path exists in this environment: `gh` is UNAVAILABLE** (`which gh` → not found), so
-`gh run list/view` cannot manufacture the permalink. The defensible substitute is present: local
-execution evidence under `.github/aiv-packets/evidence/c2-f82/` (`baseline_red.txt`,
-`head_green.txt`) plus a **sha256 manifest** (`MANIFEST.md`) binding artifacts to head `c0f4366`
-and baseline `5bb2ea2`. Operator adjudicates whether local-execution-evidence + manifest satisfies
-Class A in a CI-less context. **No read-only harvest path — requires CI/`gh` infra.**
-
-## Finding 6 — Identification "Repository" metadata mislabel — WARN (non-load-bearing)
-
-Every packet's Identification table reads `Repository | github.com/ImmortalDemonGod/aiv-protocol`,
-but the change lives in **`ImmortalDemonGod/flashcore`** (the Class B/E permalinks correctly target
-`…/flashcore/…`). This is a templating slip in `aiv close`, not an evidence defect — the SHA-pinned
-URLs that carry auditability point at the right repo. Presented as a **verified fact** for the
-operator to correct in an amendment; it does not falsify any load-bearing claim.
-
-## Finding 7 — Class E plain-text reference (E004) — INFO (non-blocking)
-
-`aiv check` emits E004 ("Class E Evidence is a plain text reference, not a URL") on several packets.
-The reference **is** a SHA-pinned permalink; some packets embed it as raw text rather than a
-markdown link. Per the project's own CLAUDE.md, E004 is informational. No action required for
-conformance; markdown-linking is cosmetic.
+"Validation Failed" under `--strict` is driven entirely by **warnings**; **every packet
+has 0 blocking errors**. `shape_check_passed = true` (blocking-error count is the gate;
+E004 is documented informational per `CLAUDE.md`; E012/E016 are WARN, addressed as
+content findings below).
 
 ---
 
-## Claim–evidence correspondence (sampled)
+## Finding 1 — Tier classification is DEFENSIBLE (no §5.2-F1) — INFO
 
-| Packet · Claim | Embedded / harvested evidence | Supports? |
+Spec §5.2 mandates R3 only when a change touches a **critical surface** (authentication,
+authorization, secrets, cryptography, financial, PII, privilege boundaries, audit/logging).
+The diff touches `flashcore/cli/review_ui.py`, `flashcore/review_manager.py`,
+`flashcore/cli/_review_logic.py` — a review-session UI loop and its queue manager. **None of
+these are critical surfaces.** Verified: no auth/permission/crypto/PII/secret code in the diff.
+
+- `impl` / `crv` / `crv2` → **R1** (isolated correctness logic, component blast radius, full
+  test coverage) — matches §5.1 R1 criteria.
+- `ci` → **R0** (pure `black -l 79` whitespace wrap of `review_manager.py:L237-L239`, zero
+  logic change) — matches §5.1 R0 criteria.
+
+No tier-misclassification finding fires. Because all packets are R0/R1, the spec's per-tier
+matrix (§6.1) requires only Classes **A, B** (R0/R1) plus **E** (R1+); C/D/F are **not
+mandated** at this tier. The packets nonetheless address **A–F** under the operator all-class
+mandate — audited below for non-vacuity, not for tier-mandated presence.
+
+---
+
+## Finding 2 — Class E intent-TARGET correctness: PASS on all 5 (load-bearing check) — INFO
+
+This is the check `aiv check`'s shape/immutability gates cannot do. The finding's
+**CANONICAL INTENT** is:
+`https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92`
+
+| Packet | Class E target | Matches canonical audit source? |
 |---|---|---|
-| impl C1 — `skip_card` delegates to `_remove_card_from_queue` | diff `review_manager.py:+155-160` shows exactly this | ✓ |
-| impl C3/C8 — exception handler calls `skip_card`; loop bounded by queue length | diff `review_ui.py` `except`→`manager.skip_card(card.uuid)` before `continue` | ✓ |
-| impl C5 — "Well done" suppressed when `success==0 and failed>0` | diff `review_ui.py` final `if/elif/else` block | ✓ |
-| impl C7/C12 — `typer.Exit(code=1)` on `False`; CliRunner exit_code==1 | diff `_review_logic.py:+45-47`; `test_main.py +30` (CliRunner test) | ✓ |
-| impl C13 — F82 status in audit recorded | `audit/02-static-audit.md` changed (diff stat) | ✓ |
-| impl Cneg — only one caller of `start_review_flow` | harvested: `git grep` → only `_review_logic.py:45` | ✓ |
-| impl Cneg — no F82 taskmaster entry | harvested: `git grep F82 .taskmaster/` → 0 hits | ✓ |
-| crv2 C2 — `reviewed = total - queue_len - skipped_count` | diff `review_manager.py:+234-239` | ✓ |
-| tests C5 — 2 RED tests fail on baseline | `baseline_red.txt` (sha256 matches MANIFEST) | ✓ |
-| ci C1/C2 — black exits 0; no tests touched | Class A black output EXIT:0; harvested empty `tests/` diff | ✓ |
+| impl | `…/5bb2ea2…/audit/02-static-audit.md#L92` | ✓ exact |
+| tests | `…/5bb2ea2…/audit/02-static-audit.md#L92` | ✓ exact |
+| ci | `…/5bb2ea2…/audit/02-static-audit.md#L92` | ✓ exact |
+| crv | `…/5bb2ea2…/audit/02-static-audit.md#L92` | ✓ exact |
+| crv2 | `…/5bb2ea2…/audit/02-static-audit.md#L92` | ✓ exact |
 
-No ✗ rows. The only ✗-pattern (Class A future-tense / forward-reference) is **absent**: Class A is
-captured as of each commit, and the RED→GREEN transition is recorded against concrete SHAs.
+**No packet points to a taskmaster task (`task_NNN.md`/`tasks.json`) or the pipeline's own
+launch-brief.** Intent-provenance is intact across the whole set. No blocking finding.
 
-## Self-containment + immutability — PASS
+---
 
-Each packet enumerates its own commit SHAs (head/base), its own Layer-1 evidence files, and
-SHA-resolvable code references. `crv2`'s mention of `a714d09` (the original `skip_card` impl) is
-explanatory provenance, not a forward-reference dependency for its claim's evidence — the claim is
-evidenced by its own commits `599ddc8`/`3210a0f`. No forward-reference chain defeats
-self-containment. No `~/`-rooted (home-dir) paths cited. Class B/E URLs are commit-SHA-pinned.
+## Finding 3 — Class E intent-ALIGNMENT is real, not theater: PASS — INFO
+
+The audit source at L92 records three sub-defects in `start_review_flow()`
+(`review_ui.py:100-111`): **B1** infinite retry (failed card never removed; `get_next_card()`
+returns `review_queue[0]` repeatedly), **B2** unconditional "Well done!", **B3** no failure
+signal (returns `None`). Confirmed each is addressed by `git diff origin/main..HEAD`:
+
+| Recorded defect | What the diff does | Verified at |
+|---|---|---|
+| B1 infinite retry | `manager.skip_card(card.uuid)` called in the `except` handler **before** `continue`; `skip_card` delegates to `_remove_card_from_queue`, so the queue drains and the loop is bounded by queue length | `review_ui.py:119`; `review_manager.py:156-161` |
+| B2 false "Well done" | `success_count`/`failed_count` gate the end message: "Review session failed." when `failed>0 and success==0`; "finished." on mixed; "Well done!" only on all-success | `review_ui.py:135-148` |
+| B3 no failure signal | return type `-> None`→`-> bool`; `_review_logic.py` captures `result` and `raise typer.Exit(code=1)` when `False` | `review_ui.py:70,148`; `_review_logic.py:45-47` |
+
+`impl` packet carries an explicit B1/B2/B3→change table (lines 144-152). The `crv2` follow-up
+correctly identifies and fixes a **second-order** consequence (the new `skip_card` inflated
+`reviewed_cards` in `get_session_stats`) via `skipped_card_count` — verified at
+`review_manager.py:71,156-161,235-237`. Alignment holds for every packet; the design-stage
+`tests` packet correctly states no fix is implemented there (RED-only contract).
+
+---
+
+## Finding 4 — No vacuous / unjustified-N/A evidence class: PASS — INFO
+
+Every packet's Classes A–F are substantive; the one explicit N/A carries a falsifiable
+rationale:
+
+- `crv` Class C: *"Coverage-catalog Skipped set: N/A — this commit adds test coverage only;
+  no production logic is modified."* — falsifiable (the diff is test-only; verified) → **acceptable N/A**.
+- `ci` Classes A/C/D/F: real captured command output (`black --check` EXIT 0, `git diff … -- tests/`
+  = 0 bytes, ruff/mypy EXIT 0, `git show --name-only`). Not vacuous.
+
+No empty or hand-wave class section found. `classes_vacuous_or_na_unjustified = []`.
+
+---
+
+## Finding 5 — Class A execution evidence is inline-text, not a CI permalink — WARN (non-blocking)
+
+Spec A-001 (BLOCK, strict reading) wants the CI run reference **immutable per §3.3** and
+A-002 wants the run SHA to match `head_sha`. The packets instead cite **local** pytest/ruff/mypy
+counts as inline text (e.g. `impl` "490 passed, 0 failed" per commit; `crv2`/`ci` "493 passed").
+`aiv check` flags this as E012 WARN, not BLOCK.
+
+**Why this is WARN, not a blocking finding here:**
+- The behavioral RED→GREEN proof **is** captured immutably: `evidence/c2-f82/baseline_red.txt`
+  and `head_green.txt` are hashed in `MANIFEST.md`, and §3.3 lists **"Hash manifest (SHA-256 in
+  packet + separate storage)"** as an acceptable immutability mechanism. I re-computed both
+  hashes — they match the manifest **byte-for-byte** (see Harvest). So an immutable execution
+  artifact exists for the corpus; the gap is that individual packets quote inline counts rather
+  than citing that hash-pinned artifact.
+- I independently **ground-truthed** the green claim at current HEAD: `493 passed, 1 skipped`
+  (matches `crv2`/`ci`). No load-bearing execution claim is falsified.
+- **No read-only harvest path to a CI permalink exists**: `gh` is unavailable and no GitHub
+  Actions/CI wiring is detectable in-repo. Manufacturing a CI link is not possible read-only.
+
+Operator action (optional): cite the `MANIFEST.md` sha256 rows inside each packet's Class A
+section, or wire CI and re-pin. Not required for merge-readiness.
+
+---
+
+## Finding 6 — Identification "Repository" field is wrong in all 5 packets — WARN (non-blocking)
+
+Every packet's Identification table reads
+`Repository | github.com/ImmortalDemonGod/aiv-protocol`. The actual remote is
+`ImmortalDemonGod/**flashcore**` (`git remote -v`), and every SHA-pinned Class B/E permalink
+**correctly** uses `…/flashcore/blob/…`. This is a template copy-paste error in the metadata
+header. **Non-load-bearing** — it falsifies no claim and the evidence links resolve to the right
+repo — but the operator should correct the field for accuracy. Surfaced as a verified fact.
+
+---
+
+## Finding 7 — E004 plain-text Class E reference — WARN (informational)
+
+`aiv check` emits E004 ("Class E Evidence is a plain text reference, not a URL") on all packets.
+`CLAUDE.md` documents E004 as **informational / non-blocking**. The canonical audit URL is
+present and SHA-pinned in each packet; some packets render it as a quoted/blockquote URL rather
+than an inline markdown link. No action required for conformance.
+
+---
+
+## Claim–evidence correspondence (sampled across packets)
+
+| Packet · Claim | Embedded / cited evidence | Supports? |
+|---|---|---|
+| impl C1 `skip_card` delegates to `_remove_card_from_queue` | `review_manager.py:156-161` (verified) | ✓ |
+| impl C3 exception handler advances queue; loop bounded | `review_ui.py:119` + `skip_card` (verified) | ✓ |
+| impl C5 Well-done suppressed when success==0 & failed>0 | `review_ui.py:135-137` (verified) | ✓ |
+| impl C7 `typer.Exit(code=1)` on `False` | `_review_logic.py:45-47` (verified) | ✓ |
+| impl C12 CliRunner exit_code==1 live-fire | `test_main.py::test_review_command_exits_on_total_failure` (present) | ✓ |
+| tests C5 2 new tests FAIL RED on baseline | `baseline_red.txt` (hash-verified) | ✓ |
+| ci C1 `black -l 79 --check` exits 0 | captured stdout, EXIT 0 | ✓ |
+| ci C2/C3 no `tests/` path touched | `git diff 77e8843..6d2ab98 -- tests/` = 0 bytes | ✓ |
+| crv C1 elif branch (failed>0 & success>0) exercised | `review_ui.py:141-143` + new test (verified) | ✓ |
+| crv2 C2 `reviewed_cards = total - queue - skipped` | `review_manager.py:235-237` (verified) | ✓ |
+| crv2 C4 full suite 493 passed | re-ran: **493 passed, 1 skipped** | ✓ |
+| (all) "No existing tests modified/deleted" | F-class chain-of-custody + diff inspection | ✓ |
+
+Negative-evidence (Class C) spot-checks confirmed: only one caller of `start_review_flow`
+(`_review_logic.py:7,45`) — matches the C claim; bug-catalog `Skipped` section present at
+`tests/cli/test_review_ui.bug-catalog.md:73`.
+
+---
+
+## Self-containment + immutability cross-check
+
+- Each packet covers its own `change_id`'s commits and stands alone; no forward-reference chain
+  where a claim is "covered in a later commit". The `impl` Class A even states the RED→GREEN
+  transition explicitly per commit. **Self-containment: PASS.**
+- Cited code refs are SHA-pinned permalinks (Class B); behavioral evidence is hash-pinned
+  (`MANIFEST.md`). No `~/` home-dir paths, no branch URLs, no "latest" links in any Class B/E ref.
+  **Immutability: PASS** (modulo the Class A inline-count WARN, Finding 5).
 
 ---
 
@@ -168,80 +194,79 @@ self-containment. No `~/`-rooted (home-dir) paths cited. Class B/E URLs are comm
 
 | Dimension | Status |
 |---|---|
-| Shape (`aiv check`, 0 blocking) | PASS (warnings only; `--strict` non-zero via warnings) |
-| Class E intent-target correctness (canonical audit, not taskmaster/brief) | **PASS** |
-| Class E intent-alignment (source records X → diff does Y → addresses X) | **PASS** |
-| Risk-tier classification (§5.1/§5.2) | DEFENSIBLE (no misclass) |
-| All-class A–F mandate (no vacuous/unjustified N/A) | **PASS** |
-| Claim–evidence correspondence | PASS (no ✗) |
-| Self-containment + immutability | PASS |
-| Class A immutable CI-run permalink (§6.2.1) | WARN — no harvest path (`gh` unavailable) |
-| Repository metadata header | WARN — mislabel (non-load-bearing) |
-| **Decision** | **CONDITIONAL** (0 blocking; 2 WARN for operator adjudication) |
+| Shape (`aiv check`) | PASS (0 blocking errors; warnings only) |
+| Risk-tier defensibility (§5) | PASS (no critical surface; R0/R1 correct) |
+| Evidence-class completeness / non-vacuity | PASS (A–F substantive; one justified N/A) |
+| Class E intent-TARGET (canonical audit source) | PASS (5/5 exact) |
+| Class E intent-ALIGNMENT vs diff | PASS (B1/B2/B3 + stats follow-up addressed) |
+| Claim↔evidence correspondence | PASS (sampled + ground-truthed) |
+| Self-containment | PASS |
+| Class A immutable CI ref (A-001 strict) | WARN — inline counts; hash-manifest mitigates |
+| Repository metadata field | WARN — says `aiv-protocol`, repo is `flashcore` |
+| **Blocking findings** | **0** |
+| **Decision** | **COMPLIANT** |
 
 ---
 
-## Harvested evidence (read-only — attach to amendment packet)
+## Harvested evidence (read-only — attach to amendment packet if operator amends)
 
-**Finding 1/2 remediation — Class E target + alignment confirmation:**
+**Class A / Finding 5 — ground-truth full-suite execution at HEAD:**
 ```bash
-$ git grep -h "5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92" HEAD -- .github/aiv-packets/PACKET_c2_f82_*.md | sort -u
-# → single canonical URL, present in all 5 packets
-$ git show 5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb:audit/02-static-audit.md | sed -n '92p'
-# → "F82 | critical | verified | flashcore/cli/review_ui.py:100-111 | correctness/logic | …unbounded infinite retry loop…"
+$ source .venv/bin/activate && pytest tests/ -q --tb=line
+493 passed, 1 skipped in 28.58s
 ```
-Confirms the intent target is the original audit source and it records the defect the diff fixes.
+Matches `crv2`/`ci` packet claims. No regression.
 
-**Finding 4 (Class C) remediation — search invocations + output (tool: git grep, ripgrep-class):**
+**Class F / Finding 5 — sha256 of behavioral evidence (re-computed; matches `MANIFEST.md`):**
+| Path | sha256 (recomputed) | MANIFEST | Match |
+|---|---|---|---|
+| evidence/c2-f82/baseline_red.txt | `a69af0e24fc49ebca6cf575f3609073077f0f8359462485f95bf02f80243e452` | `a69af0e…` | ✓ |
+| evidence/c2-f82/head_green.txt | `de9db7419271739cba93abef41d8c4738e2016bd6d5df516c78904402841078b` | `de9db74…` | ✓ |
+
+These are §3.3-acceptable immutable artifacts; citing these rows inside each packet's Class A
+section closes the A-001 strict-immutability WARN without any CI infrastructure.
+
+**Class B / Class D — SHA-bound diff of the functional change (canonical Class D artifact):**
 ```bash
-$ git grep -n "start_review_flow" HEAD -- flashcore/ | grep -v "def start_review_flow"
-flashcore/cli/_review_logic.py:7:from flashcore.cli.review_ui import start_review_flow
-flashcore/cli/_review_logic.py:45:    result = start_review_flow(manager, tags=tags)
-# → exactly one caller; confirms impl Class C "no other callers" claim
-
-$ git grep -n "F82" HEAD -- .taskmaster/
-# → 0 hits; confirms impl Class C "no taskmaster entry" claim
+$ git diff 5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb..HEAD -- \
+    flashcore/cli/review_ui.py flashcore/review_manager.py flashcore/cli/_review_logic.py
+ flashcore/cli/_review_logic.py |  6 +++++-
+ flashcore/cli/review_ui.py     | 27 ++++++++++++++++++++++++---
+ flashcore/review_manager.py    | 12 +++++++++++-
+ 3 files changed, 40 insertions(+), 5 deletions(-)
 ```
+Both base (`5bb2ea2`) and head SHAs are printed → SHA-bound per D-002.
 
-**Finding 5 (Class F) remediation — sha256 manifest of cited execution artifacts (matches MANIFEST.md):**
-| Path | SHA-256 |
-|---|---|
-| evidence/c2-f82/baseline_red.txt | `a69af0e24fc49ebca6cf575f3609073077f0f8359462485f95bf02f80243e452` |
-| evidence/c2-f82/head_green.txt | `de9db7419271739cba93abef41d8c4738e2016bd6d5df516c78904402841078b` |
+**Finding 5 — CI permalink:** **No read-only harvest path** — `gh` unavailable and no CI
+workflow detectable in-repo. Requires infra build-out; out of scope for read-only audit.
 
-**Finding 5 — Class A immutable CI permalink: NO read-only harvest path.** `which gh` → not found;
-`gh run list/view` cannot run in this environment. Requires CI/`gh` infra build-out, or operator
-acceptance of local-execution-evidence + the sha256 manifest above as the Class A substitute.
-
-**SHA-bound diff (canonical Class D artifact, reproducible):**
-```bash
-$ git diff origin/main..HEAD -- flashcore/cli/review_ui.py flashcore/cli/_review_logic.py flashcore/review_manager.py
-# (captured in this audit; bounds skip_card + counters + bool-return + stats-fix to the branch)
-```
+**Finding 6 — Repository metadata fix:** mechanical — replace
+`github.com/ImmortalDemonGod/aiv-protocol` → `github.com/ImmortalDemonGod/flashcore` in the
+Identification table of all 5 packets. Operator action (write); not performed by this read-only audit.
 
 ---
 
 ## Recommendations (operator decides; this audit is read-only)
 
-1. **Accept as-is (CONDITIONAL → ready).** No blocking findings; Class E intent-target and
-   alignment are correct across all five packets; the all-class mandate is met. The two WARNs are
-   documented and one has no harvest path in this CI-less environment.
-2. **Optional amendment — repo metadata (Finding 6):** correct the Identification "Repository"
-   header from `aiv-protocol` to `flashcore` in all five packets (cosmetic; Class B/E URLs already
-   correct).
-3. **Optional amendment — Class A permalink (Finding 5):** if/when CI + `gh` are available, attach a
-   CI-run permalink bound to the head SHA; until then record the local-execution + sha256-manifest
-   substitute as a documented WARN, or file a §10 exception noting the CI-less constraint.
+1. **Merge-ready as-is.** 0 blocking findings; intent-provenance and alignment verified;
+   claims correspond to code ground-truthed at HEAD. The two WARNs are non-load-bearing.
+2. **Optional polish (highest fidelity):** cite the `MANIFEST.md` sha256 rows in each packet's
+   Class A (closes Finding 5 WARN) and fix the Repository field (Finding 6) — both supported by
+   the harvested material above.
+3. **Process note:** wire CI so future packets carry a commit-SHA-bound CI permalink (A-001),
+   eliminating the inline-count pattern at the source.
 
-- Generated by aiv-audit, read-only (content audit + evidence harvest). `gh` unavailable — written
-  to `.aiv/verdicts/c2-f82/aiv-audit.md` instead of posted as a PR comment.
+**Even a COMPLIANT content audit does not authorize merge** — the human (H2) remains the sole
+merge authority. This stage answers only "is the PR ready for the human to judge?": **yes.**
+
+- Generated by aiv-audit, read-only (content audit + evidence harvest). `gh` unavailable → no PR comment.
 
 ## Machine-checkable data
 
 ```json
 {
   "schema": "aiv_audit_result@1",
-  "packet_decision": "CONDITIONAL",
+  "packet_decision": "COMPLIANT",
   "shape_check_passed": true,
   "blocking_findings": [],
   "classes_vacuous_or_na_unjustified": []
