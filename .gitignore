@@ -161,3 +161,9 @@ node_modules/
 
 # AIV Protocol (change context is gitignored per spec)
 .aiv/change.json
+
+# AIV scaffolding — reasoning trail (process, not proof); captured in the training
+# corpus and kept OFF main. Evidence + packets + oracle-corrections stay tracked.
+.aiv/launch-briefs/
+.aiv/plans/
+.aiv/verdicts/
