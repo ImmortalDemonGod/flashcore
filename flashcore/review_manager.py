@@ -234,7 +234,9 @@ class ReviewSessionManager:
                 Additional keys may be present when session analytics are active; those metrics (e.g., performance or timing statistics) are merged into the returned dictionary.
         """
         total_cards = len(self.current_session_card_uuids)
-        reviewed_cards = total_cards - len(self.review_queue) - self.skipped_card_count
+        reviewed_cards = (
+            total_cards - len(self.review_queue) - self.skipped_card_count
+        )
 
         # Include real-time analytics if available
         basic_stats = {
