@@ -1,0 +1,41 @@
+{
+  "validation_result": {
+    "validator_id": "aiv-guard@2.0.0",
+    "packet_id": "",
+    "repository": "owner/repo",
+    "pr_id": 0,
+    "head_sha": "",
+    "validated_at": "2026-06-19T23:56:28.230866+00:00",
+    "overall_result": "FAIL",
+    "compliance_level": "NON-COMPLIANT",
+    "risk_tier_validated": "R0",
+    "evidence_class_results": [],
+    "validation_rule_results": [],
+    "findings": [
+      {
+        "id": "F-E001-BLOCK-1",
+        "severity": "BLOCK",
+        "rule_id": "E001",
+        "description": "Failed to parse packet: Missing packet header. Expected '# AIV Verification Packet'",
+        "remediation": ""
+      },
+      {
+        "id": "F-CT-001-BLOCK-2",
+        "severity": "BLOCK",
+        "rule_id": "CT-001",
+        "description": "Missing required packet sections: # AIV Verification Packet (v2.1), ## Claim(s), ## Evidence, ### Class E (Intent Alignment), ### Class B (Referential Evidence), ### Class A (Execution Evidence), ## Summary",
+        "remediation": ""
+      },
+      {
+        "id": "F-CT-001-WARN-3",
+        "severity": "WARN",
+        "rule_id": "CT-001",
+        "description": "Canonical packet block missing; markdown-only validation applied.",
+        "remediation": ""
+      }
+    ],
+    "block_count": 2,
+    "warn_count": 1,
+    "info_count": 0
+  }
+}
