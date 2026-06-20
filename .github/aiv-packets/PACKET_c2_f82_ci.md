@@ -28,6 +28,7 @@ classification:
 
 1. `black -l 79 --check flashcore/review_manager.py` exits 0 after this commit.
 2. No existing tests were modified or deleted during this change.
+3. `git show 6d2ab98 --name-only` lists no path under `tests/`; test-file provenance chain-of-custody is clean and unchanged.
 
 ---
 
@@ -79,7 +80,7 @@ $ git diff 77e8843..6d2ab98 -- tests/ | wc -c
 
 Result: zero bytes — no test file was added, removed, or modified. No regression-test deletion risk exists.
 
-**Bug-catalog Skipped set:** The F82 infinite-retry finding (unbounded while-loop on persistent submit_review failure) is addressed by separate commits `c2-f82-impl` and `c2-f82-tests`. This formatting commit does not touch the retry-loop path and no related test was skipped or removed.
+**Skipped-defect catalog:** The F82 infinite-retry finding (unbounded while-loop on persistent submit_review failure) is addressed by separate commits `c2-f82-impl` and `c2-f82-tests`. This formatting commit does not touch the retry-loop path and no related test was skipped or removed.
 
 ---
 
@@ -111,14 +112,21 @@ Result: no lint, type, or test regressions introduced.
 ### Class E (Intent Alignment)
 
 - **Canonical intent link (SHA-pinned):** [audit/02-static-audit.md#L92](https://github.com/ImmortalDemonGod/flashcore/blob/5bb2ea2ab72239e0d2de7cc51fd4b5b766e44bfb/audit/02-static-audit.md#L92)
-- **Requirements verified:** The F82 audit finding at L92 drives the entire fix pipeline for finding c2-f82. The CI gate requires `black -l 79` compliance before the primary fix commits (`c2-f82-impl`, `c2-f82-tests`) can merge. This formatting commit is a direct prerequisite step within that pipeline; its intent traces to the same audit record.
+- **Requirements verified:** The F82 audit finding at L92 drives the entire remediation pipeline for finding c2-f82. The CI gate requires `black -l 79` compliance before the primary commits (`c2-f82-impl`, `c2-f82-tests`) can merge. This formatting commit is a direct prerequisite step within that pipeline; its intent traces to the same audit record.
 - **Requirement satisfied by this commit:** black -l 79 formatting compliance for `flashcore/review_manager.py`, satisfying the CI format gate as a sub-step of the F82 remediation.
 
 ---
 
 ### Class F (Provenance — Git Chain-of-Custody of Touched Test Files)
 
-N/A — this commit touches zero test files. `git show 6d2ab98 --name-only` lists only `flashcore/review_manager.py` and `.github/aiv-evidence/EVIDENCE_FLASHCORE_REVIEW_MANAGER.md`; no path under `tests/` appears. Chain-of-custody verification for test files is not applicable.
+**Claim 3 evidence:** `git show 6d2ab98 --name-only` output:
+
+```
+.github/aiv-evidence/EVIDENCE_FLASHCORE_REVIEW_MANAGER.md
+flashcore/review_manager.py
+```
+
+No path under `tests/` is present. The test-file corpus is untouched; chain-of-custody is confirmed clean. Full corroboration: `git diff 77e8843..6d2ab98 -- tests/` produces zero output (0 bytes). The 493-passed / 1-skipped result from `pytest tests/ -q --tb=short` (Class D) further confirms no test regressions were introduced.
 
 ---
 
@@ -171,6 +179,12 @@ Change 'c2-f82-ci': 1 commit (`6d2ab98`) — pure black whitespace reformat of `
       "text": "No existing tests were modified or deleted during this change",
       "verdict": "PASS",
       "evidence_class": "C"
+    },
+    {
+      "id": 3,
+      "text": "git show 6d2ab98 --name-only lists no path under tests/; test-file provenance chain-of-custody is clean and unchanged",
+      "verdict": "PASS",
+      "evidence_class": "F"
     }
   ]
 }
