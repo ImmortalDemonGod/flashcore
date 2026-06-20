@@ -71,7 +71,7 @@ classification:
 
 ## Verification Methodology
 
-**Zero-Touch Mandate:** Verifier inspects artifacts only.
+**Zero-Touch Mandate:** Verifier inspects artifacts only — the verifier reads pre-committed artifacts rather than re-running the suite. "MANUAL REVIEW" items in the Claim Verification Matrix indicate the AST binding tool could not auto-confirm those claims: the tool checks whether other tests *call* the committed symbol, so it cannot self-verify a function that IS the test being added. The behavioral claims (elif branch exercised, pytest pass count, no tests deleted) are verified at Layer-2: see `PACKET_c2_f82_crv.md` Class A, which records the live pytest run (491 passed, 0 failed) and confirms all three claims.
 Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (0/4 symbols verified).
 Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/types, not behavior.
 
