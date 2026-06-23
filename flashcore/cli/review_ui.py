@@ -122,10 +122,10 @@ def start_review_flow(
 
         success_count += 1
         if updated_card and updated_card.next_due_date:
-            days_until_due = (updated_card.next_due_date - date.today()).days
+            days_until_due_date = (updated_card.next_due_date - date.today()).days
             due_date_str = updated_card.next_due_date.strftime("%Y-%m-%d")
             console.print(
-                f"[green]Reviewed.[/green] Next due in [bold]{days_until_due} days[/bold] on {due_date_str}."
+                f"[green]Reviewed.[/green] Next due in [bold]{days_until_due_date} days[/bold] on {due_date_str}."
             )
         elif updated_card:
             console.print("[green]Reviewed.[/green]")
