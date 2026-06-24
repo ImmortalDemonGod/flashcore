@@ -1,5 +1,10 @@
 """
-_summary_
+Core domain types for the Flashcore spaced repetition library.
+
+Defines the five core types exported as the package public API:
+CardState (FSRS memory states), Rating (recall performance),
+Card (flashcard content + parameters), Review (single review event),
+and Session (review session tracking).
 """
 
 from __future__ import annotations

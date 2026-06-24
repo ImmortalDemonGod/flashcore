@@ -1,3 +1,8 @@
+<!--
+  AIV Guard: if this PR was created by an AI agent, replace the body below with
+  Packet Source: `.github/aiv-packets/VERIFICATION_PACKET_PR_<slug>.md`
+  pointing at the Layer-2 packet your agent already generated.
+-->
 # AIV Verification Packet (v2.1)
 
 **Commit:** `<latest-commit-sha>`
