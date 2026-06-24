@@ -1,4 +1,5 @@
 import sys
+import uuid
 import pytest
 from pathlib import Path
 from typing import Generator
@@ -116,7 +117,7 @@ def sample_card1() -> Card:
         Card: A Card pre-populated with uuid "11111111-1111-1111-1111-111111111111", deck name "Deck A::Sub1", front "Sample Front", back "Sample Back", tags {"tag1", "tag2"}, and UTC added/modified timestamps of 2023-01-01 10:00:00.
     """
     return Card(
-        uuid="11111111-1111-1111-1111-111111111111",
+        uuid=str(uuid.uuid4()),
         deck_name="Deck A::Sub1",
         front="Sample Front",
         back="Sample Back",
@@ -135,7 +136,7 @@ def sample_card2() -> Card:
         Card: A Card with uuid "22222222-2222-2222-2222-222222222222", deck_name "Deck A::Sub1", front "Another Front", back "Another Back", tags {"tag1"}, and both added_at and modified_at set to 2023-01-02 10:00 UTC.
     """
     return Card(
-        uuid="22222222-2222-2222-2222-222222222222",
+        uuid=str(uuid.uuid4()),
         deck_name="Deck A::Sub1",
         front="Another Front",
         back="Another Back",
@@ -157,7 +158,7 @@ def sample_card3_deck_b() -> Card:
         Card: A Card instance populated with the above test data.
     """
     return Card(
-        uuid="33333333-3333-3333-3333-333333333333",
+        uuid=str(uuid.uuid4()),
         deck_name="Deck B",
         front="Deck B Card Front",
         back="Deck B Card Back",
