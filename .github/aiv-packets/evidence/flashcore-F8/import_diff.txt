@@ -1,0 +1,37 @@
+=== BASELINE (origin/main fb1ae5a) ===
+import sys
+import pytest
+from pathlib import Path
+from typing import Generator
+from datetime import date, datetime, timezone
+
+
+=== HEAD (fix/flashcore-F8 646f6f31f296dd39de256355bd6e06a22d987ee7) ===
+import sys
+import uuid
+import pytest
+from pathlib import Path
+from typing import Generator
+from datetime import date, datetime, timedelta, timezone
+
+=== GIT DIFF of import line ===
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 32033d3..162459c 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,8 +1,9 @@
+ import sys
++import uuid
+ import pytest
+ from pathlib import Path
+ from typing import Generator
+-from datetime import date, datetime, timezone
++from datetime import date, datetime, timedelta, timezone
+ 
+ from flashcore.models import Card, Review, CardState
+ from flashcore.db import FlashcardDatabase
+@@ -21,9 +22,15 @@ def go_to_tmpdir(request):
+     tmpdir = request.getfixturevalue("tmpdir")
+     # ensure local test created packages can be imported
+     sys.path.insert(0, str(tmpdir))
+-    # Chdir only for the duration of the test.

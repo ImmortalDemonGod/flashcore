@@ -1,0 +1,128 @@
+=== Class C: Negative search — timedelta absent from production code (flashcore/) ===
+Search: grep -rn 'timedelta' flashcore/ (should be empty — not a production symbol)
+Binary file flashcore/__pycache__/scheduler.cpython-311.pyc matches
+Binary file flashcore/__pycache__/scheduler.cpython-313.pyc matches
+flashcore/scheduler.py:95:    learning_steps: Tuple[datetime.timedelta, ...] = Field(
+flashcore/scheduler.py:97:            datetime.timedelta(minutes=1),
+flashcore/scheduler.py:98:            datetime.timedelta(minutes=10),
+flashcore/scheduler.py:101:    relearning_steps: Tuple[datetime.timedelta, ...] = Field(
+flashcore/scheduler.py:102:        default_factory=lambda: (datetime.timedelta(minutes=10),)
+
+Search: grep -rn 'timedelta' tests/ (should only appear in conftest.py and test_conftest_review_fixtures.py)
+tests/test_review_manager.py:8:from datetime import date, datetime, timedelta, timezone
+tests/test_review_manager.py:48:        next_due=date.today() + timedelta(days=10),
+tests/test_review_manager.py:74:        "added_at": datetime.now(timezone.utc) - timedelta(days=30),
+tests/test_review_manager.py:223:        review_ts = sample_card.added_at + timedelta(days=1)
+tests/test_review_manager.py:267:        prev_review_ts = sample_card.added_at + timedelta(days=5)
+tests/test_review_manager.py:268:        prev_next_due = prev_review_ts.date() + timedelta(days=2)
+tests/test_review_manager.py:292:            prev_next_due + timedelta(days=1),
+tests/test_review_manager.py:477:            "added_at": now_utc - timedelta(days=2),
+tests/test_review_manager.py:484:            ts=now_utc - timedelta(days=10),
+tests/test_review_manager.py:489:            next_due=today - timedelta(days=1),
+tests/test_review_manager.py:502:            "added_at": now_utc - timedelta(days=10),
+tests/test_review_manager.py:510:            ts=now_utc - timedelta(days=5),
+tests/test_review_manager.py:514:            next_due=today + timedelta(days=3),  # Explicitly due in 3 days
+tests/conftest.py:6:from datetime import date, datetime, timedelta, timezone
+tests/conftest.py:187:        next_due=date.today() + timedelta(days=5),
+tests/conftest.py:209:        next_due=date.today() + timedelta(days=10),
+tests/test_db.py:8:from datetime import date, datetime, timedelta, timezone
+tests/test_db.py:618:            ts=now - timedelta(days=10),
+tests/test_db.py:619:            next_due=(now - timedelta(days=1)).date(),
+tests/test_db.py:625:            next_due=(now + timedelta(days=1)).date(),
+tests/test_session_model.py:7:from datetime import datetime, timezone, timedelta
+tests/test_session_model.py:264:        future_time = datetime.now(timezone.utc) + timedelta(hours=1)
+tests/test_session_model.py:273:        end_time = start_time - timedelta(minutes=5)
+tests/test_scheduler.py:236:    ) + datetime.timedelta(days=1)
+tests/test_scheduler.py:280:    review_ts_lapsed = review_ts_on_time + datetime.timedelta(days=10)
+tests/test_scheduler.py:318:    review_ts_early = review_ts_on_time - datetime.timedelta(days=2)
+tests/test_scheduler.py:366:        ) + datetime.timedelta(days=1)
+Binary file tests/__pycache__/test_conftest_review_fixtures.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/test_db.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/test_models.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/test_session_model.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/test_scheduler.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_session_manager.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_review_processor.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/conftest.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_review_manager.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_conftest_review_fixtures.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_db.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_models.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_scheduler.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/test_session_model.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_session_manager.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/test_review_processor.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/__pycache__/test_review_manager.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/__pycache__/conftest.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/cli/__pycache__/test_review_ui.cpython-311-pytest-8.4.1.pyc matches
+Binary file tests/cli/__pycache__/test_review_all_logic.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/cli/__pycache__/test_review_ui.cpython-313-pytest-9.0.3.pyc matches
+Binary file tests/cli/__pycache__/test_review_all_logic.cpython-311-pytest-8.4.1.pyc matches
+tests/cli/test_review_all_logic.py:5:from datetime import date, datetime, timezone, timedelta
+tests/cli/test_review_all_logic.py:138:            updated_card.next_due_date = date.today() + timedelta(days=1)
+tests/cli/test_review_all_logic.py:341:        mock_scheduler_output.next_due = date.today() + timedelta(days=1)
+tests/cli/test_review_all_logic.py:391:        mock_scheduler_output.next_due = date.today() + timedelta(days=1)
+tests/cli/test_review_all_logic.py:426:        mock_scheduler_output.next_due = date.today() + timedelta(days=1)
+tests/cli/test_review_all_logic.py:528:        mock_scheduler_output.next_due = date.today() + timedelta(days=1)
+tests/cli/test_review_all_logic.py:536:        updated_card.next_due_date = date.today() + timedelta(days=1)
+tests/cli/test_review_ui.py:5:from datetime import date, timedelta
+tests/cli/test_review_ui.py:55:    next_due = date.today() + timedelta(days=3)
+tests/cli/test_review_ui.py:98:    mock_updated_card.next_due_date = date.today() + timedelta(days=1)
+tests/cli/test_review_ui.py:339:    updated_card.next_due_date = date.today() + timedelta(days=1)
+tests/cli/test_review_ui.py:380:    updated_card.next_due_date = date.today() + timedelta(days=1)
+tests/test_conftest_review_fixtures.py:2:RED tests for tests/conftest.py — F8 finding: missing `timedelta` import.
+tests/test_conftest_review_fixtures.py:5:These tests MUST fail until BUG-01 (missing timedelta import) is repaired.
+tests/test_conftest_review_fixtures.py:9:from datetime import date, timedelta
+tests/test_conftest_review_fixtures.py:15:# BUG-01: NameError — `timedelta` not imported in conftest.py (CRITICAL)
+tests/test_conftest_review_fixtures.py:17:# NameError at fixture setup because `timedelta` is not in scope.
+tests/test_conftest_review_fixtures.py:22:    """BUG-01: sample_review1 fixture raises NameError because timedelta is not imported in conftest.py."""
+tests/test_conftest_review_fixtures.py:26:    assert sample_review1.next_due == date.today() + timedelta(days=5)
+tests/test_conftest_review_fixtures.py:32:    """BUG-01: sample_review2_for_card1 fixture raises NameError because timedelta is not imported in conftest.py."""
+tests/test_conftest_review_fixtures.py:34:    assert sample_review2_for_card1.next_due == date.today() + timedelta(days=10)
+tests/test_conftest_review_fixtures.py:40:# timedelta is the missing symbol — not some other NameError.
+tests/test_conftest_review_fixtures.py:44:def test_conftest_missing_timedelta_import_is_root_cause(sample_card1: Card):
+tests/test_conftest_review_fixtures.py:45:    """BUG-01 root cause repaired: timedelta now present in conftest import."""
+tests/test_conftest_review_fixtures.py:49:    assert "timedelta" in ns, (
+tests/test_conftest_review_fixtures.py:50:        "timedelta is absent from conftest — BUG-01 has not been repaired."
+tests/test_conftest_review_fixtures.py:63:    assert sample_review1.next_due == date.today() + timedelta(days=5)
+tests/test_conftest_review_fixtures.py:70:    assert sample_review2_for_card1.next_due == date.today() + timedelta(days=10)
+tests/conftest.bug-catalog.md:27:- `sample_review1.next_due` must be `date.today() + timedelta(days=5)` — the Review model requires a `date` object; passing something else raises a ValidationError.
+tests/conftest.bug-catalog.md:28:- `sample_review2_for_card1.next_due` must be `date.today() + timedelta(days=10)`.
+tests/conftest.bug-catalog.md:38:- `timedelta` is a stdlib type from `datetime`; it is not re-exported from `flashcore`.
+tests/conftest.bug-catalog.md:46:### BUG-01 — `timedelta` used but not imported in conftest.py (CRITICAL)
+tests/conftest.bug-catalog.md:48:**The bug**: `timedelta` appears on lines 180 and 203 of `tests/conftest.py` but is absent from the `from datetime import date, datetime, timezone` import on line 5, so any test that requests `sample_review1` or `sample_review2_for_card1` raises `NameError: name 'timedelta' is not defined` at fixture setup time — the test never runs.
+tests/conftest.bug-catalog.md:52:**Why it's plausible**: The import was likely narrowed from `from datetime import *` or from a copy-paste of the Card fixtures (which need `datetime` but not `timedelta`), and the omission wasn't caught because pytest fixture errors surface late (only when a test requests the fixture, not at collection).
+tests/conftest.bug-catalog.md:57:- Would fail for a real bug? Yes — `timedelta` is not in scope, so fixture setup raises `NameError`.
+tests/conftest.bug-catalog.md:58:- Would fail under a refactor that preserves behavior? No — once `timedelta` is imported, the test passes.
+tests/conftest.bug-catalog.md:66:**The bug**: `next_due=date.today() + timedelta(days=5)` is evaluated at fixture *invocation* time. Two test runs on different calendar days produce different `Review` objects. Any test that asserts on `next_due` as a fixed value is brittle.
+tests/conftest.bug-catalog.md:76:**Decision**: Include a characterization test that asserts the `next_due` is `date.today() + timedelta(days=5)` (relative), making the time-coupling explicit. This is a "pass + suspect" item — the behavior is pinned, not necessarily correct.
+tests/test_models.py:3:from datetime import datetime, date, timezone, timedelta
+tests/test_models.py:35:        specific_added_at = datetime.now(timezone.utc) - timedelta(days=1)
+tests/test_models.py:191:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:205:        specific_ts = datetime.now(timezone.utc) - timedelta(hours=1)
+tests/test_models.py:215:            next_due=date.today() + timedelta(days=50),
+tests/test_models.py:235:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:250:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:263:                next_due=date.today() + timedelta(days=1),
+tests/test_models.py:282:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:293:                next_due=date.today() + timedelta(days=1),
+tests/test_models.py:304:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:314:                next_due=date.today() + timedelta(days=1),
+tests/test_models.py:325:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:335:                next_due=date.today() + timedelta(days=1),
+tests/test_models.py:356:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:368:                next_due=date.today() + timedelta(days=1),
+tests/test_models.py:382:            next_due=date.today() + timedelta(days=1),
+tests/test_models.py:396:                next_due=date.today() + timedelta(days=1),
+tests/test_models.py:410:                next_due=date.today() + timedelta(days=1),
+tests/test_models.py:549:        session.end_ts = session.start_ts + timedelta(minutes=1)
+tests/test_session_manager.py:10:from datetime import datetime, timezone, timedelta
+tests/test_session_manager.py:223:            datetime.now(timezone.utc) - timedelta(minutes=3),
+tests/test_review_processor.py:9:from datetime import datetime, timedelta, timezone, date
+tests/test_review_processor.py:433:                    review_ts = due_dt + timedelta(hours=1)
+
+=== ASSESSOR CLARIFICATION (added post-independent-review) ===
+flashcore/scheduler.py uses `datetime.timedelta` (module-qualified) — NOT a bare `timedelta` import.
+The bare symbol `timedelta` is not imported at module level in any production file.
+The claim holds: no production file imports or relies on the bare `timedelta` name that conftest.py was missing.
+This change is confined to tests/conftest.py (import repair) and tests/test_conftest_review_fixtures.py (new RED tests).
