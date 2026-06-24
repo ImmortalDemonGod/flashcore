@@ -571,9 +571,12 @@ class TestSessionModel:
 # the actual class definitions in the module.
 _EXPORTED_TYPE_NAMES = {"Card", "Review", "Session", "CardState", "Rating"}
 
-# The exact placeholder text that was introduced in commit d7c3702
-# (2025-12-31) and never replaced — this is the defect found by F354.
-_PLACEHOLDER_DOCSTRING = "_summary_\n"
+# The semantic content of the placeholder — the exact text that
+# constitutes the F354 defect.  We strip surrounding whitespace
+# before comparison because Python module __doc__ includes the
+# newlines from the triple-quoted string while ast.get_docstring()
+# strips them; " _summary_ " is the unique identifying substring.
+_PLACEHOLDER_CONTENT = "_summary_"
 
 
 def test_module_docstring_is_not_placeholder__catches_F354_placeholder_drift():
@@ -597,9 +600,9 @@ def test_module_docstring_is_not_placeholder__catches_F354_placeholder_drift():
         "Module docstring is None — flashcore/models.py must have "
         "a module-level docstring"
     )
-    assert doc != _PLACEHOLDER_DOCSTRING, (
+    assert doc.strip() != _PLACEHOLDER_CONTENT, (
         f"Module docstring is the template placeholder "
-        f"'{_PLACEHOLDER_DOCSTRING.strip()}'. "
+        f"'{_PLACEHOLDER_CONTENT}'. "
         f"Replace it with an accurate description of the module's "
         f"five core domain types: Card, Review, Session, CardState, "
         f"Rating."
