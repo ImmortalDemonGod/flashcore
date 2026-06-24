@@ -40,7 +40,7 @@ classification:
 |---|---------------|------------|---------|
 | 1 | (inline in packet) | `fb7df83` | A, B, C, D, E, F |
 
-### Class A (Behavioral / Direct Execution Evidence)
+### Class A (Execution Evidence)
 
 **CI Artifact Note (E012):** This is an R0 docstring-only change. No CI workflow is triggered by docstring modifications. All Class A evidence below was collected by direct tool invocation (Grep, Read, AST) on the live worktree at `/root/flashcore-flashcore-f354` rather than from a CI artifact. Each verification command is re-executable by a reviewer.
 

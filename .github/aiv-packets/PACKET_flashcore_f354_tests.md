@@ -42,7 +42,7 @@ classification:
 | 2 | EVIDENCE_TESTS_TEST_MODELS.md | `70e2f3a` | A, B, E |
 | 3 | EVIDENCE_TESTS_TEST_MODELS.md | `86e52f0` | A, B, E |
 
-### Class A (Behavioral / Direct Execution Evidence)
+### Class A (Execution Evidence)
 
 Test run at head SHA `2a8f893` (from stage log, design-tests completion):
 

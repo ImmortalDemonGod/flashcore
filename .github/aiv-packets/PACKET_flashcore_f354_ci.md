@@ -37,7 +37,7 @@ classification:
 |---|---------------|------------|---------|
 | 1 | EVIDENCE_FLASHCORE_CLI_REVIEW_UI.md | `b4203ed` | A, B, C, D, E, F |
 
-### Class A (Behavioral / Direct Execution Evidence)
+### Class A (Execution Evidence)
 
 **AC-1 — black --check passes on review_ui.py (verified live in worktree):**
 ```
