@@ -8,6 +8,7 @@ These tests MUST fail until BUG-01 (missing timedelta import) is repaired.
 import sys
 from datetime import date, timedelta
 
+import pytest
 from flashcore.models import Card, Review
 
 
@@ -76,17 +77,25 @@ def test_sample_review2_next_due_is_relative_to_today(
 # ---------------------------------------------------------------------------
 
 
-def test_go_to_tmpdir_does_not_leak_path_after_teardown(tmp_path):
-    """BUG-03 characterization: go_to_tmpdir inserts tmpdir into sys.path but never removes it (pass+suspect)."""
-    # The autouse fixture has already run for this test.
-    # We can observe the insertion but cannot observe the leak-after-teardown
-    # within the same test. This test documents that sys.path currently
-    # contains the tmpdir path during execution — the companion assertion
-    # below would need to be checked in a post-teardown hook to fully prove
-    # the leak. Mark as suspect.
-    # During the test the tmpdir inserted by go_to_tmpdir is on sys.path.
-    # (Note: go_to_tmpdir uses pytest's `tmpdir`, which is distinct from
-    # `tmp_path` — the fixture inserts the `tmpdir` object, not `tmp_path`.)
-    # This assertion documents expected current behavior; if cleanup is added,
-    # this test should be reviewed.
-    assert any(p for p in sys.path), "sys.path is non-empty (expected invariant)"
+# Tracks the tmpdir path inserted by go_to_tmpdir for BUG-03 cleanup verification.
+_bug03_tracked: list[str] = []
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _bug03_path_leak_checker():
+    """After all tests in this module complete, verify go_to_tmpdir cleaned up its tmpdir entries."""
+    yield
+    # Module teardown: every function-scoped fixture (including go_to_tmpdir) has
+    # already run its finally block for all tests — so the tracked paths must be gone.
+    for path in _bug03_tracked:
+        assert path not in sys.path, (
+            f"BUG-03 regression: go_to_tmpdir leaked {path!r} into sys.path after teardown"
+        )
+
+
+def test_go_to_tmpdir_does_not_leak_path_after_teardown(tmpdir):
+    """BUG-03 regression: go_to_tmpdir removes tmpdir from sys.path on teardown."""
+    tmpdir_str = str(tmpdir)
+    _bug03_tracked.append(tmpdir_str)
+    # Autouse fixture must have inserted tmpdir; verify it is present during execution.
+    assert tmpdir_str in sys.path, "go_to_tmpdir must insert tmpdir into sys.path during test"
