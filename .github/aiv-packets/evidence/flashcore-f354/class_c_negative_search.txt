@@ -1,0 +1,5 @@
+Negative search: grep -rn "_summary_" --include="*.py" flashcore/
+grep exit code: 1 (no matches — this is the expected result; grep returns 1 when no lines match)
+Result: ZERO hits. The _summary_ placeholder is absent from the entire flashcore/ source tree.
+Scope searched: flashcore/*.py (recursive, excluding tests/ and .venv/)
+Defect F354: ELIMINATED.

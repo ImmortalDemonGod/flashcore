@@ -1,0 +1,16 @@
+diff --git a/flashcore/models.py b/flashcore/models.py
+index 76b6cb5..11ceb76 100644
+--- a/flashcore/models.py
++++ b/flashcore/models.py
+@@ -1,5 +1,10 @@
+ """
+-_summary_
++Core domain types for the Flashcore spaced repetition library.
++
++Defines the five core types exported as the package public API:
++CardState (FSRS memory states), Rating (recall performance),
++Card (flashcard content + parameters), Review (single review event),
++and Session (review session tracking).
+ """
+ 
+ from __future__ import annotations

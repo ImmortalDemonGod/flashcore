@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.0, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /root/flashcore-flashcore-f354
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 3 items
+
+tests/test_models.py::test_module_docstring_is_not_placeholder__catches_F354_placeholder_drift PASSED [ 33%]
+tests/test_models.py::test_module_docstring_references_exported_types__catches_vacuous_replacement PASSED [ 66%]
+tests/test_models.py::test_module_docstring_type_references_resolve__catches_stale_references PASSED [100%]
+
+============================== 3 passed in 0.04s ===============================
