@@ -17,7 +17,7 @@ classification:
   critical_surfaces: []
   blast_radius: "tests/test_models.py"
   classification_rationale: "R1: test fix — corrects false GREEN due to whitespace mismatch in placeholder comparison; no production code changed"
-  classified_by: "Claude"
+  classified_by: "deepseek/deepseek-v4-pro"
   classified_at: "2026-06-24T07:17:22Z"
 ```
 

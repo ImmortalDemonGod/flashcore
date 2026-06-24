@@ -16,7 +16,7 @@ classification:
   critical_surfaces: []
   blast_radius: ".github/PULL_REQUEST_TEMPLATE.md"
   classification_rationale: "R0 — documentation/CI template change only; no functional code modified"
-  classified_by: "Claude"
+  classified_by: "deepseek/deepseek-v4-pro"
   classified_at: "2026-06-24T19:03:58Z"
 ```
 

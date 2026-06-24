@@ -20,7 +20,7 @@ classification:
   critical_surfaces: []
   blast_radius: component
   classification_rationale: "R1 — adds new test logic (3 module-docstring tests) + bug catalog; test-only change with no production code modifications; component blast radius (flashcore/models.py docstring); not R0 (executable code, not trivial docs/formatting); not R2/R3 (no security, auth, or data-migration surfaces touched)."
-  classified_by: "Claude"
+  classified_by: "deepseek/deepseek-v4-pro"
   classified_at: "2026-06-24T07:35:35Z"
 ```
 

@@ -16,7 +16,7 @@ classification:
   critical_surfaces: []
   blast_radius: "tests/test_models.py.bug-catalog.md"
   classification_rationale: "R0: documentation-only artifact; no code changes; no runtime behavior affected"
-  classified_by: "Claude"
+  classified_by: "deepseek/deepseek-v4-pro"
   classified_at: "2026-06-24T07:14:03Z"
 ```
 

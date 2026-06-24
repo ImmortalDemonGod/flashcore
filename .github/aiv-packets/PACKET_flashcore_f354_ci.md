@@ -20,7 +20,7 @@ classification:
   critical_surfaces: []
   blast_radius: component
   classification_rationale: "R0 — formatting-only change in review_ui.py to unblock CI lint gate. No functional code changed."
-  classified_by: "Claude"
+  classified_by: "deepseek/deepseek-v4-pro"
   classified_at: "2026-06-24T17:19:14Z"
 ```
 
@@ -131,7 +131,7 @@ https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09
 **Change branch provenance:**
 - Branch: `fix/flashcore-f354` (created from `origin/main` at `fb1ae5a`)
 - Change commit: `b4203ed`
-- Author: Claude (agent-authored, expected on this track)
+- Author: deepseek/deepseek-v4-pro (agent-authored, expected on this track)
 - Files changed: `flashcore/cli/review_ui.py` (MODIFY) + `.github/aiv-evidence/EVIDENCE_FLASHCORE_CLI_REVIEW_UI.md` (MODIFY)
 
 **No test files were modified or deleted** — the diff touches only the functional file and its evidence companion.

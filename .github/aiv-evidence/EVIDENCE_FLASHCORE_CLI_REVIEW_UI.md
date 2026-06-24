@@ -17,7 +17,7 @@ classification:
   critical_surfaces: []
   blast_radius: "flashcore/cli/review_ui.py"
   classification_rationale: "R0 — formatting-only change. Line too long for 79-char limit; black reformatted."
-  classified_by: "Claude"
+  classified_by: "deepseek/deepseek-v4-pro"
   classified_at: "2026-06-24T17:17:26Z"
 ```
 

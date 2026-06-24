@@ -20,7 +20,7 @@ classification:
   critical_surfaces: []
   blast_radius: component
   classification_rationale: "R0 — purely cosmetic docstring change. No functional code, API surface, or import path modified. A bad docstring is no worse than the current placeholder."
-  classified_by: "Claude"
+  classified_by: "deepseek/deepseek-v4-pro"
   classified_at: "2026-06-24T16:20:00Z"
 ```
 
@@ -152,7 +152,7 @@ https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09
 **Claim F3 — Change branch provenance:**
 - Branch: `fix/flashcore-f354` (created from `origin/main` at `fb1ae5a`)
 - Change commit: `fb7df83`
-- Author: Claude (agent-authored, expected on this track)
+- Author: deepseek/deepseek-v4-pro (agent-authored, expected on this track)
 - Files changed: `flashcore/models.py` (MODIFY) + `.github/aiv-packets/VERIFICATION_PACKET_PR_FLASHCORE_F354.md` (CREATE)
 
 **Claim F4 — Test file chain-of-custody:**
