@@ -8,7 +8,7 @@
 | `head_green.txt` | `c4e27f925027b2a0855355e2c9a1aa87ddf133bca0bd79c76e86cba49d52d465` | A, D | B1+B2+B3: docstring replaced, references types, no stale refs → 3 PASSED |
 | `class_c_negative_search.txt` | `bc5e733d7d1aa175f15ec45fb678585d819841eb528be7b725fb7292f43a5842` | C | Negative: `_summary_` absent from `flashcore/` source |
 | `class_d_docstring_diff.txt` | `4acf48ffcbce8437e5898116d2225238220291b46df0e5f2586877a10271d540` | D | Before/after diff: `_summary_` → full descriptive docstring |
-| `MANIFEST.md` | `6ac5012ed61be652099d89293f26ad498131a08dea97cd9bf4382c2573bb0285` | B, F | This manifest (self-referential SHA) |
+| `MANIFEST.md` | (self-referential; SHA pinned in commit) | B, F | This manifest |
 
 ## Cited Baselines
 
@@ -19,7 +19,7 @@
 
 | Claim | Verdict | Primary Artifact | Evidence |
 |---|---|---|---|
-| Module imports cleanly | PASS | `head_green.txt` | Full test suite: 496 passed, 1 skipped (pre-existing DB skip); all 54 model tests pass including 3 F354 tests |
+| Module imports cleanly | PASS | `head_green.txt` | Targeted F354 test run: 3 passed (B1, B2, B3). Full suite also verified: 496 passed, 1 skipped (pre-existing DB skip) — see Independent Assessor below. |
 | Docstring present (pydocstyle/inspection) | PASS | `head_green.txt` | B1: `__doc__` ≠ `_summary_`; B2: docstring references all 5 core types (`Card`, `CardState`, `Rating`, `Review`, `Session`); B3: all references resolve to actual classes |
 | Defect EXISTS on baseline (fb1ae5a1) | PASS | `baseline_red.txt` | B1 FAIL: docstring IS `_summary_`; B2 FAIL: no type references in placeholder; B3 vacuous PASS (no names to resolve) |
 | Defect GONE at HEAD (fb7df83) | PASS | `head_green.txt` | B1 PASS: docstring ≠ `_summary_`; B2 PASS: 5 type references found; B3 PASS: all resolve |
@@ -31,13 +31,13 @@ N/A — this change is a module-level docstring text replacement with no infra b
 ## AIV Class Coverage
 
 ### Class A — Execution
-**PRESENT**: pytest contract tests run at baseline (2 FAILED, 1 PASSED, exit 1) and HEAD (3 PASSED, exit 0). Full suite: 496 passed, 1 skipped. Artifacts: `baseline_red.txt`, `head_green.txt`.
+**PRESENT**: pytest contract tests run at baseline (2 FAILED, 1 PASSED, exit 1) and HEAD (3 PASSED, exit 0) — captured in `baseline_red.txt` and `head_green.txt`. Full suite at HEAD: 496 passed, 1 skipped (pre-existing DB skip) — verified in Independent Assessor section below. Artifacts: `baseline_red.txt`, `head_green.txt`.
 
 ### Class B — Referential
 **PRESENT**: All artifacts SHA256-pinned in this manifest. Claim→artifact map above. Test code reads `flashcore.models.__doc__` — the live module attribute, not a hardcoded string. Artifacts: `MANIFEST.md`.
 
 ### Class C — Negative
-**PRESENT**: `grep -rn "_summary_" --include="*.py" flashcore/` returns zero hits (exit 0). The `_summary_` placeholder is absent from the entire `flashcore/` source tree. Scope searched: `flashcore/*.py` (recursive). Artifacts: `class_c_negative_search.txt`.
+**PRESENT**: `grep -rn "_summary_" --include="*.py" flashcore/` returns zero hits (exit 1 — grep returns 1 on no-match, which is the expected result). The `_summary_` placeholder is absent from the entire `flashcore/` source tree. Scope searched: `flashcore/*.py` (recursive). Artifacts: `class_c_negative_search.txt`.
 
 ### Class D — Differential
 **PRESENT**: `git diff fb1ae5a1..HEAD -- flashcore/models.py` shows exact before/after: `_summary_` (1 line) → 8-line descriptive docstring naming all five core domain types. Artifacts: `class_d_docstring_diff.txt`, `baseline_red.txt`, `head_green.txt`.
@@ -47,6 +47,8 @@ N/A — this change is a module-level docstring text replacement with no infra b
 
 ### Class F — Provenance
 **PRESENT**: SHA256 manifest (this file) covers all 5 artifact files. Test file provenance: F354 tests added in commits `70e2f3a` → `86e52f0` → committed with fix in `fb7df83`. Full signing infra not available; manifest serves as content-addressable proof.
+
+**Operator provenance attestation (per HUMAN review comment on PR #51):** The commits in this branch authored as "Claude noreply@anthropic.com" were actually written by DeepSeek V4 Pro. The git author metadata is incorrect due to pipeline configuration; the AIV packet `classified_by` fields have been corrected to `deepseek/deepseek-v4-pro`. See commit `16000c8` and `PACKET_flashcore_f354_ci.md` Class F for updated provenance chain.
 
 ## Adversarial Probe
 

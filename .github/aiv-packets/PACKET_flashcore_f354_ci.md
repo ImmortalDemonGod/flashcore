@@ -121,10 +121,12 @@ https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09
 **`flashcore/cli/review_ui.py`:**
 - `b4203ed` — this change: black formatting fix (split long expression at L125-L127)
 - `fb1ae5a` — Miguel Ingram: rename `days_until_due` to `days_until_due_date` (L125 was modified in the parent commit, introducing the long line)
-- `1287d7c` — Claude: prior black formatting sweep across review_ui, test_review_ui, test_main
-- `40cc9d1` — Claude: F82 fix (bound retry loop)
+- `1287d7c` — DeepSeek V4 Pro: prior black formatting sweep across review_ui, test_review_ui, test_main
+- `40cc9d1` — DeepSeek V4 Pro: F82 fix (bound retry loop)
 - `16b1350` — Miguel Ingram: fix flake8 W293/W292/E101/E501
 - `507ebdd` — Miguel Ingram: original port from HPE_ARCHIVE
+
+**Operator provenance attestation:** Per HUMAN review comment on PR #51, commits in this branch authored as "Claude" in git metadata were actually written by DeepSeek V4 Pro. The `classified_by` field above reflects the true author. Prior pipeline commits `1287d7c` and `40cc9d1` (shown as "Claude" in `git log`) are listed above with the operator-attested actual author.
 
 **`tests/cli/test_review_ui.py`:** NOT modified in this change context — zero test file changes. The 11 tests covering `start_review_flow` remain untouched and continue to exercise the formatted code identically.
 
