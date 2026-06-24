@@ -176,6 +176,13 @@ Classes addressed: A (direct execution evidence via Grep/Read), B (SHA-pinned li
 
 ---
 
+## Known Limitations
+
+- Class A evidence collected by direct tool invocation (Grep, Read) on the live worktree rather than from an immutable CI artifact. Evidence directory artifacts (`head_green.txt`, `baseline_red.txt`) at SHA-256 hashes provide immutable test evidence for re-verification.
+- No CI workflow is triggered by docstring-only changes — no automated CI run permalink is available for this R0 change.
+- No cryptographic signing infrastructure exists in this repository; commit signatures are absent. SHA-256 manifest in `.github/aiv-packets/evidence/flashcore-f354/MANIFEST.md` provides content-addressable proof as the defensible state per spec.
+- Class F provenance is narrative-only (git chain-of-custody) for this R0 change; no SLSA provenance or Sigstore attestation is available.
+
 ## Summary
 
 Change 'flashcore-f354-impl': replaces the `_summary_` template placeholder docstring at `flashcore/models.py:2-3` (introduced at `d7c3702`, never modified) with an accurate module-level docstring describing the five core domain types (Card, Review, Session, CardState, Rating) that the module defines and exports as the package's public API. No functional change. Scope is 1 file, 1 logical change. All pre-existing tests preserved. The three RED design tests from `flashcore-f354-tests` are now GREEN.
