@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `tests/conftest.py`
-**Commit:** `201d8be`
-**Generated:** 2026-06-24T06:52:30Z
+**Commit:** `db06ce6`
+**Previous:** `db06ce6`
+**Generated:** 2026-06-24T06:53:39Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,16 +16,16 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "tests/conftest.py"
-  classification_rationale: "R1: single-line test-fixture import change; no production logic, no schema, no DB, no CLI path touched"
+  classification_rationale: "R1: test-infrastructure fixture teardown change; no production logic, no schema, no DB, no CLI path touched"
   classified_by: "Miguel Ingram"
-  classified_at: "2026-06-24T06:52:30Z"
+  classified_at: "2026-06-24T06:53:39Z"
 ```
 
 ## Claim(s)
 
-1. tests/conftest.py:5 import tuple extended with timedelta; two fixture call sites (line 180, 202) now resolve without NameError
-2. pytest collection exits 0 with no NameError on sample_review1 or sample_review2_for_card1
-3. full suite count not lower than baseline 480 collected 1 skipped
+1. autouse isolation fixture extended with try/finally block; sys.path.remove called on test exit removing the tmpdir path inserted before yield
+2. sys.path accumulation across consecutive tests eliminated; each test tmpdir path removed on teardown
+3. full suite count not lower than baseline 480 collected 1 skipped with teardown path removal active
 4. No existing tests were modified or deleted during this change.
 
 ---
@@ -34,19 +35,19 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L18](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L18)
-- **Requirements Verified:** timedelta available in conftest.py scope so fixtures sample_review1 and sample_review2_for_card1 collect and execute without NameError
+- **Requirements Verified:** go_to_tmpdir removes the tmpdir from sys.path on teardown so no path accumulation leaks between tests
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`201d8be`](https://github.com/ImmortalDemonGod/flashcore/tree/201d8bee3f641c7838c8ecd6664dd40225d10e27))
+**Scope Inventory** (SHA: [`db06ce6`](https://github.com/ImmortalDemonGod/flashcore/tree/db06ce611dc6c863d07b51688baa528dffe44791))
 
-- [`tests/conftest.py#L5`](https://github.com/ImmortalDemonGod/flashcore/blob/201d8bee3f641c7838c8ecd6664dd40225d10e27/tests/conftest.py#L5)
+- [`tests/conftest.py#L24-L32`](https://github.com/ImmortalDemonGod/flashcore/blob/db06ce611dc6c863d07b51688baa528dffe44791/tests/conftest.py#L24-L32)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`<module>`** (L5): FAIL -- WARNING: No tests import or call `<module>`
+- **`go_to_tmpdir`** (L24-L32): FAIL -- WARNING: No tests import or call `go_to_tmpdir`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
@@ -59,8 +60,8 @@ classification:
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | tests/conftest.py:5 import tuple extended with timedelta; tw... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 2 | pytest collection exits 0 with no NameError on sample_review... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | autouse isolation fixture extended with try/finally block; s... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 2 | sys.path accumulation across consecutive tests eliminated; e... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 3 | full suite count not lower than baseline 480 collected 1 ski... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 4 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
@@ -77,4 +78,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Extend conftest.py datetime import with timedelta to unblock fixture collection
+Add sys.path cleanup to go_to_tmpdir following db_manager try/finally teardown convention

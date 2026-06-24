@@ -21,9 +21,15 @@ def go_to_tmpdir(request):
     tmpdir = request.getfixturevalue("tmpdir")
     # ensure local test created packages can be imported
     sys.path.insert(0, str(tmpdir))
-    # Chdir only for the duration of the test.
-    with tmpdir.as_cwd():
-        yield
+    # Chdir only for the duration of the test; remove tmpdir from sys.path on teardown.
+    try:
+        with tmpdir.as_cwd():
+            yield
+    finally:
+        try:
+            sys.path.remove(str(tmpdir))
+        except ValueError:
+            pass
 
 
 # --- Database Fixtures ---
