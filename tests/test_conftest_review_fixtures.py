@@ -42,15 +42,12 @@ def test_sample_review2_fixture_resolves_without_nameerror(
 
 
 def test_conftest_missing_timedelta_import_is_root_cause(sample_card1: Card):
-    """BUG-01 root cause: timedelta absent from conftest import causes NameError when review fixture is constructed."""
-    # Re-execute the exact expression from conftest.py line 180 in the
-    # conftest module's own namespace to confirm timedelta is undefined there.
+    """BUG-01 root cause repaired: timedelta now present in conftest import."""
     import tests.conftest as conftest_module
 
     ns = vars(conftest_module)
-    assert "timedelta" not in ns, (
-        "timedelta is now present in conftest — BUG-01 has been repaired; "
-        "this test should be deleted or updated after the fix is committed."
+    assert "timedelta" in ns, (
+        "timedelta is absent from conftest — BUG-01 has not been repaired."
     )
 
 

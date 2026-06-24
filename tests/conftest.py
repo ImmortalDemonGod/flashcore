@@ -2,7 +2,7 @@ import sys
 import pytest
 from pathlib import Path
 from typing import Generator
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from flashcore.models import Card, Review, CardState
 from flashcore.db import FlashcardDatabase
