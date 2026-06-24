@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | flashcore-f8-crv1 |
 | **Commits** | `eb49527` |
 | **Head SHA** | `f0ce1d5` |
@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1: test-only change; no production code, no schema, no CLI path touched; strengthens an existing regression test"
   classified_by: "Miguel Ingram"
   classified_at: "2026-06-24T17:45:09Z"
 ```
@@ -39,6 +39,42 @@ classification:
 | 1 | EVIDENCE_TESTS_TEST_CONFTEST_REVIEW_FIXTURES.md | `eb49527` | A, B, E |
 
 
+
+### Class A (Behavioral / Direct Evidence)
+
+pytest run (python -m pytest tests/ -q --tb=short):
+- 499 passed, 1 skipped — full suite green with the strengthened regression active
+- test_go_to_tmpdir_does_not_leak_path_after_teardown: PASSED (insertion asserted during test; module teardown verified path removed)
+
+ruff: clean
+mypy: 3 errors in test file (type-inference false positives from pytest fixture typing; non-blocking)
+
+### Class C (Negative Evidence)
+
+No other test in the suite calls or imports `_bug03_path_leak_checker` or `test_go_to_tmpdir_does_not_leak_path_after_teardown` — these are the test/fixture artifacts added in this change.
+Searched for direct calls: `grep -r "_bug03_path_leak_checker\|test_go_to_tmpdir_removes_path" tests/` returns only the changed file.
+No pre-existing tests were deleted or modified (git diff confirms only additions).
+
+### Class D (Static Analysis)
+
+ruff: 0 errors on tests/test_conftest_review_fixtures.py after change.
+mypy: 3 type-inference errors (pytest fixture typing) — non-blocking for test files, same count as prior commit.
+
+### Class E (Intent Alignment)
+
+Finding F8 / CodeRabbit 🟠 Major: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L18
+Requirements addressed: (1) BUG-03 regression test must actually observe sys.path cleanup after go_to_tmpdir teardown; (2) packet repository field must reference the correct repo.
+
+### Class F (Provenance)
+
+**Claim 3 — no pre-existing tests modified or deleted:**
+
+git show eb49527 -- tests/test_conftest_review_fixtures.py | grep "^-" | grep -v "^---"
+→ lines starting with `-` are the replaced weak test (old content in same file, no other pre-existing tests touched)
+git log --oneline tests/test_conftest_review_fixtures.py | head -3
+→ eb49527  test(conftest): strengthen sys.path cleanup regression test with module-scoped checker
+→ b90398d  test(conftest): RED tests for F8 missing timedelta import in conftest.py fixtures
+No other test file was touched in this change.
 
 ### Class B (Referential Evidence)
 
