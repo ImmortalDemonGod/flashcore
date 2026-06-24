@@ -563,6 +563,118 @@ class TestSessionModel:
         assert session.cards_per_minute is None
 
 
+# --- Module Docstring Tests (F354 — _summary_ placeholder) ---
+
+
+# The five core domain types defined in flashcore.models and exported
+# via flashcore/__init__.py.  Names are ground truth — verified against
+# the actual class definitions in the module.
+_EXPORTED_TYPE_NAMES = {"Card", "Review", "Session", "CardState", "Rating"}
+
+# The exact placeholder text that was introduced in commit d7c3702
+# (2025-12-31) and never replaced — this is the defect found by F354.
+_PLACEHOLDER_DOCSTRING = "_summary_\n"
+
+
+def test_module_docstring_is_not_placeholder__catches_F354_placeholder_drift():
+    """Module docstring is not the _summary_ template placeholder.
+
+    Bug (F354): flashcore/models.py module-level docstring at line 2-3
+    reads exactly ``_summary_`` — a template placeholder that was never
+    replaced.  Any tool or human reading ``help(flashcore.models)`` or
+    ``inspect.getdoc(flashcore.models)`` sees only the placeholder
+    instead of a description of the five core domain types the module
+    exports.
+
+    This test fails RED on the current code because the docstring IS
+    the placeholder.  Once the placeholder is replaced with an accurate
+    module docstring, this test will turn GREEN.
+    """
+    import flashcore.models
+
+    doc = flashcore.models.__doc__
+    assert doc is not None, (
+        "Module docstring is None — flashcore/models.py must have "
+        "a module-level docstring"
+    )
+    assert doc != _PLACEHOLDER_DOCSTRING, (
+        f"Module docstring is the template placeholder "
+        f"'{_PLACEHOLDER_DOCSTRING.strip()}'. "
+        f"Replace it with an accurate description of the module's "
+        f"five core domain types: Card, Review, Session, CardState, "
+        f"Rating."
+    )
+
+
+def test_module_docstring_references_exported_types__catches_vacuous_replacement():
+    """Module docstring mentions at least one exported core type.
+
+    Bug (B2 — vacuous-replacement): even if the placeholder is replaced
+    with *some* text, a generic boilerplate docstring (e.g., "Models for
+    the application.") provides no useful information about the module's
+    actual scope.  A docstring that does not reference any of the five
+    exported types is semantically empty for this module.
+
+    This test fails RED on the current code because the placeholder
+    ``_summary_`` contains none of the exported type names.
+    """
+    import flashcore.models
+
+    doc = flashcore.models.__doc__
+    assert doc is not None, (
+        "Module docstring is None — flashcore/models.py must have "
+        "a module-level docstring"
+    )
+
+    # Check that the docstring references at least one of the five
+    # core domain types exported by the module.
+    referenced = {name for name in _EXPORTED_TYPE_NAMES if name in doc}
+    assert referenced, (
+        f"Module docstring does not reference any of the five "
+        f"exported types {_EXPORTED_TYPE_NAMES}. "
+        f"The docstring must name or describe at least one of: "
+        f"{', '.join(sorted(_EXPORTED_TYPE_NAMES))}."
+    )
+
+
+def test_module_docstring_type_references_resolve__catches_stale_references():
+    """Every type name in the module docstring resolves to a class.
+
+    Bug (B3 — stale-reference): a future edit renames or removes a class
+    (e.g., ``Card``) but fails to update the module docstring, leaving a
+    stale reference.  Tools and humans reading the docstring would be
+    misled about the module's API.
+
+    This test is forward-looking: on the current ``_summary_`` placeholder
+    it passes vacuously (no type names to resolve).  After the placeholder
+    is replaced with a docstring that names the module's types, this test
+    becomes a live guard against stale references introduced during future
+    refactors.
+    """
+    import flashcore.models
+
+    doc = flashcore.models.__doc__
+    assert doc is not None
+
+    # Find all words in the docstring that look like potential type
+    # references (capitalized words matching exported type names).
+    mentioned = {name for name in _EXPORTED_TYPE_NAMES if name in doc}
+
+    for name in mentioned:
+        obj = getattr(flashcore.models, name, None)
+        assert obj is not None, (
+            f"Module docstring references '{name}', but "
+            f"flashcore.models.{name} does not exist. "
+            f"Update the docstring to match the module's actual contents."
+        )
+        assert isinstance(obj, type), (
+            f"Module docstring references '{name}', but "
+            f"flashcore.models.{name} is not a class (it is "
+            f"{type(obj).__name__}). "
+            f"The docstring should only reference the core domain types."
+        )
+
+
 # --- Fixtures ---
 
 
