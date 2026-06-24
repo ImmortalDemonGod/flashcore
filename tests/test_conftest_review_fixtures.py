@@ -19,7 +19,9 @@ from flashcore.models import Card, Review
 # ---------------------------------------------------------------------------
 
 
-def test_sample_review1_fixture_resolves_without_nameerror(sample_review1: Review):
+def test_sample_review1_fixture_resolves_without_nameerror(
+    sample_review1: Review,
+):
     """BUG-01: sample_review1 fixture raises NameError because timedelta is not imported in conftest.py."""
     # If we reach here the fixture resolved without NameError.
     # Assert the returned object is a Review with the expected next_due offset.
@@ -32,7 +34,9 @@ def test_sample_review2_fixture_resolves_without_nameerror(
 ):
     """BUG-01: sample_review2_for_card1 fixture raises NameError because timedelta is not imported in conftest.py."""
     assert isinstance(sample_review2_for_card1, Review)
-    assert sample_review2_for_card1.next_due == date.today() + timedelta(days=10)
+    assert sample_review2_for_card1.next_due == date.today() + timedelta(
+        days=10
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -47,9 +51,9 @@ def test_conftest_missing_timedelta_import_is_root_cause(sample_card1: Card):
     import tests.conftest as conftest_module
 
     ns = vars(conftest_module)
-    assert "timedelta" in ns, (
-        "timedelta is absent from conftest — BUG-01 has not been repaired."
-    )
+    assert (
+        "timedelta" in ns
+    ), "timedelta is absent from conftest — BUG-01 has not been repaired."
 
 
 # ---------------------------------------------------------------------------
@@ -68,7 +72,9 @@ def test_sample_review2_next_due_is_relative_to_today(
     sample_review2_for_card1: Review,
 ):
     """BUG-02 characterization: sample_review2_for_card1.next_due is today+10d — time-coupled contract (pass+suspect)."""
-    assert sample_review2_for_card1.next_due == date.today() + timedelta(days=10)
+    assert sample_review2_for_card1.next_due == date.today() + timedelta(
+        days=10
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -88,9 +94,9 @@ def _bug03_path_leak_checker():
     # Module teardown: every function-scoped fixture (including go_to_tmpdir) has
     # already run its finally block for all tests — so the tracked paths must be gone.
     for path in _bug03_tracked:
-        assert path not in sys.path, (
-            f"BUG-03 regression: go_to_tmpdir leaked {path!r} into sys.path after teardown"
-        )
+        assert (
+            path not in sys.path
+        ), f"BUG-03 regression: go_to_tmpdir leaked {path!r} into sys.path after teardown"
 
 
 def test_go_to_tmpdir_does_not_leak_path_after_teardown(tmpdir):
@@ -98,4 +104,6 @@ def test_go_to_tmpdir_does_not_leak_path_after_teardown(tmpdir):
     tmpdir_str = str(tmpdir)
     _bug03_tracked.append(tmpdir_str)
     # Autouse fixture must have inserted tmpdir; verify it is present during execution.
-    assert tmpdir_str in sys.path, "go_to_tmpdir must insert tmpdir into sys.path during test"
+    assert (
+        tmpdir_str in sys.path
+    ), "go_to_tmpdir must insert tmpdir into sys.path during test"
