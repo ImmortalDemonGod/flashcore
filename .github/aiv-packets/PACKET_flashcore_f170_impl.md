@@ -6,27 +6,27 @@
 |-------|-------|
 | **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
 | **Change ID** | flashcore-f170-impl |
-| **Commits** | `2a59bec` |
-| **Head SHA** | `2a59bec` |
-| **Base SHA** | `1d25c22` |
-| **Created** | 2026-06-25T22:05:02Z |
+| **Commits** | `0aa4621` |
+| **Head SHA** | `0aa4621` |
+| **Base SHA** | `12242d8` |
+| **Created** | 2026-06-25T22:10:20Z |
 
 ## Classification
 
 ```yaml
 classification:
-  risk_tier: R3
-  sod_mode: S1
+  risk_tier: R1
+  sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "Correct card ordering to satisfy spaced‑repetition contract and provide legacy ReviewManager shim"
+  classification_rationale: "TODO: Describe why this tier was chosen"
   classified_by: "Claude"
-  classified_at: "2026-06-25T22:05:02Z"
+  classified_at: "2026-06-25T22:10:20Z"
 ```
 
 ## Claims
 
-1. Provides ReviewManager compatibility and sorts by next_due_date
+1. ReviewManager class is re-exported and queue ordering bug fixed
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -35,30 +35,15 @@ classification:
 
 | # | Evidence File | Commit SHA | Classes |
 |---|---------------|------------|---------|
-| 1 | EVIDENCE_FLASHCORE_REVIEW_MANAGER.md | `2a59bec` | A, B, E |
+| 1 | EVIDENCE_FLASHCORE_REVIEW_MANAGER.md | `0aa4621` | A, B, E |
 
-### Class E (Intent Alignment)
 
-- **Requirement:** F170 ordering bug fix
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (from 14 file references across evidence files)
+**Scope Inventory** (from 1 file references across evidence files)
 
-- `flashcore/review_manager.py#L43`
-- `flashcore/review_manager.py#L58`
-- `flashcore/review_manager.py#L65`
-- `flashcore/review_manager.py#L69`
-- `flashcore/review_manager.py#L71-L72`
-- `flashcore/review_manager.py#L86`
-- `flashcore/review_manager.py#L104-L124`
-- `flashcore/review_manager.py#L128-L129`
-- `flashcore/review_manager.py#L132`
-- `flashcore/review_manager.py#L135`
-- `flashcore/review_manager.py#L141-L142`
-- `flashcore/review_manager.py#L146-L151`
-- `flashcore/review_manager.py#L174-L175`
-- `flashcore/review_manager.py#L177-L178`
+- `flashcore/review_manager.py#L1-L81`
 
 ---
 
