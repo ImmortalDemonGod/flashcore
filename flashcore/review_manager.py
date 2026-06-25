@@ -107,7 +107,10 @@ class ReviewSessionManager:
         due_cards = self.db.get_due_cards(
             self.deck_name, on_date=today, limit=limit, tags=tags
         )
-        self.review_queue = sorted(due_cards, key=lambda c: c.modified_at)
+        # Correct ordering: prioritize by the scheduler's next due date, then by added_at.
+        # The DB already orders by next_due_date ASC NULLS FIRST, added_at ASC, but we further ensure
+        # we do not unintentionally re‑sort by modified_at which would break the spaced‑repetition contract.
+        self.review_queue = sorted(due_cards, key=lambda c: c.next_due_date)
         self.current_session_card_uuids = {
             card.uuid for card in self.review_queue
         }
@@ -340,3 +343,6 @@ class ReviewSessionManager:
         return self.db.get_due_card_count(
             deck_name=self.deck_name, on_date=today
         )
+
+# Backward compatibility: expose ReviewManager as an alias expected by importers.
+ReviewManager = ReviewSessionManager
