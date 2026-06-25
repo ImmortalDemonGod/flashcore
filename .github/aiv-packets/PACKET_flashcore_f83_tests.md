@@ -6,10 +6,10 @@
 |-------|-------|
 | **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
 | **Change ID** | flashcore-f83-tests |
-| **Commits** | `534ce28`, `937544d` |
-| **Head SHA** | `937544d` |
-| **Base SHA** | `fbb8170` |
-| **Created** | 2026-06-25T21:39:45Z |
+| **Commits** | `87047af`, `dd2227b` |
+| **Head SHA** | `dd2227b` |
+| **Base SHA** | `81a5350` |
+| **Created** | 2026-06-25T21:31:24Z |
 
 ## Classification
 
@@ -21,14 +21,14 @@ classification:
   blast_radius: component
   classification_rationale: "TODO: Describe why this tier was chosen"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:39:45Z"
+  classified_at: "2026-06-25T21:31:24Z"
 ```
 
 ## Claims
 
-1. Bug catalog captures missing score field removal
+1. _validate_and_normalize_card mishandles score field
 2. No existing tests were modified or deleted during this change.
-3. Test ensures 's' field is stripped
+3. _validate_and_normalize_card fails to strip score field causing ValidationError
 
 ---
 
@@ -36,24 +36,22 @@ classification:
 
 | # | Evidence File | Commit SHA | Classes |
 |---|---------------|------------|---------|
-| 1 | EVIDENCE_FLASHCORE_CLI__VET_LOGIC.BUG_CATALOG.MD.md | `534ce28` | A, B, E |
-| 2 | EVIDENCE_FLASHCORE_CLI_TEST_VET_LOGIC.md | `937544d` | A, B, E |
+| 1 | EVIDENCE_FLASHCORE_CLI__VET_LOGIC.BUG_CATALOG.MD.md | `87047af` | A, B, E |
+| 2 | EVIDENCE_FLASHCORE_CLI_TESTS_TEST_VET_LOGIC_SCORE_BUG_RED.md | `dd2227b` | A, B, E |
 
 
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (from 9 file references across evidence files)
+**Scope Inventory** (from 7 file references across evidence files)
 
 - `flashcore/cli/_vet_logic.bug-catalog.md#L1`
 - `flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`
-- `flashcore/cli/_vet_logic.bug-catalog.md#L8-L10`
-- `flashcore/cli/_vet_logic.bug-catalog.md#L14`
-- `flashcore/cli/_vet_logic.bug-catalog.md#L16`
-- `flashcore/cli/_vet_logic.bug-catalog.md#L18-L24`
-- `flashcore/cli/test_vet_logic.py#L3`
-- `flashcore/cli/test_vet_logic.py#L5-L8`
-- `flashcore/cli/test_vet_logic.py#L10-L18`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L6`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L8-L12`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L15-L16`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L18-L21`
+- `flashcore/cli/tests/test_vet_logic_score_bug_red.py#L1`
 
 ---
 
@@ -78,15 +76,15 @@ Change 'flashcore-f83-tests': 2 commit(s) across 2 file(s).
 
 ### Class A (Behavioral/Direct)
 
-- RED test(s) authored that pin the finding's defect; the RED-on-baseline / GREEN-at-HEAD demonstration is performed by prove-it (the SEAM gate) against the cited baseline SHA.
+- Full regression suite GREEN at HEAD (orchestrator regression gate, baseline-subtracted): the design-tests RED tests pass and no baseline test regressed.
 
 ### Class C (Negative)
 
-- The RED test fails for the RIGHT reason (it asserts on the finding's defect, not a fixture/setup error); oracle-guard verified no inherited test was weakened.
+- No NEW test failure vs the captured baseline; oracle-guard verified no inherited test was weakened or removed.
 
 ### Class D (Static analysis)
 
-- New test file(s) lint-clean at HEAD (flake8 / black -l 79) per the orchestrator's checks.
+- Repo lint/type suite clean at HEAD (flake8 / black -l 79 / mypy) per the orchestrator determinism + regression gates.
 
 ### Class E (Intent Alignment)
 
