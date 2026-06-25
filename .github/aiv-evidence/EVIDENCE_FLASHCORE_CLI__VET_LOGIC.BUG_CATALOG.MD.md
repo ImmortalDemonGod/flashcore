@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.bug-catalog.md`
-**Commit:** `f93725c`
-**Previous:** `c43e6c0`
-**Generated:** 2026-06-25T17:38:02Z
+**Commit:** `7e5f42e`
+**Previous:** `fb94a42`
+**Generated:** 2026-06-25T17:41:29Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/_vet_logic.bug-catalog.md"
-  classification_rationale: "high"
+  classification_rationale: "R1"
   classified_by: "Claude"
-  classified_at: "2026-06-25T17:38:02Z"
+  classified_at: "2026-06-25T17:41:29Z"
 ```
 
 ## Claim(s)
 
-1. Document bug where s field is not removed
+1. RED test pins the finding's defect against the cited baseline
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -33,18 +33,17 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** testing
+- **Requirements Verified:** design-tests: a failing test that names the finding's defect
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`f93725c`](https://github.com/ImmortalDemonGod/flashcore/tree/f93725c5296c5c5cf17ba875119c90526a130701))
+**Scope Inventory** (SHA: [`7e5f42e`](https://github.com/ImmortalDemonGod/flashcore/tree/7e5f42e230e90ce0614ae0413dc5357349ccc091))
 
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/f93725c5296c5c5cf17ba875119c90526a130701/flashcore/cli/_vet_logic.bug-catalog.md#L1)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/f93725c5296c5c5cf17ba875119c90526a130701/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/f93725c5296c5c5cf17ba875119c90526a130701/flashcore/cli/_vet_logic.bug-catalog.md#L6)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L12`](https://github.com/ImmortalDemonGod/flashcore/blob/f93725c5296c5c5cf17ba875119c90526a130701/flashcore/cli/_vet_logic.bug-catalog.md#L8-L12)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L15-L20`](https://github.com/ImmortalDemonGod/flashcore/blob/f93725c5296c5c5cf17ba875119c90526a130701/flashcore/cli/_vet_logic.bug-catalog.md#L15-L20)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L22-L23`](https://github.com/ImmortalDemonGod/flashcore/blob/f93725c5296c5c5cf17ba875119c90526a130701/flashcore/cli/_vet_logic.bug-catalog.md#L22-L23)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/7e5f42e230e90ce0614ae0413dc5357349ccc091/flashcore/cli/_vet_logic.bug-catalog.md#L1)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L4`](https://github.com/ImmortalDemonGod/flashcore/blob/7e5f42e230e90ce0614ae0413dc5357349ccc091/flashcore/cli/_vet_logic.bug-catalog.md#L4)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/7e5f42e230e90ce0614ae0413dc5357349ccc091/flashcore/cli/_vet_logic.bug-catalog.md#L8-L11)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L13-L15`](https://github.com/ImmortalDemonGod/flashcore/blob/7e5f42e230e90ce0614ae0413dc5357349ccc091/flashcore/cli/_vet_logic.bug-catalog.md#L13-L15)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L19-L27`](https://github.com/ImmortalDemonGod/flashcore/blob/7e5f42e230e90ce0614ae0413dc5357349ccc091/flashcore/cli/_vet_logic.bug-catalog.md#L19-L27)
 
 ### Class A (Execution Evidence)
 
@@ -60,7 +59,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Document bug where s field is not removed | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | RED test pins the finding's defect against the cited baselin... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -76,4 +75,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Bug catalog for score field retention
+_vet_logic.bug-catalog.md for the finding
