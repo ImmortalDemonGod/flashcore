@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.bug-catalog.md`
-**Commit:** `fbb8170`
-**Previous:** `1cd34ac`
-**Generated:** 2026-06-25T21:38:25Z
+**Commit:** `ed72871`
+**Previous:** `534ce28`
+**Generated:** 2026-06-25T21:42:09Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/_vet_logic.bug-catalog.md"
-  classification_rationale: "primary-deliverable-dependency"
+  classification_rationale: "primary"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:38:25Z"
+  classified_at: "2026-06-25T21:42:09Z"
 ```
 
 ## Claim(s)
 
-1. Bug catalog captures missing score field removal
+1. Bug catalog documents missing score field removal bug
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -37,14 +37,13 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`fbb8170`](https://github.com/ImmortalDemonGod/flashcore/tree/fbb81709c82f95ef92e8d4c551bffd9d00fe7170))
+**Scope Inventory** (SHA: [`ed72871`](https://github.com/ImmortalDemonGod/flashcore/tree/ed72871739a70341b002e442074c8b347cadfee6))
 
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L1)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L10`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L8-L10)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L14`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L14)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L16`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L16)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L18-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L18-L24)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/ed72871739a70341b002e442074c8b347cadfee6/flashcore/cli/_vet_logic.bug-catalog.md#L1)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/ed72871739a70341b002e442074c8b347cadfee6/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L7-L9`](https://github.com/ImmortalDemonGod/flashcore/blob/ed72871739a70341b002e442074c8b347cadfee6/flashcore/cli/_vet_logic.bug-catalog.md#L7-L9)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L12`](https://github.com/ImmortalDemonGod/flashcore/blob/ed72871739a70341b002e442074c8b347cadfee6/flashcore/cli/_vet_logic.bug-catalog.md#L12)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L15-L17`](https://github.com/ImmortalDemonGod/flashcore/blob/ed72871739a70341b002e442074c8b347cadfee6/flashcore/cli/_vet_logic.bug-catalog.md#L15-L17)
 
 ### Class A (Execution Evidence)
 
@@ -60,7 +59,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Bug catalog captures missing score field removal | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Bug catalog documents missing score field removal bug | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -76,4 +75,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Bug catalog for score field issue
+Bug catalog for _vet_logic missing score handling
