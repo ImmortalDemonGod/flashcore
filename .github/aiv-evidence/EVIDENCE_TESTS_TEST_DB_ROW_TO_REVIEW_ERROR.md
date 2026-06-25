@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `tests/test_db_row_to_review_error.py`
-**Commit:** `42f51de`
-**Generated:** 2026-06-25T16:02:27Z
+**Commit:** `65e5731`
+**Previous:** `d9f96b3`
+**Generated:** 2026-06-25T16:28:32Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "tests/test_db_row_to_review_error.py"
-  classification_rationale: "primary-deliverable-dependency"
+  classification_rationale: "high"
   classified_by: "Claude"
-  classified_at: "2026-06-25T16:02:27Z"
+  classified_at: "2026-06-25T16:28:32Z"
 ```
 
 ## Claim(s)
 
-1. Test expects MarshallingError for invalid Review row
+1. Test catches missing MarshallingError wrapper for ValidationError
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,32 +33,33 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150)
-- **Requirements Verified:** error-handling
+- **Requirements Verified:** E001
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`42f51de`](https://github.com/ImmortalDemonGod/flashcore/tree/42f51def0cd3dbb7ff6e986b0125a99d528c3b35))
+**Scope Inventory** (SHA: [`65e5731`](https://github.com/ImmortalDemonGod/flashcore/tree/65e5731184cf1aab563c1d293fabca01ebe2ec01))
 
-- [`tests/test_db_row_to_review_error.py#L1-L12`](https://github.com/ImmortalDemonGod/flashcore/blob/42f51def0cd3dbb7ff6e986b0125a99d528c3b35/tests/test_db_row_to_review_error.py#L1-L12)
+- [`tests/test_db_row_to_review_error.py#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/65e5731184cf1aab563c1d293fabca01ebe2ec01/tests/test_db_row_to_review_error.py#L3-L4)
+- [`tests/test_db_row_to_review_error.py#L6-L13`](https://github.com/ImmortalDemonGod/flashcore/blob/65e5731184cf1aab563c1d293fabca01ebe2ec01/tests/test_db_row_to_review_error.py#L6-L13)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_db_row_to_review_missing_validation_error_wrapper`** (L1-L12): FAIL -- WARNING: No tests import or call `test_db_row_to_review_missing_validation_error_wrapper`
+- **`test_db_row_to_review_missing_validationerror_wrapper`** (L3-L4): FAIL -- WARNING: No tests import or call `test_db_row_to_review_missing_validationerror_wrapper`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** 14 error(s)
+- **ruff:** 23 error(s)
 - **mypy:** Found 1 error in 1 file (checked 1 source file)
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Test expects MarshallingError for invalid Review row | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Test catches missing MarshallingError wrapper for Validation... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -73,4 +75,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Red test catches B1 bug
+db_row_to_review error handling test
