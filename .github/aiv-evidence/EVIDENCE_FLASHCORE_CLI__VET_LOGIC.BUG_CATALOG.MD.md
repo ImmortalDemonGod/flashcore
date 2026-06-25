@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.bug-catalog.md`
-**Commit:** `2a06a9d`
-**Previous:** `1a97a5f`
-**Generated:** 2026-06-25T21:18:25Z
+**Commit:** `2ff1d0d`
+**Previous:** `2fb4740`
+**Generated:** 2026-06-25T21:21:34Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/_vet_logic.bug-catalog.md"
-  classification_rationale: "high"
+  classification_rationale: "primary-deliverable-dependency"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:18:25Z"
+  classified_at: "2026-06-25T21:21:34Z"
 ```
 
 ## Claim(s)
 
-1. Bug catalog documents missing removal of 's' field causing ValidationError
+1. Bug catalog documents missing stripped 's' field
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -33,22 +33,15 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** Testing
+- **Requirements Verified:** test design
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`2a06a9d`](https://github.com/ImmortalDemonGod/flashcore/tree/2a06a9d4936a949a06275553bc75b01606d7cc03))
+**Scope Inventory** (SHA: [`2ff1d0d`](https://github.com/ImmortalDemonGod/flashcore/tree/2ff1d0d0d08ddf01c10d16c2fb8281d8807f70c8))
 
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L1)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L6)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L10`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L8-L10)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L12`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L12)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L14-L15`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L14-L15)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L17`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L17)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L19-L21`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L19-L21)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L23`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L23)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L25-L27`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L25-L27)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L4`](https://github.com/ImmortalDemonGod/flashcore/blob/2ff1d0d0d08ddf01c10d16c2fb8281d8807f70c8/flashcore/cli/_vet_logic.bug-catalog.md#L4)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L12`](https://github.com/ImmortalDemonGod/flashcore/blob/2ff1d0d0d08ddf01c10d16c2fb8281d8807f70c8/flashcore/cli/_vet_logic.bug-catalog.md#L8-L12)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L15`](https://github.com/ImmortalDemonGod/flashcore/blob/2ff1d0d0d08ddf01c10d16c2fb8281d8807f70c8/flashcore/cli/_vet_logic.bug-catalog.md#L15)
 
 ### Class A (Execution Evidence)
 
@@ -64,7 +57,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Bug catalog documents missing removal of 's' field causing V... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Bug catalog documents missing stripped 's' field | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -80,4 +73,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Document bug and test plan for score field handling
+Score field not stripped bug catalog

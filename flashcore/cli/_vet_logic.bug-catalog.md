@@ -1,27 +1,15 @@
 # Bug Catalog for _vet_logic.py
 
 ## Overview
-The function `_validate_and_normalize_card` is responsible for normalising card dictionaries before they are instantiated as `Card` models. It maps the short keys `q` → `front` and `a` → `back` but **fails to drop the optional `s` (score) field**. The `Card` model (see `flashcore/models.py`) declares `extra='forbid'`, causing a pydantic `ValidationError` when an incoming card contains the `s` field. This results in **false validation errors** and prevents legitimate cards with a score from being vetted or written back.
+The `_validate_and_normalize_card` function is responsible for mapping aliases, handling UUIDs, validating via the `Card` model, and preparing a dict for YAML output. It must **strip any fields not allowed by the `Card` model**, such as the legacy score field `s`.
 
 ## Bugs
 
-| ID | Description | Blast Radius | Plausibility Reason |
-|----|-------------|--------------|---------------------|
-| B1 | `_validate_and_normalize_card` does not remove the `s` field, causing a `ValidationError` for any card YAML that includes a score. | Prevents valid cards with scores from being processed, breaking decks that store review scores and causing the CLI vet command to abort. | The parser in `flashcore/parser.py` correctly pops `s`; the omission here is a copy‑paste error and easy to miss because the field is optional in the source YAML. |
+### Bug 1: Score field `s` not stripped
+- **Failure mode**: ValidationError is raised when a card dictionary contains the `s` field because the `Card` model has `extra='forbid'`. This prevents legitimate cards with a score from being vetted, causing false errors and dropping cards.
+- **Blast radius**: Any YAML flashcard file that includes a score (`s`) fails vetting, leading to data loss and broken CLI usage for users importing existing decks with scores.
+- **Why plausible**: The function maps `q`/`a` and handles UUIDs but never removes legacy fields. The parser module correctly pops `s` before validation, indicating this was an oversight.
+- **Test type**: Captured bug / contract pin – a test that expects the function to *not* raise and to return a dict without `s` will fail now, exposing the bug.
 
 ## Skipped Bugs
-
-- **B2** – Missing handling of unknown extra fields beyond `s`. *Reason*: The `extra='forbid'` policy already guarantees a failure; addressing it would require changing the model contract, which is out of scope for this test suite.
-- **B3** – Validation of duplicate UUIDs across cards. *Reason*: Existing tests already cover UUID uniqueness; not directly related to the current finding.
-
-## Test Plan
-
-| Bug ID | Test Type | Rationale |
-|--------|-----------|-----------|
-| B1 | Captured bug / contract pin (unit test) | Directly asserts that invoking `_validate_and_normalize_card` on a card dict containing `s` does **not** raise a `ValidationError` and returns a dict without the `s` key. |
-
-## Evaluation (to be filled after test execution)
-
-- **Bugs caught**: 
-- **Bugs characterized**: 
-- **New bugs discovered**: 
+- N/A — all identified plausible bugs are covered.
