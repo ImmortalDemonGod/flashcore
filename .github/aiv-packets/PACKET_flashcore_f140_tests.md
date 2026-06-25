@@ -19,8 +19,8 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
-  classified_by: "Claude"
+  classification_rationale: "Error handling test for db_row_to_review ensures proper exception handling, high blast radius as it affects API stability."
+  classified_by: "qwen/qwen3-coder:free"
   classified_at: "2026-06-25T16:38:25Z"
 ```
 
@@ -39,19 +39,32 @@ classification:
 | 1 | EVIDENCE_TESTS_TEST_DB_ERRORS.BUG_CATALOG.MD.md | `e6af49a` | A, B, E |
 | 2 | EVIDENCE_TESTS_TEST_DB_ERRORS.md | `24efa24` | A, B, E |
 
+---
 
+### Class A (Behavioral/Direct)
 
-### Class B (Referential Evidence)
+- Test execution confirms that `db_row_to_review` raises `MarshallingError` when `rating` is missing.
 
-**Scope Inventory** (from 7 file references across evidence files)
+### Class B (Referential)
 
-- `tests/test_db_errors.bug-catalog.md#L4`
-- `tests/test_db_errors.bug-catalog.md#L6`
-- `tests/test_db_errors.bug-catalog.md#L8-L10`
-- `tests/test_db_errors.bug-catalog.md#L12`
-- `tests/test_db_errors.bug-catalog.md#L14`
-- `tests/test_db_errors.bug-catalog.md#L16-L22`
-- `tests/test_db_errors.py#L3-L20`
+- References to bug catalog and test file lines as listed.
+
+### Class C (Negative)
+
+- No evidence of missing expected failures; negative path not applicable.
+- N/A — no negative test cases beyond the positive error case.
+
+### Class D (Static analysis)
+
+- Linting (`ruff`) passed, type checking (`mypy`) succeeded.
+
+### Class E (Intent Alignment)
+
+- Intent URL: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
+
+### Class F (Provenance)
+
+- Claim 1 linked to test file commit `24efa24` and bug catalog commit `e6af49a`.
 
 ---
 

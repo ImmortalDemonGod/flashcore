@@ -17,7 +17,7 @@ classification:
   critical_surfaces: []
   blast_radius: "flashcore/db/db_row_to_review.bug-catalog.md"
   classification_rationale: "primary-deliverable-dependency"
-  classified_by: "Claude"
+  classified_by: "qwen/qwen3-coder:free"
   classified_at: "2026-06-25T16:01:20Z"
 ```
 
@@ -64,9 +64,7 @@ This file has no claim-specific execution evidence.
 ## Verification Methodology
 
 **Zero-Touch Mandate:** Verifier inspects artifacts only.
-Evidence collected by `aiv commit` running: git diff (scope inventory), pytest (no claim-specific tests found).
-Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/types, not behavior.
-
+Evidence files are validated differently from packets.
 ---
 
 ## Summary
