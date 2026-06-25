@@ -1,20 +1,22 @@
-# Bug Catalog for _vet_logic.py
+# Bug Catalog for flashcore/cli/_vet_logic.py
 
-## Summary
-The function `_validate_and_normalize_card` incorrectly retains the `s` (score) field when mapping question/answer fields, causing `Card` validation to fail for cards that legitimately include a score.
+## Overview
+This catalog lists bugs related to the card validation and normalization logic in `_vet_logic.py`, specifically focusing on the handling of the score field (`s`). The public interface of interest is the internal helper `_validate_and_normalize_card(card_data: dict, deck_name: str) -> dict` which is used by the vetting process.
 
 ## Bugs
 
-| ID | Description | Blast Radius | Plausibility | Test Type |
-|----|-------------|--------------|--------------|-----------|
-| BUG-001 | `s` field not removed leads to ValidationError during vetting, preventing cards with scores from being processed. | Cards with scores are rejected, breaking decks that rely on scoring. | The code maps `q` to `front` and `a` to `back` but never pops `s`, unlike `parser.py`. | Captured bug / contract pin |
+### Bug 1: Score field not removed
+- **Bug**: `_validate_and_normalize_card` maps `q` → `front` and `a` → `back` but does **not** remove the `s` (score) field from the card dict.
+- **Blast radius**: Any card YAML that includes a valid `s` field (as defined in `yaml_models.py`) will raise a `ValidationError` when instantiated as a `Card`, causing the vetting command to fail incorrectly and preventing the card from being written back.
+- **Why plausible**: The function mirrors logic in `parser.py` which correctly pops the `s` field. Missing the `pop` is a classic copy‑paste omission.
+- **Test type(s)**: Captured bug / contract pin (unit test that verifies the function drops `s`).
 
-## Skipped
+## Skipped Bugs
 
-- None – all identified plausible bugs are covered.
+- **No other fields**: The function correctly maps `q` and `a`; no additional field handling bugs were identified.
+- **Future schema changes**: Bugs related to new fields are out of scope for this catalog.
 
-## Evaluation (to be filled after tests)
-
+## Evaluation (to be filled after test execution)
 - Bugs caught: 
 - Bugs characterized: 
-- Additional bugs discovered during test writing: 
+- Bugs discovered during writing: 
