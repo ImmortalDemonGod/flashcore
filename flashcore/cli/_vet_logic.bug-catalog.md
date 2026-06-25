@@ -1,22 +1,24 @@
-# Bug Catalog for _vet_logic.py
+# Bug Catalog for `_vet_logic.py`
 
-## Summary
-The `_validate_and_normalize_card` function maps question (`q`) to `front` and answer (`a`) to `back` but fails to remove the optional `s` (score) field from the raw card data before constructing a `Card` model. The `Card` model (see `flashcore/models.py`) defines `extra='forbid'`, causing a `pydantic.ValidationError` when the `s` field is present. This results in false validation errors during vetting and prevents legitimately scored cards from being processed.
+## Overview
+The module provides functions to validate and normalize flashcard YAML files. A known issue is that `_validate_and_normalize_card` does not remove the `s` (score) field from the input card dictionary before constructing a `Card` model. The `Card` model (in `flashcore/models.py`) forbids extra fields (`extra='forbid'`). Consequently, any YAML card containing a valid `s` field triggers a `ValidationError` during vetting, causing the card to be rejected even though the `s` field is allowed in the source YAML (defined in `flashcore/yaml_models.py`).
 
 ## Bugs
 
-| ID | Description | Blast Radius | Plausibility | Test Type |
-|----|-------------|--------------|--------------|-----------|
-| B1 | `_validate_and_normalize_card` does not drop the `s` (score) field, causing `Card` instantiation to raise `ValidationError` for any card containing `s`. | Prevents valid cards with scores from being vetted; blocks import/export pipelines. | `s` field is defined in `yaml_models.py` as a valid attribute and other parsers correctly pop it. | Captured bug / contract pin (unit test) |
-| B2 | Vetting a card twice should be idempotent – running `_validate_and_normalize_card` on an already‑normalized card should not change its UUID or raise errors. | Duplicate processing could cause UUID churn and inconsistent state. | Current implementation mutates input dict; missing `s` handling may affect idempotence. | Invariant test |
+| ID | Bug Description | Blast Radius | Plausibility | Test Type |
+|----|-----------------|--------------|--------------|-----------|
+| B1 | `s` (score) field is not stripped before `Card` validation, causing a `ValidationError` for valid cards containing `s`. | Corrupts entire deck import; valid cards are rejected, user sees false errors and loses data. | The function maps aliases and handles UUID but never removes `s`; other code paths (parser) do. | Captured bug / contract pin (unit test). |
 
 ## Skipped Bugs
 
-- **Trailing whitespace handling** – trivial string handling, covered by linter.
-- **Missing optional fields other than `s`** – `Card` model already forbids unknown fields; behaviour is exercised by existing validation tests.
+- None – all plausible bugs related to this finding are captured.
 
-## Evaluation (to be filled after test execution)
+## Test Plan
 
-- Bugs caught:
-- Bugs characterized:
-- New bugs discovered during test authoring:
+- Write a unit test that supplies a raw card dictionary containing `q`, `a`, and `s` fields. The test expects `_validate_and_normalize_card` to return a dictionary **without** the `s` key and to succeed without raising `ValidationError`.
+- The test description will name bug **B1**.
+
+## Evaluation (to be filled after test run)
+- Bugs caught: 
+- Bugs characterized: 
+- New bugs discovered: 

@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.bug-catalog.md`
-**Commit:** `b701d3a`
-**Previous:** `87047af`
-**Generated:** 2026-06-25T21:32:48Z
+**Commit:** `fbb8170`
+**Previous:** `1cd34ac`
+**Generated:** 2026-06-25T21:38:25Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/_vet_logic.bug-catalog.md"
-  classification_rationale: "high"
+  classification_rationale: "primary-deliverable-dependency"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:32:48Z"
+  classified_at: "2026-06-25T21:38:25Z"
 ```
 
 ## Claim(s)
 
-1. Identify missing score field removal bug
+1. Bug catalog captures missing score field removal
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -33,16 +33,18 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** testing
+- **Requirements Verified:** test design
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`b701d3a`](https://github.com/ImmortalDemonGod/flashcore/tree/b701d3a2993aa33308134600063605b38dc65c1a))
+**Scope Inventory** (SHA: [`fbb8170`](https://github.com/ImmortalDemonGod/flashcore/tree/fbb81709c82f95ef92e8d4c551bffd9d00fe7170))
 
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/b701d3a2993aa33308134600063605b38dc65c1a/flashcore/cli/_vet_logic.bug-catalog.md#L1)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/b701d3a2993aa33308134600063605b38dc65c1a/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/b701d3a2993aa33308134600063605b38dc65c1a/flashcore/cli/_vet_logic.bug-catalog.md#L8-L11)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L15-L22`](https://github.com/ImmortalDemonGod/flashcore/blob/b701d3a2993aa33308134600063605b38dc65c1a/flashcore/cli/_vet_logic.bug-catalog.md#L15-L22)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L1)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L10`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L8-L10)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L14`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L14)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L16`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L16)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L18-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/fbb81709c82f95ef92e8d4c551bffd9d00fe7170/flashcore/cli/_vet_logic.bug-catalog.md#L18-L24)
 
 ### Class A (Execution Evidence)
 
@@ -58,7 +60,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Identify missing score field removal bug | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Bug catalog captures missing score field removal | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -74,4 +76,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Bug catalog for vet logic
+Bug catalog for score field issue
