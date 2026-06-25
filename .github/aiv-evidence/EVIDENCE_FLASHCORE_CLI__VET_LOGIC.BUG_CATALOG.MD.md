@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.bug-catalog.md`
-**Commit:** `0b8d853`
-**Previous:** `1e6b0a4`
-**Generated:** 2026-06-25T21:24:53Z
+**Commit:** `81a5350`
+**Previous:** `cb5c6c3`
+**Generated:** 2026-06-25T21:28:58Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/_vet_logic.bug-catalog.md"
-  classification_rationale: "primary-deliverable-dependency"
+  classification_rationale: "high"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:24:53Z"
+  classified_at: "2026-06-25T21:28:58Z"
 ```
 
 ## Claim(s)
 
-1. Catalog bug B1 where score field not removed causes ValidationError
+1. _validate_and_normalize_card mishandles score field
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -37,12 +37,14 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`0b8d853`](https://github.com/ImmortalDemonGod/flashcore/tree/0b8d853b7215d1b9a72febf371c8ab22559058ff))
+**Scope Inventory** (SHA: [`81a5350`](https://github.com/ImmortalDemonGod/flashcore/tree/81a53500553966770a785497594fbb1dade06ae1))
 
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/0b8d853b7215d1b9a72febf371c8ab22559058ff/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/0b8d853b7215d1b9a72febf371c8ab22559058ff/flashcore/cli/_vet_logic.bug-catalog.md#L6)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L10`](https://github.com/ImmortalDemonGod/flashcore/blob/0b8d853b7215d1b9a72febf371c8ab22559058ff/flashcore/cli/_vet_logic.bug-catalog.md#L8-L10)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L13-L18`](https://github.com/ImmortalDemonGod/flashcore/blob/0b8d853b7215d1b9a72febf371c8ab22559058ff/flashcore/cli/_vet_logic.bug-catalog.md#L13-L18)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/81a53500553966770a785497594fbb1dade06ae1/flashcore/cli/_vet_logic.bug-catalog.md#L1)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/81a53500553966770a785497594fbb1dade06ae1/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/81a53500553966770a785497594fbb1dade06ae1/flashcore/cli/_vet_logic.bug-catalog.md#L6)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L12`](https://github.com/ImmortalDemonGod/flashcore/blob/81a53500553966770a785497594fbb1dade06ae1/flashcore/cli/_vet_logic.bug-catalog.md#L8-L12)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L15-L16`](https://github.com/ImmortalDemonGod/flashcore/blob/81a53500553966770a785497594fbb1dade06ae1/flashcore/cli/_vet_logic.bug-catalog.md#L15-L16)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L18-L21`](https://github.com/ImmortalDemonGod/flashcore/blob/81a53500553966770a785497594fbb1dade06ae1/flashcore/cli/_vet_logic.bug-catalog.md#L18-L21)
 
 ### Class A (Execution Evidence)
 
@@ -58,7 +60,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Catalog bug B1 where score field not removed causes Validati... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | _validate_and_normalize_card mishandles score field | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -74,4 +76,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Bug catalog for _vet_logic
+Bug catalog for score field
