@@ -6,10 +6,10 @@
 |-------|-------|
 | **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
 | **Change ID** | flashcore-f83-tests |
-| **Commits** | `2ce872f`, `8112f47` |
-| **Head SHA** | `8112f47` |
-| **Base SHA** | `a1e6d5f` |
-| **Created** | 2026-06-25T17:30:19Z |
+| **Commits** | `c43e6c0`, `63ce61e` |
+| **Head SHA** | `63ce61e` |
+| **Base SHA** | `e2a86ef` |
+| **Created** | 2026-06-25T17:36:19Z |
 
 ## Classification
 
@@ -21,14 +21,14 @@ classification:
   blast_radius: component
   classification_rationale: "TODO: Describe why this tier was chosen"
   classified_by: "Claude"
-  classified_at: "2026-06-25T17:30:19Z"
+  classified_at: "2026-06-25T17:36:19Z"
 ```
 
 ## Claims
 
-1. Bug catalog documents missing removal of 's' field causing ValidationError
+1. Catalog documents bug where score field not removed causing validation errors
 2. No existing tests were modified or deleted during this change.
-3. Test fails because _validate_and_normalize_card does not drop 's' field causing ValidationError
+3. Test ensures ValidationError is raised when score field present
 
 ---
 
@@ -36,17 +36,22 @@ classification:
 
 | # | Evidence File | Commit SHA | Classes |
 |---|---------------|------------|---------|
-| 1 | EVIDENCE_FLASHCORE_CLI__VET_LOGIC.BUG_CATALOG.MD.md | `2ce872f` | A, B, E |
-| 2 | EVIDENCE_FLASHCORE_CLI_TEST_VET_LOGIC.md | `8112f47` | A, B, E |
+| 1 | EVIDENCE_FLASHCORE_CLI__VET_LOGIC.BUG_CATALOG.MD.md | `c43e6c0` | A, B, E |
+| 2 | EVIDENCE_TESTS_TEST_VET_LOGIC_SCORE.md | `63ce61e` | A, B, E |
 
 
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (from 2 file references across evidence files)
+**Scope Inventory** (from 7 file references across evidence files)
 
-- `flashcore/cli/_vet_logic.bug-catalog.md#L1-L22`
-- `flashcore/cli/test_vet_logic.py#L1-L22`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L1`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L6-L7`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L9-L10`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L12-L17`
+- `flashcore/cli/_vet_logic.bug-catalog.md#L19-L38`
+- `tests/test_vet_logic_score.py#L1-L11`
 
 ---
 
