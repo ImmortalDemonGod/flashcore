@@ -1,3 +1,4 @@
+# Red test for score field bug
 import pytest
 from flashcore.cli._vet_logic import _validate_and_normalize_card
 from pydantic import ValidationError

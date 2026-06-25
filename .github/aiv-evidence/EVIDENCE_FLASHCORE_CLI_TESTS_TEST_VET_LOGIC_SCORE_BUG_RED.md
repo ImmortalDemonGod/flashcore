@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/tests/test_vet_logic_score_bug_red.py`
-**Commit:** `cb5c6c3`
-**Previous:** `a48ae9c`
-**Generated:** 2026-06-25T21:25:46Z
+**Commit:** `87047af`
+**Previous:** `4f3ce12`
+**Generated:** 2026-06-25T21:30:22Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/tests/test_vet_logic_score_bug_red.py"
-  classification_rationale: "primary-deliverable-dependency"
+  classification_rationale: "high"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:25:46Z"
+  classified_at: "2026-06-25T21:30:22Z"
 ```
 
 ## Claim(s)
 
-1. Test B1 expects ValidationError when s not stripped
+1. _validate_and_normalize_card fails to strip score field causing ValidationError
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -37,16 +37,15 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`cb5c6c3`](https://github.com/ImmortalDemonGod/flashcore/tree/cb5c6c3efb540cb4f592fa7314c2833956634941))
+**Scope Inventory** (SHA: [`87047af`](https://github.com/ImmortalDemonGod/flashcore/tree/87047af33a6b221efa06ba76b4e33aab883a73b4))
 
-- [`flashcore/cli/tests/test_vet_logic_score_bug_red.py#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/cb5c6c3efb540cb4f592fa7314c2833956634941/flashcore/cli/tests/test_vet_logic_score_bug_red.py#L6)
-- [`flashcore/cli/tests/test_vet_logic_score_bug_red.py#L10-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/cb5c6c3efb540cb4f592fa7314c2833956634941/flashcore/cli/tests/test_vet_logic_score_bug_red.py#L10-L11)
+- [`flashcore/cli/tests/test_vet_logic_score_bug_red.py#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/87047af33a6b221efa06ba76b4e33aab883a73b4/flashcore/cli/tests/test_vet_logic_score_bug_red.py#L1)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_score_field_not_stripped_causes_validation_error`** (L6): FAIL -- WARNING: No tests import or call `test_score_field_not_stripped_causes_validation_error`
+- **`<module>`** (L1): FAIL -- WARNING: No tests import or call `<module>`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
@@ -59,7 +58,7 @@ classification:
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Test B1 expects ValidationError when s not stripped | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | _validate_and_normalize_card fails to strip score field caus... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
