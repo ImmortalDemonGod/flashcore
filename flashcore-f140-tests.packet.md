@@ -1,25 +1,25 @@
 # AIV Verification Packet
 
-## Claim
+## Class A
 
-- **Falsifiable claim**: The test suite detects missing ValidationError wrapping in `db_row_to_review` and ensures proper error handling.
+*Behavioral evidence* - N/A — tests not yet run.
 
-## Evidence
+## Class B
 
-### Class A
-N/A — evidence collected automatically during commit runs.
+*Referential evidence* - N/A.
 
-### Class B
-N/A — referential evidence provided via git diff.
+## Class C
 
-### Class C
-N/A — no negative evidence required.
+*Negative evidence* - N/A.
 
-### Class D
-N/A — static analysis performed during commits.
+## Class D
 
-### Class E
-https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
+*Static analysis evidence* - N/A.
 
-### Class F
-N/A — no prior test provenance needed for this bug-fix.
+## Class E
+
+Intent Alignment: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
+
+## Class F
+
+Provenance: N/A — no bug-fix claim.
