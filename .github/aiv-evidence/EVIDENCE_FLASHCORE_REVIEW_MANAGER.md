@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/review_manager.py`
-**Commit:** `b20e899`
-**Previous:** `09d5e61`
-**Generated:** 2026-06-25T21:59:51Z
+**Commit:** `1d25c22`
+**Previous:** `1d25c22`
+**Generated:** 2026-06-25T22:04:55Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -18,12 +18,12 @@ classification:
   blast_radius: "flashcore/review_manager.py"
   classification_rationale: "high"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:59:51Z"
+  classified_at: "2026-06-25T22:04:55Z"
 ```
 
 ## Claim(s)
 
-1. ReviewSessionManager.initialize_session orders cards by scheduler due date, not modified_at, fixing spaced-repetition contract
+1. Provides ReviewManager compatibility and sorts by next_due_date
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -37,63 +37,54 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`b20e899`](https://github.com/ImmortalDemonGod/flashcore/tree/b20e89986320fb2ce15c612584dac974b2cea8f7))
+**Scope Inventory** (SHA: [`1d25c22`](https://github.com/ImmortalDemonGod/flashcore/tree/1d25c2212d53adf446c4f7bcb11c1bed9c397f52))
 
-- [`flashcore/review_manager.py#L110-L113`](https://github.com/ImmortalDemonGod/flashcore/blob/b20e89986320fb2ce15c612584dac974b2cea8f7/flashcore/review_manager.py#L110-L113)
-- [`flashcore/review_manager.py#L346-L348`](https://github.com/ImmortalDemonGod/flashcore/blob/b20e89986320fb2ce15c612584dac974b2cea8f7/flashcore/review_manager.py#L346-L348)
+- [`flashcore/review_manager.py#L43`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L43)
+- [`flashcore/review_manager.py#L58`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L58)
+- [`flashcore/review_manager.py#L65`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L65)
+- [`flashcore/review_manager.py#L69`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L69)
+- [`flashcore/review_manager.py#L71-L72`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L71-L72)
+- [`flashcore/review_manager.py#L86`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L86)
+- [`flashcore/review_manager.py#L104-L124`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L104-L124)
+- [`flashcore/review_manager.py#L128-L129`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L128-L129)
+- [`flashcore/review_manager.py#L132`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L132)
+- [`flashcore/review_manager.py#L135`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L135)
+- [`flashcore/review_manager.py#L141-L142`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L141-L142)
+- [`flashcore/review_manager.py#L146-L151`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L146-L151)
+- [`flashcore/review_manager.py#L174-L175`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L174-L175)
+- [`flashcore/review_manager.py#L177-L178`](https://github.com/ImmortalDemonGod/flashcore/blob/1d25c2212d53adf446c4f7bcb11c1bed9c397f52/flashcore/review_manager.py#L177-L178)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`ReviewSessionManager`** (L110-L113): PASS -- 21 test(s) call `ReviewSessionManager` directly
-  - `tests/test_session_analytics_gaps.py::test_review_session_manager_now_creates_session_objects`
-  - `tests/test_session_analytics_gaps.py::test_review_workflows_now_have_session_integration`
-  - `tests/test_session_analytics_gaps.py::test_missing_session_lifecycle_management`
-  - `tests/test_session_analytics_gaps.py::test_missing_session_performance_analytics`
-  - `tests/test_session_analytics_gaps.py::test_missing_real_time_session_tracking`
-  - `tests/test_review_manager.py::test_init_successful`
-  - `tests/test_review_manager.py::test_e2e_session_flow`
-  - `tests/test_review_manager.py::test_initialize_session_with_tags`
-  - `tests/test_review_manager.py::test_session_analytics_start_failure`
-  - `tests/test_review_manager.py::test_record_session_analytics_failure`
-- **`ReviewSessionManager.initialize_session`** (L346-L348): PASS -- 20 test(s) call `initialize_session` directly
-  - `tests/test_session_analytics_gaps.py::test_review_session_manager_now_creates_session_objects`
-  - `tests/test_session_analytics_gaps.py::test_review_workflows_now_have_session_integration`
-  - `tests/test_session_analytics_gaps.py::test_missing_session_lifecycle_management`
-  - `tests/test_session_analytics_gaps.py::test_missing_session_performance_analytics`
-  - `tests/test_session_analytics_gaps.py::test_missing_real_time_session_tracking`
-  - `tests/test_review_manager.py::test_start_session_populates_queue`
-  - `tests/test_review_manager.py::test_start_session_clears_existing_queue`
-  - `tests/test_review_manager.py::test_e2e_session_flow`
-  - `tests/test_review_manager.py::test_initialize_session_with_tags`
-  - `tests/test_review_manager.py::test_session_analytics_start_failure`
+- **`<parse-error>`** (L43): FAIL -- WARNING: No tests import or call `<parse-error>`
 
-**Coverage summary:** 2/2 symbols verified by tests.
+**Coverage summary:** 0/1 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** All checks passed
-- **mypy:** Found 2 errors in 1 file (checked 1 source file)
+- **ruff:** 9 error(s)
+- **mypy:** Found 1 error in 1 file (errors prevented further checking)
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | ReviewSessionManager.initialize_session orders cards by sche... | symbol | 41 test(s) call `ReviewSessionManager.initialize_session`, `ReviewSessionManager` | PASS VERIFIED |
+| 1 | Provides ReviewManager compatibility and sorts by next_due_d... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
-**Verdict summary:** 1 verified, 0 unverified, 1 manual review.
+**Verdict summary:** 0 verified, 0 unverified, 2 manual review.
 ---
 
 ## Verification Methodology
 
 **Zero-Touch Mandate:** Verifier inspects artifacts only.
-Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (2/2 symbols verified).
+Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (0/1 symbols verified).
 Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/types, not behavior.
 
 ---
 
 ## Summary
 
-Correct card ordering
+Legacy shim and ordering
