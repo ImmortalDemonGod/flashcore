@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.bug-catalog.md`
-**Commit:** `153e653`
-**Previous:** `e560209`
-**Generated:** 2026-06-25T21:11:35Z
+**Commit:** `006ea58`
+**Previous:** `006ea58`
+**Generated:** 2026-06-25T21:13:39Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -18,7 +18,7 @@ classification:
   blast_radius: "flashcore/cli/_vet_logic.bug-catalog.md"
   classification_rationale: "primary-deliverable-dependency"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:11:35Z"
+  classified_at: "2026-06-25T21:13:39Z"
 ```
 
 ## Claim(s)
@@ -37,15 +37,15 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`153e653`](https://github.com/ImmortalDemonGod/flashcore/tree/153e65351c8cffed6cfaf8ccad388a96b2a7849d))
+**Scope Inventory** (SHA: [`006ea58`](https://github.com/ImmortalDemonGod/flashcore/tree/006ea586ffb906ce213e0f867ab188476d0fa207))
 
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/153e65351c8cffed6cfaf8ccad388a96b2a7849d/flashcore/cli/_vet_logic.bug-catalog.md#L1)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/153e65351c8cffed6cfaf8ccad388a96b2a7849d/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L12`](https://github.com/ImmortalDemonGod/flashcore/blob/153e65351c8cffed6cfaf8ccad388a96b2a7849d/flashcore/cli/_vet_logic.bug-catalog.md#L8-L12)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L14`](https://github.com/ImmortalDemonGod/flashcore/blob/153e65351c8cffed6cfaf8ccad388a96b2a7849d/flashcore/cli/_vet_logic.bug-catalog.md#L14)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L16-L17`](https://github.com/ImmortalDemonGod/flashcore/blob/153e65351c8cffed6cfaf8ccad388a96b2a7849d/flashcore/cli/_vet_logic.bug-catalog.md#L16-L17)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L19`](https://github.com/ImmortalDemonGod/flashcore/blob/153e65351c8cffed6cfaf8ccad388a96b2a7849d/flashcore/cli/_vet_logic.bug-catalog.md#L19)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L22`](https://github.com/ImmortalDemonGod/flashcore/blob/153e65351c8cffed6cfaf8ccad388a96b2a7849d/flashcore/cli/_vet_logic.bug-catalog.md#L22)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L1)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L6-L7`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L6-L7)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L9-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L9-L11)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L13-L23`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L13-L23)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L25-L35`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L25-L35)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L37-L40`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L37-L40)
 
 ### Class A (Execution Evidence)
 
