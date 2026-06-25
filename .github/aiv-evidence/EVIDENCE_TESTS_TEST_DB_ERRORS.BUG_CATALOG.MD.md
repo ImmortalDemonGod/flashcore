@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `tests/test_db_errors.bug-catalog.md`
-**Commit:** `7f427a7`
-**Generated:** 2026-06-25T15:58:07Z
+**Commit:** `c3f6adc`
+**Previous:** `766f26f`
+**Generated:** 2026-06-25T16:37:15Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "tests/test_db_errors.bug-catalog.md"
-  classification_rationale: "high"
+  classification_rationale: "R1"
   classified_by: "Claude"
-  classified_at: "2026-06-25T15:58:07Z"
+  classified_at: "2026-06-25T16:37:15Z"
 ```
 
 ## Claim(s)
 
-1. Bug catalog documents missing MarshallingError wrapper
+1. Ensure db_row_to_review raises MarshallingError on invalid rows
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,13 +33,18 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150)
-- **Requirements Verified:** Error handling correctness
+- **Requirements Verified:** Error handling coverage
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`7f427a7`](https://github.com/ImmortalDemonGod/flashcore/tree/7f427a7a51f6a766822dad345b4774ba58349445))
+**Scope Inventory** (SHA: [`c3f6adc`](https://github.com/ImmortalDemonGod/flashcore/tree/c3f6adc91a6a7d80393fb434a37ac845960924cf))
 
-- [`tests/test_db_errors.bug-catalog.md#L1-L18`](https://github.com/ImmortalDemonGod/flashcore/blob/7f427a7a51f6a766822dad345b4774ba58349445/tests/test_db_errors.bug-catalog.md#L1-L18)
+- [`tests/test_db_errors.bug-catalog.md#L4`](https://github.com/ImmortalDemonGod/flashcore/blob/c3f6adc91a6a7d80393fb434a37ac845960924cf/tests/test_db_errors.bug-catalog.md#L4)
+- [`tests/test_db_errors.bug-catalog.md#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/c3f6adc91a6a7d80393fb434a37ac845960924cf/tests/test_db_errors.bug-catalog.md#L6)
+- [`tests/test_db_errors.bug-catalog.md#L8-L10`](https://github.com/ImmortalDemonGod/flashcore/blob/c3f6adc91a6a7d80393fb434a37ac845960924cf/tests/test_db_errors.bug-catalog.md#L8-L10)
+- [`tests/test_db_errors.bug-catalog.md#L12`](https://github.com/ImmortalDemonGod/flashcore/blob/c3f6adc91a6a7d80393fb434a37ac845960924cf/tests/test_db_errors.bug-catalog.md#L12)
+- [`tests/test_db_errors.bug-catalog.md#L14`](https://github.com/ImmortalDemonGod/flashcore/blob/c3f6adc91a6a7d80393fb434a37ac845960924cf/tests/test_db_errors.bug-catalog.md#L14)
+- [`tests/test_db_errors.bug-catalog.md#L16-L22`](https://github.com/ImmortalDemonGod/flashcore/blob/c3f6adc91a6a7d80393fb434a37ac845960924cf/tests/test_db_errors.bug-catalog.md#L16-L22)
 
 ### Class A (Execution Evidence)
 
@@ -54,7 +60,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Bug catalog documents missing MarshallingError wrapper | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Ensure db_row_to_review raises MarshallingError on invalid r... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -70,4 +76,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Document bug for missing error handling
+Bug catalog for missing MarshallingError
