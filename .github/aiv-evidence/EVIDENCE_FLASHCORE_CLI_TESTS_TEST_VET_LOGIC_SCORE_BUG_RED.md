@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/tests/test_vet_logic_score_bug_red.py`
-**Commit:** `1e6b0a4`
-**Generated:** 2026-06-25T21:22:00Z
+**Commit:** `cb5c6c3`
+**Previous:** `a48ae9c`
+**Generated:** 2026-06-25T21:25:46Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -17,12 +18,12 @@ classification:
   blast_radius: "flashcore/cli/tests/test_vet_logic_score_bug_red.py"
   classification_rationale: "primary-deliverable-dependency"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:22:00Z"
+  classified_at: "2026-06-25T21:25:46Z"
 ```
 
 ## Claim(s)
 
-1. Test fails due to ValidationError when extra field present
+1. Test B1 expects ValidationError when s not stripped
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,19 +33,20 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** test design
+- **Requirements Verified:** test
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`1e6b0a4`](https://github.com/ImmortalDemonGod/flashcore/tree/1e6b0a414299ce243780b4e8f07780248e31f8f4))
+**Scope Inventory** (SHA: [`cb5c6c3`](https://github.com/ImmortalDemonGod/flashcore/tree/cb5c6c3efb540cb4f592fa7314c2833956634941))
 
-- [`flashcore/cli/tests/test_vet_logic_score_bug_red.py#L1-L15`](https://github.com/ImmortalDemonGod/flashcore/blob/1e6b0a414299ce243780b4e8f07780248e31f8f4/flashcore/cli/tests/test_vet_logic_score_bug_red.py#L1-L15)
+- [`flashcore/cli/tests/test_vet_logic_score_bug_red.py#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/cb5c6c3efb540cb4f592fa7314c2833956634941/flashcore/cli/tests/test_vet_logic_score_bug_red.py#L6)
+- [`flashcore/cli/tests/test_vet_logic_score_bug_red.py#L10-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/cb5c6c3efb540cb4f592fa7314c2833956634941/flashcore/cli/tests/test_vet_logic_score_bug_red.py#L10-L11)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_score_field_not_stripped_causes_validation_error`** (L1-L15): FAIL -- WARNING: No tests import or call `test_score_field_not_stripped_causes_validation_error`
+- **`test_score_field_not_stripped_causes_validation_error`** (L6): FAIL -- WARNING: No tests import or call `test_score_field_not_stripped_causes_validation_error`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
@@ -57,7 +59,7 @@ classification:
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Test fails due to ValidationError when extra field present | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Test B1 expects ValidationError when s not stripped | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
