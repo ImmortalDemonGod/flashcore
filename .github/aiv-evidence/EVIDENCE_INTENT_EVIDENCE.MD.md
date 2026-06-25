@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
-**File:** `intent_Evidence.md`
-**Commit:** `40d169f`
-**Generated:** 2026-06-25T16:16:55Z
+**File:** `intent-evidence.md`
+**Commit:** `b360fdb`
+**Previous:** `b94cc30`
+**Generated:** 2026-06-25T16:19:00Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -14,15 +15,15 @@ classification:
   risk_tier: R1
   sod_mode: S0
   critical_surfaces: []
-  blast_radius: "intent_Evidence.md"
-  classification_rationale: "primary-deliverable-dependency"
+  blast_radius: "intent-evidence.md"
+  classification_rationale: "medium"
   classified_by: "Claude"
-  classified_at: "2026-06-25T16:16:55Z"
+  classified_at: "2026-06-25T16:19:00Z"
 ```
 
 ## Claim(s)
 
-1. Aligns with canonical audit
+1. Intent evidence aligns with audit
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,13 +33,13 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150)
-- **Requirements Verified:** F140 verification
+- **Requirements Verified:** E001
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`40d169f`](https://github.com/ImmortalDemonGod/flashcore/tree/40d169fcbd4c389555b3c60258ec2b742cd7a988))
+**Scope Inventory** (SHA: [`b360fdb`](https://github.com/ImmortalDemonGod/flashcore/tree/b360fdb68c1a3cb4edd1f6637b0c8730746c8b15))
 
-- [`intent_Evidence.md#L1-L5`](https://github.com/ImmortalDemonGod/flashcore/blob/40d169fcbd4c389555b3c60258ec2b742cd7a988/intent_Evidence.md#L1-L5)
+- [`intent-evidence.md#L1-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/b360fdb68c1a3cb4edd1f6637b0c8730746c8b15/intent-evidence.md#L1-L4)
 
 ### Class A (Execution Evidence)
 
@@ -54,7 +55,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Aligns with canonical audit | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Intent evidence aligns with audit | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -70,4 +71,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Intent evidence for bug handling
+Intent alignment evidence
