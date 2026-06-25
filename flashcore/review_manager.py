@@ -1,8 +1,8 @@
-"""
+'''
 This module defines the ReviewSessionManager class, which is responsible for
 managing a flashcard review session. It interacts with the database to fetch
 cards, uses a scheduler to determine review timings, and records review outcomes.
-"""
+'''
 
 import logging
 from datetime import datetime, timezone, date
@@ -340,3 +340,8 @@ class ReviewSessionManager:
         return self.db.get_due_card_count(
             deck_name=self.deck_name, on_date=today
         )
+
+# Compatibility alias: expose ReviewManager as expected by tests
+class ReviewManager(ReviewSessionManager):
+    """Alias for backward compatibility with existing imports."""
+    pass
