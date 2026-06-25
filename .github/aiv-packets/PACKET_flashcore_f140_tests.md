@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | flashcore-f140-tests |
 | **Commits** | `c0836e9`, `22523fc` |
 | **Head SHA** | `22523fc` |
@@ -19,10 +19,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
-  classified_by: "Claude"
+  classification_rationale: "High risk due to uncaught ValidationError leaking as raw error, could crash API."
+  classified_by: "qwen/qwen3-coder:free"
   classified_at: "2026-06-25T15:55:28Z"
 ```
+
+## Intent Alignment (Class E)
+
+- Intent URL: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
 
 ## Claims
 
@@ -38,8 +42,6 @@ classification:
 |---|---------------|------------|---------|
 | 1 | EVIDENCE_FLASHCORE_DB_DB_ROW_TO_REVIEW.BUG_CATALOG.MD.md | `c0836e9` | A, B, E |
 | 2 | EVIDENCE_TESTS_TEST_DB_ERRORS.md | `22523fc` | A, B, E |
-
-
 
 ### Class B (Referential Evidence)
 
