@@ -63,7 +63,6 @@ def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
     """
     result = []
     for card in cards:
-        # Calculate complexity metrics if not already set
         if (
             card.front_length is None
             or card.back_length is None
@@ -71,7 +70,6 @@ def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
             or card.tag_count is None
         ):
             card.calculate_complexity_metrics()
-
         result.append(
             (
                 card.uuid,
@@ -112,11 +110,9 @@ def db_row_to_card(row_dict: Dict[str, Any]) -> Card:
         MarshallingError: If the row cannot be validated into a Card (wraps the original ValidationError).  # noqa: E501
     """
     data = transform_db_row_for_card(row_dict)
-
     try:
         return Card(**data)
     except ValidationError as e:
-        # Consider adding logger here if this module gets one
         raise MarshallingError(
             f"Failed to parse card from DB row: {row_dict}. Error: {e}",
             original_exception=e,
@@ -154,8 +150,17 @@ def review_to_db_params_tuple(review: Review) -> Tuple:
 
 
 def db_row_to_review(row_dict: Dict[str, Any]) -> Review:
-    """Converts a database row dictionary to a Review Pydantic model."""
-    return Review(**row_dict)
+    """Converts a database row dictionary to a Review Pydantic model.
+
+    Wraps ValidationError in MarshallingError for consistent error handling.
+    """
+    try:
+        return Review(**row_dict)
+    except ValidationError as e:
+        raise MarshallingError(
+            f"Failed to parse review from DB row: {row_dict}. Error: {e}",
+            original_exception=e,
+        ) from e
 
 
 def session_to_db_params_tuple(session: Session) -> Tuple:
@@ -217,7 +222,6 @@ def db_row_to_session(row_dict: Dict[str, Any]) -> Session:
     try:
         return Session(**data)
     except ValidationError as e:
-        # Consider adding logger here if this module gets one
         raise MarshallingError(
             f"Data validation failed for session: {e}", original_exception=e
         ) from e
@@ -239,12 +243,9 @@ def find_latest_backup(db_path: Path) -> Optional[Path]:
     backup_dir = db_path.parent / "backups"
     if not backup_dir.exists():
         return None
-
     backup_files = list(backup_dir.glob(f"{db_path.stem}-backup-*.db"))
     if not backup_files:
         return None
-
-    # Sort files by name, which includes the timestamp, to find the latest
     latest_backup = max(backup_files, key=lambda p: p.name)
     return latest_backup
 
@@ -260,15 +261,11 @@ def backup_database(db_path: Path) -> Path:
         The path to the created backup file.
     """
     if not db_path.exists():
-        # No database to back up, so we can just return the original path.
         return db_path
-
     backup_dir = db_path.parent / "backups"
     backup_dir.mkdir(exist_ok=True)
-
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     backup_filename = f"{db_path.stem}-backup-{timestamp}{db_path.suffix}"
     backup_path = backup_dir / backup_filename
-
     shutil.copy2(db_path, backup_path)
     return backup_path
