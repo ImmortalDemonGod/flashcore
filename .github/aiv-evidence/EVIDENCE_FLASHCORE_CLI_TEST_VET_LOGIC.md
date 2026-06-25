@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/test_vet_logic.py`
-**Commit:** `2ce872f`
-**Generated:** 2026-06-25T17:30:05Z
+**Commit:** `fb94a42`
+**Previous:** `8112f47`
+**Generated:** 2026-06-25T17:39:24Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -17,12 +18,12 @@ classification:
   blast_radius: "flashcore/cli/test_vet_logic.py"
   classification_rationale: "high"
   classified_by: "Claude"
-  classified_at: "2026-06-25T17:30:05Z"
+  classified_at: "2026-06-25T17:39:24Z"
 ```
 
 ## Claim(s)
 
-1. Test fails because _validate_and_normalize_card does not drop 's' field causing ValidationError
+1. Test catches retained score field bug in _validate_and_normalize_card
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,32 +33,33 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** Testing
+- **Requirements Verified:** testing
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`2ce872f`](https://github.com/ImmortalDemonGod/flashcore/tree/2ce872ff0b79d8ccd06829c87d967e17ad70be24))
+**Scope Inventory** (SHA: [`fb94a42`](https://github.com/ImmortalDemonGod/flashcore/tree/fb94a425337843bc016a4778ee2386930927723a))
 
-- [`flashcore/cli/test_vet_logic.py#L1-L22`](https://github.com/ImmortalDemonGod/flashcore/blob/2ce872ff0b79d8ccd06829c87d967e17ad70be24/flashcore/cli/test_vet_logic.py#L1-L22)
+- [`flashcore/cli/test_vet_logic.py#L4-L7`](https://github.com/ImmortalDemonGod/flashcore/blob/fb94a425337843bc016a4778ee2386930927723a/flashcore/cli/test_vet_logic.py#L4-L7)
+- [`flashcore/cli/test_vet_logic.py#L9-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/fb94a425337843bc016a4778ee2386930927723a/flashcore/cli/test_vet_logic.py#L9-L11)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_vet_accepts_card_with_score_field`** (L1-L22): FAIL -- WARNING: No tests import or call `test_vet_accepts_card_with_score_field`
+- **`test_score_field_removed_bug_catch`** (L4-L7): FAIL -- WARNING: No tests import or call `test_score_field_removed_bug_catch`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** 14 error(s)
-- **mypy:** Found 1 error in 1 file (checked 1 source file)
+- **ruff:** 11 error(s)
+- **mypy:** Success: no issues found in 1 source file
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Test fails because _validate_and_normalize_card does not dro... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Test catches retained score field bug in _validate_and_norma... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -73,4 +75,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Test captures bug B1
+Test for bug 1

@@ -1,22 +1,11 @@
 import pytest
 from flashcore.cli._vet_logic import _validate_and_normalize_card
-from flashcore.yaml_models import CardYAML
-from pydantic import ValidationError
 
-def test_vet_accepts_card_with_score_field():
-    """Bug B1: ValidationError is raised when vetting a card that includes a score ('s') field.
-    The test expects no ValidationError, thus currently fails.
+def test_score_field_removed_bug_catch():
+    """Bug 1: _validate_and_normalize_card should drop the 's' (score) field.
+    The current implementation retains it, causing ValidationError downstream.
+    This test expects the normalized dict to NOT contain 's'.
     """
-    # Simulate a card dict as parsed from YAML with a score field
-    card_data = {
-        "q": "What is the capital of France?",
-        "a": "Paris",
-        "s": 5,  # score field that should be ignored by vetting
-    }
-    # The function should remove/ignore the score field before constructing Card
-    normalized = _validate_and_normalize_card(card_data, deck_name="default")
-    # Attempt to construct Card model (should not raise)
-    try:
-        card = CardYAML(**normalized, deck_name="default")
-    except ValidationError as e:
-        pytest.fail(f"ValidationError raised unexpectedly: {e}")
+    raw_card = {"q": "What is 2+2?", "a": "4", "s": 5}
+    normalized = _validate_and_normalize_card(raw_card, deck_name="test_deck")
+    assert "s" not in normalized, "The 's' field should be removed during validation"
