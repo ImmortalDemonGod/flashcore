@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.bug-catalog.md`
-**Commit:** `006ea58`
-**Previous:** `006ea58`
-**Generated:** 2026-06-25T21:13:39Z
+**Commit:** `2a06a9d`
+**Previous:** `1a97a5f`
+**Generated:** 2026-06-25T21:18:25Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/_vet_logic.bug-catalog.md"
-  classification_rationale: "primary-deliverable-dependency"
+  classification_rationale: "high"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:13:39Z"
+  classified_at: "2026-06-25T21:18:25Z"
 ```
 
 ## Claim(s)
 
-1. Document missing score field bug for _validate_and_normalize_card
+1. Bug catalog documents missing removal of 's' field causing ValidationError
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -33,19 +33,22 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** bug documentation
+- **Requirements Verified:** Testing
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`006ea58`](https://github.com/ImmortalDemonGod/flashcore/tree/006ea586ffb906ce213e0f867ab188476d0fa207))
+**Scope Inventory** (SHA: [`2a06a9d`](https://github.com/ImmortalDemonGod/flashcore/tree/2a06a9d4936a949a06275553bc75b01606d7cc03))
 
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L1)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L6-L7`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L6-L7)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L9-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L9-L11)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L13-L23`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L13-L23)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L25-L35`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L25-L35)
-- [`flashcore/cli/_vet_logic.bug-catalog.md#L37-L40`](https://github.com/ImmortalDemonGod/flashcore/blob/006ea586ffb906ce213e0f867ab188476d0fa207/flashcore/cli/_vet_logic.bug-catalog.md#L37-L40)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L1)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L3-L4`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L3-L4)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L6`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L6)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L8-L10`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L8-L10)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L12`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L12)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L14-L15`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L14-L15)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L17`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L17)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L19-L21`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L19-L21)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L23`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L23)
+- [`flashcore/cli/_vet_logic.bug-catalog.md#L25-L27`](https://github.com/ImmortalDemonGod/flashcore/blob/2a06a9d4936a949a06275553bc75b01606d7cc03/flashcore/cli/_vet_logic.bug-catalog.md#L25-L27)
 
 ### Class A (Execution Evidence)
 
@@ -61,7 +64,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Document missing score field bug for _validate_and_normalize... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Bug catalog documents missing removal of 's' field causing V... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -77,4 +80,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-bug catalog for vet logic
+Document bug and test plan for score field handling

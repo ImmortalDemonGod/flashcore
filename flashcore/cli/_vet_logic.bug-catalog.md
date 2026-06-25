@@ -1,40 +1,27 @@
-# Bug Catalog for `flashcore/cli/_vet_logic.py`
+# Bug Catalog for _vet_logic.py
 
-## Public Interface
-- Internal helper `_validate_and_normalize_card(card_data: dict, deck_name: str) -> dict` used by the vetting CLI to process each YAML card before constructing a `Card` model.
+## Overview
+The function `_validate_and_normalize_card` is responsible for normalising card dictionaries before they are instantiated as `Card` models. It maps the short keys `q` → `front` and `a` → `back` but **fails to drop the optional `s` (score) field**. The `Card` model (see `flashcore/models.py`) declares `extra='forbid'`, causing a pydantic `ValidationError` when an incoming card contains the `s` field. This results in **false validation errors** and prevents legitimate cards with a score from being vetted or written back.
 
-## Load‑bearing comments
-- None identified beyond the function docstring.
+## Bugs
 
-## IO boundaries
-- Reads a dict derived from a YAML file.
-- Returns a dict that will be passed to the `Card` Pydantic model which forbids extra fields.
-
-## Branching points / potential bug sites
-1. Mapping of keys (`q` → `front`, `a` → `back`).
-2. **Missing removal of the `s` (score) field** before `Card` construction.
-3. Potential handling of legacy `id` → `uuid` (not present here but mentioned in audit).
-
-## Magic‑string contracts
-- `s` field is defined in `yaml_models.py` as `Optional[int]` with limits 0‑4.
-- `Card` model (`models.py`) has `extra="forbid"`, so any unexpected key raises `ValidationError`.
-
-## Existing tests
-- None target `_validate_and_normalize_card` for the `s` field handling.
-
-## Bug Catalog
-
-### Bug 1: Score field not stripped
-- **Bug**: `_validate_and_normalize_card` does not pop the `s` score field, so the resulting dict contains an unexpected key.
-- **Blast radius**: Any card YAML that includes a valid `s` field will cause a `ValidationError` during vetting, incorrectly rejecting the card and preventing it from being written back.
-- **Why plausible**: The function mirrors `parser.py` which correctly calls `card_data.pop("s", None)`. The omission is a classic copy‑paste mistake.
-- **Test type**: Captured‑bug/contract‑pin unit test that asserts the returned dict does not contain `s` and that constructing a `Card` succeeds.
+| ID | Description | Blast Radius | Plausibility Reason |
+|----|-------------|--------------|---------------------|
+| B1 | `_validate_and_normalize_card` does not remove the `s` field, causing a `ValidationError` for any card YAML that includes a score. | Prevents valid cards with scores from being processed, breaking decks that store review scores and causing the CLI vet command to abort. | The parser in `flashcore/parser.py` correctly pops `s`; the omission here is a copy‑paste error and easy to miss because the field is optional in the source YAML. |
 
 ## Skipped Bugs
-- No other fields are mishandled (the `q`/`a` mapping is correct).
-- Legacy `id` → `uuid` handling is out of scope for this finding.
 
-## Evaluation (to be filled after test run)
-- Bugs caught:
-- Bugs characterized:
-- Bugs discovered during writing:
+- **B2** – Missing handling of unknown extra fields beyond `s`. *Reason*: The `extra='forbid'` policy already guarantees a failure; addressing it would require changing the model contract, which is out of scope for this test suite.
+- **B3** – Validation of duplicate UUIDs across cards. *Reason*: Existing tests already cover UUID uniqueness; not directly related to the current finding.
+
+## Test Plan
+
+| Bug ID | Test Type | Rationale |
+|--------|-----------|-----------|
+| B1 | Captured bug / contract pin (unit test) | Directly asserts that invoking `_validate_and_normalize_card` on a card dict containing `s` does **not** raise a `ValidationError` and returns a dict without the `s` key. |
+
+## Evaluation (to be filled after test execution)
+
+- **Bugs caught**: 
+- **Bugs characterized**: 
+- **New bugs discovered**: 
