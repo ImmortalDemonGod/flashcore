@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/review_manager.py`
-**Commit:** `77e8843`
-**Previous:** `599ddc8`
-**Generated:** 2026-06-20T00:05:03Z
+**Commit:** `8d22086`
+**Previous:** `766786d`
+**Generated:** 2026-06-25T21:48:11Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -12,18 +12,18 @@
 
 ```yaml
 classification:
-  risk_tier: R0
+  risk_tier: R1
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/review_manager.py"
-  classification_rationale: "R0 — pure whitespace reformat; no logic, types, or behaviour changed"
+  classification_rationale: "R1"
   classified_by: "Claude"
-  classified_at: "2026-06-20T00:05:03Z"
+  classified_at: "2026-06-25T21:48:11Z"
 ```
 
 ## Claim(s)
 
-1. black -l 79 --check flashcore/review_manager.py exits 0 after this commit
+1. implements the converged plan for the finding per its acceptance condition
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,31 +32,46 @@ classification:
 
 ### Class E (Intent Alignment)
 
-- **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/60d57b289fe078c5422220a8deffe73b3a2dc12e/pyproject.toml](https://github.com/ImmortalDemonGod/flashcore/blob/60d57b289fe078c5422220a8deffe73b3a2dc12e/pyproject.toml)
-- **Requirements Verified:** black==25.12.0 line-length-79 formatting constraint pinned in pyproject.toml
+- **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L180](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L180)
+- **Requirements Verified:** write-code: implement the converged plan within scope
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`77e8843`](https://github.com/ImmortalDemonGod/flashcore/tree/77e8843d3ffa8c9e4679ed489c53fa8cbca4c2c0))
+**Scope Inventory** (SHA: [`8d22086`](https://github.com/ImmortalDemonGod/flashcore/tree/8d22086bbe445c0940d30b7f81be9f0fb6f82a59))
 
-- [`flashcore/review_manager.py#L237-L239`](https://github.com/ImmortalDemonGod/flashcore/blob/77e8843d3ffa8c9e4679ed489c53fa8cbca4c2c0/flashcore/review_manager.py#L237-L239)
+- [`flashcore/review_manager.py#L1`](https://github.com/ImmortalDemonGod/flashcore/blob/8d22086bbe445c0940d30b7f81be9f0fb6f82a59/flashcore/review_manager.py#L1)
 
 ### Class A (Execution Evidence)
 
-- Local checks skipped (--skip-checks).
-- **Skip reason:** pure formatting, zero logic change; black reformats only whitespace
+**Per-symbol test coverage (AST analysis):**
 
+- **`<parse-error>`** (L1): FAIL -- WARNING: No tests import or call `<parse-error>`
 
+**Coverage summary:** 0/1 symbols verified by tests.
+
+### Code Quality (Linting & Types)
+
+- **ruff:** 15 error(s)
+- **mypy:** Found 1 error in 1 file (errors prevented further checking)
+
+## Claim Verification Matrix
+
+| # | Claim | Type | Evidence | Verdict |
+|---|-------|------|----------|---------|
+| 1 | implements the converged plan for the finding per its accept... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
+
+**Verdict summary:** 0 verified, 0 unverified, 2 manual review.
 ---
 
 ## Verification Methodology
 
-**R0 (trivial) -- local checks skipped.**
-**Reason:** pure formatting, zero logic change; black reformats only whitespace
-Only git diff scope inventory was collected. No execution evidence.
+**Zero-Touch Mandate:** Verifier inspects artifacts only.
+Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (0/1 symbols verified).
+Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/types, not behavior.
 
 ---
 
 ## Summary
 
-Wrap long expression at get_session_stats() line 237 to satisfy black line-length-79
+review_manager.py for the finding
