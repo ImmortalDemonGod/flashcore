@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/db/db_row_to_review.bug-catalog.md`
-**Commit:** `f4218da`
-**Generated:** 2026-06-25T15:53:45Z
+**Commit:** `766f26f`
+**Previous:** `c0836e9`
+**Generated:** 2026-06-25T16:01:20Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/db/db_row_to_review.bug-catalog.md"
-  classification_rationale: "high"
+  classification_rationale: "primary-deliverable-dependency"
   classified_by: "Claude"
-  classified_at: "2026-06-25T15:53:45Z"
+  classified_at: "2026-06-25T16:01:20Z"
 ```
 
 ## Claim(s)
 
-1. Bug catalog documents missing ValidationError handling
+1. Catalog defines missing ValidationError handling bug
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,13 +33,13 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150)
-- **Requirements Verified:** test design
+- **Requirements Verified:** error-handling
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`f4218da`](https://github.com/ImmortalDemonGod/flashcore/tree/f4218da94b7585670b3330758818ea2d09f40e7c))
+**Scope Inventory** (SHA: [`766f26f`](https://github.com/ImmortalDemonGod/flashcore/tree/766f26ffa4ad214e506bbd22a89495621708b9a6))
 
-- [`flashcore/db/db_row_to_review.bug-catalog.md#L1-L14`](https://github.com/ImmortalDemonGod/flashcore/blob/f4218da94b7585670b3330758818ea2d09f40e7c/flashcore/db/db_row_to_review.bug-catalog.md#L1-L14)
+- [`flashcore/db/db_row_to_review.bug-catalog.md#L15-L35`](https://github.com/ImmortalDemonGod/flashcore/blob/766f26ffa4ad214e506bbd22a89495621708b9a6/flashcore/db/db_row_to_review.bug-catalog.md#L15-L35)
 
 ### Class A (Execution Evidence)
 
@@ -54,7 +55,7 @@ This file has no claim-specific execution evidence.
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Bug catalog documents missing ValidationError handling | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Catalog defines missing ValidationError handling bug | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -70,4 +71,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Bug catalog for db_row_to_review
+Document missing ValidationError wrapper

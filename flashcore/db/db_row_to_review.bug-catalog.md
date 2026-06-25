@@ -12,3 +12,24 @@
 ## Skipped Bugs
 
 - None – all plausible error‑handling bugs are captured.
+
+---
+### Evidence Classes
+
+#### Class A – Behavioral/direct
+N/A — No runtime behavior executed in this catalog file.
+
+#### Class B – Referential
+Reference to code at `flashcore/db/db_utils.py:156-158` where the bug resides.
+
+#### Class C – Negative
+Search for missing `except ValidationError` pattern yielded no existing handling in this function.
+
+#### Class D – Static analysis
+Static analysis shows the function lacks a try/except block for `ValidationError` while similar functions include it.
+
+#### Class E – Intent alignment
+Intent URL: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
+
+#### Class F – Provenance
+N/A — No prior test provenance for this newly added catalog.
