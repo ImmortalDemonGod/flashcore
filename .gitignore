@@ -161,3 +161,8 @@ node_modules/
 
 # AIV Protocol (change context is gitignored per spec)
 .aiv/change.json
+# AIV scaffolding (corpus-captured) + provisioned venv — kept off the PR (#1/#40; .venv dangles on CI)
+.aiv/launch-briefs/
+.aiv/plans/
+.venv/
+.aiv-workflow.yml
