@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/test_vet_logic.py`
-**Commit:** `fb94a42`
-**Previous:** `8112f47`
-**Generated:** 2026-06-25T17:39:24Z
+**Commit:** `534ce28`
+**Previous:** `7296a2a`
+**Generated:** 2026-06-25T21:39:08Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -16,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/test_vet_logic.py"
-  classification_rationale: "high"
+  classification_rationale: "primary-deliverable-dependency"
   classified_by: "Claude"
-  classified_at: "2026-06-25T17:39:24Z"
+  classified_at: "2026-06-25T21:39:08Z"
 ```
 
 ## Claim(s)
 
-1. Test catches retained score field bug in _validate_and_normalize_card
+1. Test ensures 's' field is stripped
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -33,33 +33,34 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** testing
+- **Requirements Verified:** test design
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`fb94a42`](https://github.com/ImmortalDemonGod/flashcore/tree/fb94a425337843bc016a4778ee2386930927723a))
+**Scope Inventory** (SHA: [`534ce28`](https://github.com/ImmortalDemonGod/flashcore/tree/534ce28bf4f070a0921cb0c8fb929a80c05b9cb9))
 
-- [`flashcore/cli/test_vet_logic.py#L4-L7`](https://github.com/ImmortalDemonGod/flashcore/blob/fb94a425337843bc016a4778ee2386930927723a/flashcore/cli/test_vet_logic.py#L4-L7)
-- [`flashcore/cli/test_vet_logic.py#L9-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/fb94a425337843bc016a4778ee2386930927723a/flashcore/cli/test_vet_logic.py#L9-L11)
+- [`flashcore/cli/test_vet_logic.py#L3`](https://github.com/ImmortalDemonGod/flashcore/blob/534ce28bf4f070a0921cb0c8fb929a80c05b9cb9/flashcore/cli/test_vet_logic.py#L3)
+- [`flashcore/cli/test_vet_logic.py#L5-L8`](https://github.com/ImmortalDemonGod/flashcore/blob/534ce28bf4f070a0921cb0c8fb929a80c05b9cb9/flashcore/cli/test_vet_logic.py#L5-L8)
+- [`flashcore/cli/test_vet_logic.py#L10-L18`](https://github.com/ImmortalDemonGod/flashcore/blob/534ce28bf4f070a0921cb0c8fb929a80c05b9cb9/flashcore/cli/test_vet_logic.py#L10-L18)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_score_field_removed_bug_catch`** (L4-L7): FAIL -- WARNING: No tests import or call `test_score_field_removed_bug_catch`
+- **`test_B1_score_field_stripped`** (L3): FAIL -- WARNING: No tests import or call `test_B1_score_field_stripped`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** 11 error(s)
+- **ruff:** 12 error(s)
 - **mypy:** Success: no issues found in 1 source file
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Test catches retained score field bug in _validate_and_norma... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Test ensures 's' field is stripped | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -75,4 +76,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Test for bug 1
+Test B1 score field

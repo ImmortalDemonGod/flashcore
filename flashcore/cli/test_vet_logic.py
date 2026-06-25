@@ -1,11 +1,18 @@
 import pytest
 from flashcore.cli._vet_logic import _validate_and_normalize_card
+from flashcore.models import Card
 
-def test_score_field_removed_bug_catch():
-    """Bug 1: _validate_and_normalize_card should drop the 's' (score) field.
-    The current implementation retains it, causing ValidationError downstream.
-    This test expects the normalized dict to NOT contain 's'.
+def test_B1_score_field_stripped():
+    """B1: Ensure 's' (score) field is removed before Card validation.
+    A raw card dict with 'q', 'a', and 's' should be processed without raising ValidationError
+    and the returned dict must not contain the 's' key.
     """
-    raw_card = {"q": "What is 2+2?", "a": "4", "s": 5}
-    normalized = _validate_and_normalize_card(raw_card, deck_name="test_deck")
-    assert "s" not in normalized, "The 's' field should be removed during validation"
+    raw = {
+        "q": "What is 2+2?",
+        "a": "4",
+        "s": 5,
+    }
+    result = _validate_and_normalize_card(raw, deck_name="TestDeck")
+    assert "s" not in result, "Score field was not stripped"
+    assert "front" in result and "back" in result and "uuid" in result
+    Card(**result, deck_name="TestDeck")
