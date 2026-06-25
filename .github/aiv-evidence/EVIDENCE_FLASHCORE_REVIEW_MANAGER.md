@@ -1,9 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/review_manager.py`
-**Commit:** `ae6a8ee`
-**Previous:** `da38330`
-**Generated:** 2026-06-25T21:50:00Z
+**Commit:** `8fe2260`
+**Previous:** `8fe2260`
+**Generated:** 2026-06-25T21:50:59Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -18,12 +18,12 @@ classification:
   blast_radius: "flashcore/review_manager.py"
   classification_rationale: "high"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:50:00Z"
+  classified_at: "2026-06-25T21:50:59Z"
 ```
 
 ## Claim(s)
 
-1. ReviewManager now respects DB ordering, fixing early‑due card priority
+1. Provides ReviewManager alias to avoid ImportError in tests
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -37,28 +37,28 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`ae6a8ee`](https://github.com/ImmortalDemonGod/flashcore/tree/ae6a8ee99021ad337c602c6f87eb0522d71e1b4f))
+**Scope Inventory** (SHA: [`8fe2260`](https://github.com/ImmortalDemonGod/flashcore/tree/8fe22606754a936126cc8b75d61e3200c30c10b8))
 
-- [`flashcore/review_manager.py#L1-L23`](https://github.com/ImmortalDemonGod/flashcore/blob/ae6a8ee99021ad337c602c6f87eb0522d71e1b4f/flashcore/review_manager.py#L1-L23)
+- [`flashcore/review_manager.py#L4-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/8fe22606754a936126cc8b75d61e3200c30c10b8/flashcore/review_manager.py#L4-L24)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`<parse-error>`** (L1-L23): FAIL -- WARNING: No tests import or call `<parse-error>`
+- **`<parse-error>`** (L4-L24): FAIL -- WARNING: No tests import or call `<parse-error>`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** 379 error(s)
+- **ruff:** 357 error(s)
 - **mypy:** Found 1 error in 1 file (errors prevented further checking)
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | ReviewManager now respects DB ordering, fixing early‑due car... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Provides ReviewManager alias to avoid ImportError in tests | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -74,4 +74,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-preserve DB order for due cards
+add alias
