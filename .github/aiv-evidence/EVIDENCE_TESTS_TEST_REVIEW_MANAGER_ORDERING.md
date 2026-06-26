@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `tests/test_review_manager_ordering.py`
-**Commit:** `babfafd`
-**Generated:** 2026-06-25T21:36:42Z
+**Commit:** `b2f8ba5`
+**Previous:** `b15bcde`
+**Generated:** 2026-06-26T00:16:08Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "tests/test_review_manager_ordering.py"
-  classification_rationale: "high"
+  classification_rationale: "R2: test for bug fix"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:36:42Z"
+  classified_at: "2026-06-26T00:16:08Z"
 ```
 
 ## Claim(s)
 
-1. Test that initialize_session respects due date ordering
+1. Test verifies that initialize_session preserves DB ordering by next_due_date instead of re-sorting by modified_at
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,33 +33,40 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L180](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L180)
-- **Requirements Verified:** testing
+- **Requirements Verified:** F170: add test for ordering fix
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`babfafd`](https://github.com/ImmortalDemonGod/flashcore/tree/babfafdf04489082df074958cae9c065c8a8dcc5))
+**Scope Inventory** (SHA: [`b2f8ba5`](https://github.com/ImmortalDemonGod/flashcore/tree/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584))
 
-- [`tests/test_review_manager_ordering.py#L1-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/babfafdf04489082df074958cae9c065c8a8dcc5/tests/test_review_manager_ordering.py#L1-L24)
+- [`tests/test_review_manager_ordering.py#L2-L3`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L2-L3)
+- [`tests/test_review_manager_ordering.py#L5`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L5)
+- [`tests/test_review_manager_ordering.py#L7-L9`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L7-L9)
+- [`tests/test_review_manager_ordering.py#L13-L15`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L13-L15)
+- [`tests/test_review_manager_ordering.py#L17-L45`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L17-L45)
+- [`tests/test_review_manager_ordering.py#L48`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L48)
+- [`tests/test_review_manager_ordering.py#L50-L61`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L50-L61)
+- [`tests/test_review_manager_ordering.py#L63-L72`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/tests/test_review_manager_ordering.py#L63-L72)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`mock_db`** (L1-L24): FAIL -- WARNING: No tests import or call `mock_db`
-- **`test_initialize_session_respects_due_date_order`** (unknown): FAIL -- WARNING: No tests import or call `test_initialize_session_respects_due_date_order`
+- **`mock_db`** (L2-L3): FAIL -- WARNING: No tests import or call `mock_db`
+- **`test_initialize_session_respects_due_date_order`** (L5): FAIL -- WARNING: No tests import or call `test_initialize_session_respects_due_date_order`
 
 **Coverage summary:** 0/2 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** All checks passed
+- **ruff:** 26 error(s)
 - **mypy:** Success: no issues found in 1 source file
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Test that initialize_session respects due date ordering | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | Test verifies that initialize_session preserves DB ordering ... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -74,4 +82,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Ordering test
+Unit test for review queue ordering
