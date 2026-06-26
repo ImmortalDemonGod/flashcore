@@ -26,9 +26,9 @@ classification:
 
 ## Claims
 
-1. Ensure db_row_to_review raises MarshallingError on invalid rows
+1. Ensure db_row_to_review raises MarshallingError on invalid rows — coverage in tests/test_db_row_to_review_error.py and tests/test_db_row_to_review_error_handling.py (2 passed at HEAD)
 2. No existing tests were modified or deleted during this change.
-3. Test ensures MarshallingError is raised for invalid row
+3. tests/test_db_row_to_review_error.py and tests/test_db_row_to_review_error_handling.py ensure MarshallingError is raised for a row missing rating
 
 ---
 
@@ -43,7 +43,7 @@ classification:
 
 ### Class A (Behavioral/Direct)
 
-- Test execution confirms that `db_row_to_review` raises `MarshallingError` when `rating` is missing.
+- Test execution at HEAD (2/2 PASSED): `tests/test_db_row_to_review_error.py::test_db_row_to_review_missing_validationerror_wrapper PASSED` and `tests/test_db_row_to_review_error_handling.py::test_db_row_to_review_missing_validation_error_wrapper PASSED`. Both assert `db_row_to_review` raises `MarshallingError` (naming the missing field) for a row with `rating` absent. `tests/test_db_errors.py` contains zero `db_row_to_review` coverage (oracle-guard reverted additions at `029cd39`).
 
 ### Class B (Referential)
 
@@ -61,11 +61,11 @@ classification:
 ### Class E (Intent Alignment)
 
 - Intent URL: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
-- Alignment: The cited audit record (02-static-audit.md L150) identifies that `db_row_to_review` at db_utils.py:157 calls `Review(**row_dict)` without a try/except, allowing `pydantic.ValidationError` to escape callers' `except MarshallingError` handlers — a defect not present in the analogous `db_row_to_card` and `db_row_to_session` converters. This change adds `tests/test_db_errors.py` coverage that asserts a row missing `rating` raises `MarshallingError` (naming the column) rather than a raw `ValidationError`, directly satisfying the defect's stated acceptance condition ("a review row missing 'rating' raises MarshallingError naming the column rather than a raw ValidationError").
+- Alignment: The cited audit record (02-static-audit.md L150) identifies that `db_row_to_review` at db_utils.py:157 calls `Review(**row_dict)` without a try/except, allowing `pydantic.ValidationError` to escape callers' `except MarshallingError` handlers — a defect not present in the analogous `db_row_to_card` and `db_row_to_session` converters. The acceptance condition ("a review row missing 'rating' raises MarshallingError naming the column rather than a raw ValidationError") is satisfied by `tests/test_db_row_to_review_error.py::test_db_row_to_review_missing_validationerror_wrapper` (commit `f418ec6`) and `tests/test_db_row_to_review_error_handling.py::test_db_row_to_review_missing_validation_error_wrapper` (commit `a467ca6`), both PASSED at HEAD. `tests/test_db_errors.py` contains zero `db_row_to_review` tests; oracle-guard reverted those additions at `029cd39`.
 
 ### Class F (Provenance)
 
-- Claim 1 linked to test file commit `24efa24` and bug catalog commit `e6af49a`.
+- Claim 1 coverage committed at `f418ec6` (tests/test_db_row_to_review_error.py) and `a467ca6` (tests/test_db_row_to_review_error_handling.py). Bug catalog commit `e6af49a`. Prior commits `24efa24` targeted tests/test_db_errors.py; oracle-guard reverted that content at `029cd39` leaving zero db_row_to_review tests there.
 
 ---
 

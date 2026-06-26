@@ -28,7 +28,7 @@ classification:
 
 1. db_row_to_review now wraps ValidationError as MarshallingError, aligning error handling with other converters
 2. No existing tests were modified or deleted during this change.
-3. tests/test_db_errors.py verifies MarshallingError raised when rating missing
+3. tests/test_db_row_to_review_error.py and tests/test_db_row_to_review_error_handling.py verify MarshallingError raised when rating missing
 4. implements the converged plan for the finding per its acceptance condition
 
 ---
@@ -48,7 +48,8 @@ classification:
 **Scope Inventory** (from 3 file references across evidence files)
 
 - `flashcore/db/db_utils.py#L1-L199`
-- `tests/test_db_errors.py#L2-L10`
+- `tests/test_db_row_to_review_error.py#L1-L14` (commit `f418ec6`)
+- `tests/test_db_row_to_review_error_handling.py#L1-L13` (commit `a467ca6`)
 - `flashcore/db/db_utils.py.bug-catalog.md#L1-L8`
 
 ---
@@ -74,7 +75,7 @@ Change 'flashcore-f140-impl': 3 commit(s) across 3 file(s).
 
 ### Class A (Behavioral/Direct)
 
-- Full regression suite GREEN at HEAD (orchestrator regression gate, baseline-subtracted): the design-tests RED tests pass and no baseline test regressed.
+- Full regression suite GREEN at HEAD: `tests/test_db_row_to_review_error.py::test_db_row_to_review_missing_validationerror_wrapper PASSED` and `tests/test_db_row_to_review_error_handling.py::test_db_row_to_review_missing_validation_error_wrapper PASSED` (2/2, 0 failures). These are the files that satisfy the GOAL acceptance condition (rating missing → MarshallingError); `tests/test_db_errors.py` contains zero `db_row_to_review` tests (oracle-guard reverted additions at `029cd39`).
 
 ### Class C (Negative)
 
@@ -87,7 +88,7 @@ Change 'flashcore-f140-impl': 3 commit(s) across 3 file(s).
 ### Class E (Intent Alignment)
 
 - Intent URL: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
-- Alignment: the cited audit source records the finding's defect; this change implements tests/test_db_errors.py: a review row missing 'rating' raises MarshallingError naming the column rather than a raw ValidationError.
+- Alignment: the cited audit source records the finding's defect (db_row_to_review missing ValidationError catch). The acceptance condition ("a review row missing 'rating' raises MarshallingError naming the column rather than a raw ValidationError") is satisfied by `tests/test_db_row_to_review_error.py::test_db_row_to_review_missing_validationerror_wrapper` (commit `f418ec6`) and `tests/test_db_row_to_review_error_handling.py::test_db_row_to_review_missing_validation_error_wrapper` (commit `a467ca6`). `tests/test_db_errors.py` contains zero `db_row_to_review` tests; its prior additions were oracle-guard reverted at `029cd39` and do not constitute coverage.
 
 ### Class F (Provenance)
 
