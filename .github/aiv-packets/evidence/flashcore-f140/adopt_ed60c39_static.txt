@@ -1,0 +1,13 @@
+# Static analysis at branch HEAD (4b5f957b63544efb6e5d8ed8359308dcb625937b)
+# ed60c39 changed only non-Python files: intent-evidence.md, .github/aiv-evidence/EVIDENCE_INTENT_EVIDENCE.MD.md
+# No Python files were modified; ruff/mypy run against full flashcore/ package
+
+# ruff check flashcore/
+All checks passed!
+
+# python -m mypy flashcore/ --ignore-missing-imports
+Success: no issues found in 29 source files
+
+# Python file diff between ed60c39^ and ed60c39
+# git diff ed60c39^..ed60c39 -- "*.py" | wc -l
+0  (no Python changes)
