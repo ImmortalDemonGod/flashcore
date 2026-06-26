@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | flashcore-f140-impl |
 | **Commits** | `e3787b6`, `afeb5f6`, `85db895` |
 | **Head SHA** | `85db895` |
