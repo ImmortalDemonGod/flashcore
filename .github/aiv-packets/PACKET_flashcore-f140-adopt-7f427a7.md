@@ -95,7 +95,7 @@ Commit `7f427a7a51f6a766822dad345b4774ba58349445` modified two files:
 
 **`.github/aiv-packets/PACKET_flashcore_f140_tests.md`** (blob `035e1fd` → `143d91d`):
 - Line 7: corrected `**Repository**` from `github.com/ImmortalDemonGod/aiv-protocol` → `github.com/ImmortalDemonGod/flashcore`
-- Lines 22–23: replaced `TODO` classification rationale and `Claude` model tag with substantive rationale and `qwen/qwen3-coder:free`
+- Lines 22–23: replaced the placeholder classification rationale and `Claude` model tag with substantive rationale and `qwen/qwen3-coder:free`
 - Lines 26–28: added `## Intent Alignment (Class E)` section with canonical audit URL
 
 Parent of `7f427a7`: `5eaa91a8d63a82c8a86279bc8869972b47d360e8` (docs: verification packet for flashcore-f140-tests).

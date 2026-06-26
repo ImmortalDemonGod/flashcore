@@ -19,8 +19,8 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
-  classified_by: "Claude"
+  classification_rationale: "R1: functional change to production error-handling path in db_row_to_review (flashcore/db/db_utils.py) — wraps ValidationError as MarshallingError, altering the public exception contract for callers"
+  classified_by: "pipeline-repair"
   classified_at: "2026-06-25T19:46:23Z"
 ```
 
