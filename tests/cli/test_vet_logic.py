@@ -47,10 +47,10 @@ def test_vet_logic_clean_files_check_mode(
     Creates a YAML file containing a single card whose keys are alphabetically ordered and include a valid UUID, runs vet_logic with check=True, and asserts that no changes are needed and the captured output contains "All files are clean".
     """
     # Keys must be sorted alphabetically for the file to be considered "clean"
-    # Use a valid UUID format and sort card keys alphabetically (back, front, uuid)
+    # Use a valid UUID format and sort card keys alphabetically (a, q, uuid)
     valid_uuid = str(uuid.uuid4())
     clean_content = {
-        "cards": [{"back": "A1", "front": "Q1", "uuid": valid_uuid}],
+        "cards": [{"a": "A1", "q": "Q1", "uuid": valid_uuid}],
         "deck": "Test Deck",
     }
     with (tmp_path / "clean.yml").open("w") as f:
@@ -71,10 +71,10 @@ def test_vet_logic_clean_files_modify_mode(
     Tests that vet_logic in modify mode makes no changes to clean files.
     """
     # Keys must be sorted alphabetically for the file to be considered "clean"
-    # Use a valid UUID format and sort card keys alphabetically (back, front, uuid)
+    # Use a valid UUID format and sort card keys alphabetically (a, q, uuid)
     valid_uuid = str(uuid.uuid4())
     clean_content = {
-        "cards": [{"back": "A1", "front": "Q1", "uuid": valid_uuid}],
+        "cards": [{"a": "A1", "q": "Q1", "uuid": valid_uuid}],
         "deck": "Test Deck",
     }
     file_path = tmp_path / "clean.yml"
@@ -150,6 +150,24 @@ def test_vet_logic_dirty_files_modify_mode(
     assert len(data["cards"][1]["uuid"]) > 1
 
 
+def test_vet_logic_ignores_invalid_yaml_structure(tmp_path: Path):
+    """
+    Tests that vet_logic ignores YAML files with unexpected structures.
+    """
+    # This is a list at the root, not a dict with a 'cards' key
+    invalid_content = "- card: 1\n- card: 2"
+    file_path = tmp_path / "invalid.yml"
+    file_path.write_text(invalid_content)
+
+    original_mtime = file_path.stat().st_mtime
+    files = list(tmp_path.glob("*.yml"))
+    changes_needed = vet_logic(files_to_process=files, check=False)
+    new_mtime = file_path.stat().st_mtime
+
+    assert not changes_needed
+    assert original_mtime == new_mtime
+
+
 def test_vet_card_with_invalid_uuid(tmp_path):
     """Test that cards with invalid UUID format get a new UUID assigned."""
     yaml_content = (
@@ -199,4 +217,3 @@ def test_vet_non_validation_error(tmp_path):
     files = list(tmp_path.glob("*.yml"))
     result = vet_logic(files_to_process=files, check=True)
     assert isinstance(result, bool)
-
