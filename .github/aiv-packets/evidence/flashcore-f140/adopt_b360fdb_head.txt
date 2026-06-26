@@ -1,0 +1,37 @@
+# HEAD test run at branch HEAD (5e6faa7474d8449677c8e9e5405ace643612210f)
+# Command: source .venv/bin/activate && python -m pytest tests/test_db_errors.py -v --tb=short
+
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: /root/flashcore-flashcore-f140
+configfile: pyproject.toml
+collected 27 items
+
+tests/test_db_errors.py::test_get_connection_raises_custom_error_on_duckdb_error PASSED
+tests/test_db_errors.py::test_initialize_schema_raises_custom_error_on_duckdb_error PASSED
+tests/test_db_errors.py::test_initialize_schema_handles_rollback_error PASSED
+tests/test_db_errors.py::test_upsert_cards_batch_handles_db_error PASSED
+tests/test_db_errors.py::test_get_card_by_uuid_handles_validation_error[memory] PASSED
+tests/test_db_errors.py::test_get_card_by_uuid_handles_validation_error[file] PASSED
+tests/test_db_errors.py::test_get_all_cards_handles_db_error PASSED
+tests/test_db_errors.py::test_get_due_card_count_handles_db_error PASSED
+tests/test_db_errors.py::test_delete_cards_by_uuids_batch_handles_db_error PASSED
+tests/test_db_errors.py::test_upsert_cards_batch_handles_rollback_error PASSED
+tests/test_db_errors.py::test_get_card_by_uuid_handles_db_error PASSED
+tests/test_db_errors.py::test_get_due_cards_handles_db_error PASSED
+tests/test_db_errors.py::test_add_review_and_update_card_handles_db_error PASSED
+tests/test_db_errors.py::test_get_reviews_for_card_handles_db_error PASSED
+tests/test_db_errors.py::test_add_review_and_update_card_handles_missing_return_id PASSED
+tests/test_db_errors.py::test_delete_cards_by_uuids_batch_with_empty_list PASSED
+tests/test_db_errors.py::test_add_review_and_update_card_read_only_mode_raises_error PASSED
+tests/test_db_errors.py::test_add_review_and_update_card_handles_generic_exception PASSED
+tests/test_db_errors.py::test_add_review_and_update_card_reraises_database_error PASSED
+tests/test_db_errors.py::test_delete_cards_by_uuids_batch_in_read_only_mode PASSED
+tests/test_db_errors.py::test_get_all_card_fronts_and_uuids_handles_db_error PASSED
+tests/test_db_errors.py::test_get_all_cards_handles_validation_error[memory] PASSED
+tests/test_db_errors.py::test_get_all_cards_handles_validation_error[file] PASSED
+tests/test_db_errors.py::test_get_due_cards_handles_validation_error[memory] PASSED
+tests/test_db_errors.py::test_get_due_cards_handles_validation_error[file] PASSED
+tests/test_db_errors.py::test_get_card_with_invalid_tag_data_raises_error PASSED
+tests/test_db_errors.py::test_add_review_and_update_card_handles_rollback_error PASSED
+
+27 passed in 0.56s
