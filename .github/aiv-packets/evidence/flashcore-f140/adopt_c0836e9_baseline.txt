@@ -1,0 +1,33 @@
+## Baseline evidence — c0836e9^ (f4218da94b7585670b3330758818ea2d09f40e7c)
+
+### Check 1: flashcore/db/db_row_to_review.bug-catalog.md at parent
+
+$ git show f4218da94b7585670b3330758818ea2d09f40e7c:flashcore/db/db_row_to_review.bug-catalog.md
+
+fatal: path 'flashcore/db/db_row_to_review.bug-catalog.md' exists on disk, but not in 'f4218da94b7585670b3330758818ea2d09f40e7c'
+
+# File did NOT exist at parent — c0836e9 is a pure addition for this file.
+
+### Check 2: .github/aiv-evidence/EVIDENCE_FLASHCORE_DB_DB_ROW_TO_REVIEW.BUG_CATALOG.MD.md at parent
+
+$ git show f4218da94b7585670b3330758818ea2d09f40e7c:.github/aiv-evidence/EVIDENCE_FLASHCORE_DB_DB_ROW_TO_REVIEW.BUG_CATALOG.MD.md
+
+fatal: path '.github/aiv-evidence/EVIDENCE_FLASHCORE_DB_DB_ROW_TO_REVIEW.BUG_CATALOG.MD.md' exists on disk, but not in 'f4218da94b7585670b3330758818ea2d09f40e7c'
+
+# File did NOT exist at parent — c0836e9 is a pure addition for this file.
+
+### Stat of c0836e9
+
+$ git show c0836e928377d685c89dda687547ccb0330e9da6 --stat
+
+commit c0836e928377d685c89dda687547ccb0330e9da6
+Author: openrouter-driver (fix-pipeline) <noreply@openrouter.ai>
+Date:   Thu Jun 25 15:54:18 2026 +0000
+
+    Add bug catalog for db_row_to_review error handling
+
+ .github/aiv-evidence/EVIDENCE_FLASHCORE_DB_DB_ROW_TO_REVIEW.BUG_CATALOG.MD.md | 73 ++++++++++++++++++++++
+ flashcore/db/db_row_to_review.bug-catalog.md                                   | 14 +++++
+ 2 files changed, 87 insertions(+)
+
+# Pure addition — 2 new files, 0 modified, 0 deleted.

@@ -1,0 +1,19 @@
+## HEAD evidence — e8b811ece23ff4474ae72b4d63da01790dd49308
+
+### Gate test for F140
+
+$ source .venv/bin/activate && pytest tests/test_db_row_to_review_error.py -v --tb=long
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /root/flashcore-flashcore-f140/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /root/flashcore-flashcore-f140
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 1 item
+
+tests/test_db_row_to_review_error.py::test_db_row_to_review_missing_validationerror_wrapper PASSED [100%]
+
+============================== 1 passed in 0.04s ===============================
+
+EXIT CODE: 0

@@ -1,0 +1,11 @@
+## Static analysis for c0836e9 files
+
+$ ruff check flashcore/db/db_row_to_review.bug-catalog.md \
+    .github/aiv-evidence/EVIDENCE_FLASHCORE_DB_DB_ROW_TO_REVIEW.BUG_CATALOG.MD.md
+
+warning: No Python files found under the given path(s)
+All checks passed!
+
+EXIT CODE: 0
+
+# N/A for mypy — c0836e9 introduced only Markdown files; no Python source was added or modified.
