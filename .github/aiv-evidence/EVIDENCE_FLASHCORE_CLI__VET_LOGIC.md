@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/_vet_logic.py`
-**Commit:** `6c6705b`
-**Generated:** 2026-06-25T23:55:13Z
+**Commit:** `1d176b1`
+**Previous:** `f0730af`
+**Generated:** 2026-06-26T00:02:33Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -17,7 +18,7 @@ classification:
   blast_radius: "flashcore/cli/_vet_logic.py"
   classification_rationale: "R1"
   classified_by: "Claude"
-  classified_at: "2026-06-25T23:55:13Z"
+  classified_at: "2026-06-26T00:02:33Z"
 ```
 
 ## Claim(s)
@@ -36,21 +37,21 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`6c6705b`](https://github.com/ImmortalDemonGod/flashcore/tree/6c6705b63070ac50cd0bb864b0d47437d5dfe9eb))
+**Scope Inventory** (SHA: [`1d176b1`](https://github.com/ImmortalDemonGod/flashcore/tree/1d176b146da052ba5c05006fe41a3eddfcb007a6))
 
-- [`flashcore/cli/_vet_logic.py#L1-L29`](https://github.com/ImmortalDemonGod/flashcore/blob/6c6705b63070ac50cd0bb864b0d47437d5dfe9eb/flashcore/cli/_vet_logic.py#L1-L29)
+- [`flashcore/cli/_vet_logic.py#L1-L11`](https://github.com/ImmortalDemonGod/flashcore/blob/1d176b146da052ba5c05006fe41a3eddfcb007a6/flashcore/cli/_vet_logic.py#L1-L11)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`<parse-error>`** (L1-L29): FAIL -- WARNING: No tests import or call `<parse-error>`
+- **`<parse-error>`** (L1-L11): FAIL -- WARNING: No tests import or call `<parse-error>`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** 293 error(s)
+- **ruff:** 183 error(s)
 - **mypy:** Found 1 error in 1 file (errors prevented further checking)
 
 ## Claim Verification Matrix
