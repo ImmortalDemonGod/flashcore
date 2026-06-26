@@ -1,0 +1,17 @@
+## Baseline Evidence — 766f26f^ (7f427a7a51f6a766822dad345b4774ba58349445)
+
+# File existence check at parent commit
+
+$ git show 7f427a7a51f6a766822dad345b4774ba58349445:tests/test_db_errors.bug-catalog.md
+
+fatal: path 'tests/test_db_errors.bug-catalog.md' exists on disk, but not in '7f427a7a51f6a766822dad345b4774ba58349445'
+
+# Conclusion: tests/test_db_errors.bug-catalog.md did NOT exist at parent.
+# 766f26f introduced this file as a pure addition.
+
+$ git show 7f427a7a51f6a766822dad345b4774ba58349445:.github/aiv-evidence/EVIDENCE_TESTS_TEST_DB_ERRORS.BUG_CATALOG.MD.md
+
+fatal: path '.github/aiv-evidence/EVIDENCE_TESTS_TEST_DB_ERRORS.BUG_CATALOG.MD.md' exists on disk, but not in '7f427a7a51f6a766822dad345b4774ba58349445'
+
+# Conclusion: .github/aiv-evidence/EVIDENCE_TESTS_TEST_DB_ERRORS.BUG_CATALOG.MD.md did NOT exist at parent.
+# 766f26f introduced this file as a pure addition.

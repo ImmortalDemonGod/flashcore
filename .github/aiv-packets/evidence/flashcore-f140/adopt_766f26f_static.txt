@@ -1,0 +1,12 @@
+## Static Analysis at HEAD — 30f5b6f0defbc7db8fd32fbf8778d5a6aabbb87c
+
+# ruff on changed files (markdown files — no Python linting applicable)
+
+$ ruff check tests/test_db_errors.bug-catalog.md .github/aiv-evidence/EVIDENCE_TESTS_TEST_DB_ERRORS.BUG_CATALOG.MD.md
+
+warning: No Python files found under the given path(s)
+All checks passed!
+ruff exit: 0
+
+# mypy: not applicable (no Python source files introduced by 766f26f)
+# N/A — both changed files are Markdown documentation artifacts, not Python source.
