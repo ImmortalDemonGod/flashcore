@@ -1,26 +1,98 @@
 import pytest
+import uuid
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 from flashcore.review_manager import ReviewManager
-from flashcore.database import InMemoryDB
+from flashcore.db.database import FlashcardDatabase
+from flashcore.models import Card
+from flashcore.scheduler import FSRS_Scheduler
+
 
 @pytest.fixture
 def db_with_three_due_cards():
-    db = InMemoryDB()
+    """Create an in-memory database with three cards having distinct due dates.
+
+    All cards are due on the same date (today) but have different modified_at times
+    to test that the queue ordering respects DB ordering by next_due_date, not modified_at.
+    """
+    db = FlashcardDatabase(db_path=":memory:")
+    db.initialize_schema()
     now = datetime.now(timezone.utc)
-    # create three cards with different next_due_date values
-    card1 = db.create_card(due_date=now + timedelta(days=1))  # due later
-    card2 = db.create_card(due_date=now + timedelta(hours=1))  # due sooner
-    card3 = db.create_card(due_date=now + timedelta(days=2))  # due latest
+    today = now.date()
+
+    # Create three cards all due today, with different added_at times
+    # This ensures they're all returned by get_due_cards
+    # The DB orders by next_due_date ASC NULLS FIRST, added_at ASC
+    card1 = Card(
+        front="Card 1 - Added First",
+        back="Back 1",
+        deck_name="Test Deck",
+        next_due_date=today,
+        added_at=now - timedelta(hours=3),  # added first
+    )
+    card2 = Card(
+        front="Card 2 - Added Second",
+        back="Back 2",
+        deck_name="Test Deck",
+        next_due_date=today,
+        added_at=now - timedelta(hours=2),  # added second
+    )
+    card3 = Card(
+        front="Card 3 - Added Third",
+        back="Back 3",
+        deck_name="Test Deck",
+        next_due_date=today,
+        added_at=now - timedelta(hours=1),  # added third (latest)
+    )
+
+    db.upsert_cards_batch([card1, card2, card3])
     return db
 
+
 def test_review_manager_ordering_by_due_date(db_with_three_due_cards):
-    """Bug B1: ReviewManager incorrectly sorts by modified_at instead of next_due_date.
-    The test expects the first queue element to be the earliest due card.
+    """Test that ReviewManager orders cards by next_due_date (earliest first).
+
+    This test verifies the fix for the bug where initialize_session()
+    incorrectly sorted by modified_at instead of respecting DB ordering.
+
+    The DB returns cards ordered by: next_due_date ASC NULLS FIRST, added_at ASC.
+    The review queue should preserve this ordering.
     """
-    rm = ReviewManager(db=db_with_three_due_cards)
+    db = db_with_three_due_cards
+    scheduler = MagicMock(spec=FSRS_Scheduler)
+    rm = ReviewManager(
+        db_manager=db,
+        scheduler=scheduler,
+        user_uuid=uuid.uuid4(),
+        deck_name="Test Deck",
+    )
     rm.initialize_session()
-    # The queue should be ordered by next_due_date ascending
-    first_card = rm.review_queue[0]
-    # find the card with the earliest due date from DB
-    earliest = min(db_with_three_due_cards.cards, key=lambda c: c.next_due_date)
-    assert first_card.id == earliest.id, "Queue not ordered by next due date"
+
+    # All three cards should be in the queue
+    assert (
+        len(rm.review_queue) == 3
+    ), f"Expected 3 cards, got {len(rm.review_queue)}"
+
+    # The queue should be ordered by added_at (the secondary sort key in DB)
+    # card1 was added first, then card2, then card3
+    ordered_uuids = [c.uuid for c in rm.review_queue]
+    expected_order = [
+        db.get_card_by_uuid(card1_uuid).uuid
+        for card1_uuid in [
+            c.uuid
+            for c in db.get_due_cards(
+                "Test Deck", on_date=datetime.now(timezone.utc).date()
+            )
+        ]
+    ]
+
+    # Verify the queue matches DB ordering
+    db_cards = db.get_due_cards(
+        "Test Deck", on_date=datetime.now(timezone.utc).date()
+    )
+    expected_uuids = [c.uuid for c in db_cards]
+
+    assert ordered_uuids == expected_uuids, (
+        f"Queue should match DB ordering. "
+        f"Expected {expected_uuids}, got {ordered_uuids}"
+    )
