@@ -1,0 +1,93 @@
+## Class A — Behavioral Evidence for adopt-a233a9d
+## Generated: 2026-06-26
+## Baseline: a233a9d^ (26cb6b74d7445d52e8dacce0ab5081e5990222f6)
+## Head:     a54bbc4d1b1fb34df629627dec3afe2dfd1437a2
+
+=== BASELINE (a233a9d^) ===
+pytest tests/ run at a233a9d^ (26cb6b74d7445d52e8dacce0ab5081e5990222f6):
+
+  flashcore/review_manager.py at a233a9d^ contained raw patch-format markers
+  ("*** Begin Patch ...") as file content, not valid Python.
+
+  File first line at baseline:
+    *** Begin Patch
+
+  Result: SyntaxError during test collection — 11 errors, 0 tests executed:
+
+    ERROR tests/cli/test_flashcards_cli.py
+    ERROR tests/cli/test_main.py
+    ERROR tests/cli/test_review_all_logic.py
+    ERROR tests/cli/test_review_ui.py
+    ERROR tests/test_rating_system_inconsistency.py
+    ERROR tests/test_review_logic_duplication.py
+    ERROR tests/test_review_manager.py
+    ERROR tests/test_review_manager_integration.py
+    ERROR tests/test_review_manager_order.py
+    ERROR tests/test_review_manager_ordering.py
+    ERROR tests/test_session_analytics_gaps.py
+    !!!!!!!!!!!!!!!!!!! Interrupted: 11 errors during collection !!!!!!!!!!!!!!!!!!!
+    11 errors in 0.93s
+
+  Root cause: prior pipeline stage wrote patch-format text into review_manager.py
+  instead of applying the patch, rendering the file syntactically invalid.
+
+=== HEAD (branch fix/flashcore-f170 at a54bbc4) ===
+pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+      tests/test_review_manager_ordering.py tests/test_review_manager_integration.py \
+      -v --tb=short
+
+  platform linux -- Python 3.11.15, pytest-9.1.1
+  collected 28 items
+
+  tests/test_review_manager.py::TestReviewSessionManagerInit::test_init_successful PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_populates_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_clears_existing_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_returns_card_from_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_empty_queue_returns_none PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_new_card PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_with_history PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_card_not_in_session PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_scheduler_error PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_db_add_error PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_removes_card_from_active_queue PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_removes_card_from_queue PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_is_noop PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_does_not_inflate_reviewed_cards_in_stats PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_does_not_increment_skipped_count PASSED
+  tests/test_review_manager.py::TestGetDueCardCount::test_get_due_card_count_calls_db PASSED
+  tests/test_review_manager.py::TestReviewSessionManagerIntegration::test_e2e_session_flow PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_initialize_session_with_tags PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_session_analytics_start_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_record_session_analytics_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_with_analytics PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_analytics_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_no_session PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_success PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_failure PASSED
+  tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+  tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+  tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+
+  28 passed in 0.39s
+
+Full suite at HEAD:
+  496 passed, 1 skipped in 32.87s
+
+=== WHAT a233a9d CHANGED ===
+Commit a233a9d81c0295a336d3d87a0461593065556ceb replaced the syntactically
+invalid patch-text content of flashcore/review_manager.py with a full, valid
+Python implementation of ReviewSessionManager — rescuing 11 previously failing
+test-collection errors.
+
+Note: a233a9d itself still contained `sorted(due_cards, key=lambda c: c.modified_at)`
+at line 110 (the ordering bug). The ordering bug was then corrected by the
+immediately following commits (0cc7abe "fix: correct review queue ordering" and
+4287777 "fix: preserve DB ordering of due cards in review queue"), yielding
+`self.review_queue = due_cards` at HEAD (line 110).
+
+a233a9d also added `ReviewManager = ReviewSessionManager` alias (line ~343),
+later refined to a full subclass at HEAD (lines 345-346).
+
+Static analysis at HEAD:
+  mypy flashcore/review_manager.py --ignore-missing-imports → Success: no issues found
+  flake8 flashcore/review_manager.py --max-line-length=120    → exit 0 (no issues)
