@@ -19,8 +19,8 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
-  classified_by: "Claude"
+  classification_rationale: "R1: functional change to _vet_logic.py and _validate_and_normalize_card — alters the public contract for score field handling in the CLI validation path, carrying standard regression risk"
+  classified_by: "pipeline-repair"
   classified_at: "2026-06-26T00:27:22Z"
 ```
 

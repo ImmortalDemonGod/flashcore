@@ -19,8 +19,8 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
-  classified_by: "Claude"
+  classification_rationale: "R1: test additions that exercise the score-field removal path in _vet_logic.py — new test files touching the test suite carry standard risk of test-suite interference"
+  classified_by: "pipeline-repair"
   classified_at: "2026-06-25T21:31:24Z"
 ```
 
