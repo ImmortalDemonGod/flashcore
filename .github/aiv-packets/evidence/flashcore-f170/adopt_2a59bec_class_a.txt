@@ -1,0 +1,81 @@
+## Class A Evidence — adopt-2a59bec
+## Generated: 2026-06-26
+## Branch: fix/flashcore-f170
+## Adopted commit: 2a59becdbd1a4dfeb5b5ad4f6f72c517e8b772ad
+
+=== BASELINE (2a59bec^ = 1d25c2212d53adf446c4f7bcb11c1bed9c397f52) ===
+
+flashcore/review_manager.py — 348 lines, valid Python.
+
+Syntax check:
+  git show 2a59bec^:flashcore/review_manager.py | python3 -c "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+  → VALID
+
+Sort key at 2a59bec^ (line 113):
+  self.review_queue = sorted(due_cards, key=lambda c: c.next_due_date)
+
+ReviewManager alias at 2a59bec^ (last 2 lines):
+  # Backward compatibility: expose ReviewManager as an alias expected by importers.
+  ReviewManager = ReviewSessionManager
+
+=== AT 2a59bec ===
+
+flashcore/review_manager.py — 178 lines (stripped docstrings/comments).
+
+Syntax check:
+  git show 2a59bec:flashcore/review_manager.py | python3 -c "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+  → SyntaxError: cannot assign to expression here. Maybe you meant '==' instead of '='?
+    (line 178: +ReviewManager = ReviewSessionManager)
+
+Sort key at 2a59bec (line 70):
+  self.review_queue = sorted(due_cards, key=lambda c: c.next_due_date)
+  [unchanged from parent — ordering fix carried forward correctly]
+
+ReviewManager alias at 2a59bec (last 2 lines):
+  # Compatibility shim for legacy imports
+  +ReviewManager = ReviewSessionManager
+  [patch-format '+' artifact makes this syntactically invalid Python]
+
+=== HEAD (51000599e952e5401a59fedbf68c882eb802ae52) ===
+
+pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+       tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+
+tests/test_review_manager.py::TestReviewSessionManagerInit::test_init_successful PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_populates_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_clears_existing_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_returns_card_from_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_empty_queue_returns_none PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_new_card PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_with_history PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_card_not_in_session PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_scheduler_error PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_db_add_error PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_removes_card_from_active_queue PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_removes_card_from_queue PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_is_noop PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_does_not_inflate_reviewed_cards_in_stats PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_does_not_increment_skipped_count PASSED
+tests/test_review_manager.py::TestGetDueCardCount::test_get_due_card_count_calls_db PASSED
+tests/test_review_manager.py::TestReviewSessionManagerIntegration::test_e2e_session_flow PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_initialize_session_with_tags PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_session_analytics_start_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_record_session_analytics_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_with_analytics PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_analytics_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_no_session PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_success PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_failure PASSED
+tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+
+28 passed in 0.37s
+
+Full suite: 496 passed, 1 skipped in 32.45s
+
+Static analysis at HEAD:
+  mypy flashcore/review_manager.py --ignore-missing-imports → Success: no issues found in 1 source file
+  flake8 flashcore/review_manager.py --max-line-length=120  → exit 0 (no issues)
