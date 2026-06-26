@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
 | **Change ID** | flashcore-f83-adopt-4f3ce12 |
 | **Commits** | `31cd5df` |
 | **Head SHA** | `1565b7f` |
@@ -19,7 +19,7 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: component
-  classification_rationale: "TODO: Describe why this tier was chosen"
+  classification_rationale: "R1: test-only change; fix-forward corrects wrong assertions in red test for finding F83; no production code changed"
   classified_by: "Claude"
   classified_at: "2026-06-26T04:03:34Z"
 ```
@@ -29,6 +29,7 @@ classification:
 1. _validate_and_normalize_card strips s field and returns YAML-format keys (q/a/uuid); acceptance condition for F83 verified by direct probe: input {q,a,s} -> output {a,q,uuid} with s absent
 2. ruff check flashcore/cli/tests/test_vet_logic_score_bug_red.py passes with zero errors after removing unused pytest and pydantic imports
 3. No existing tests were modified or deleted during this change.
+4. (PROVENANCE) `git show 31cd5df --stat` confirms only `flashcore/cli/tests/test_vet_logic_score_bug_red.py` and `.github/aiv-evidence/EVIDENCE_FLASHCORE_CLI_TESTS_TEST_VET_LOGIC_SCORE_BUG_RED.md` changed; no hooks bypassed; branch is `fix/flashcore-f83`; parent commit is `b31dcfb`.
 
 ---
 
@@ -46,6 +47,15 @@ classification:
 
 - `flashcore/cli/tests/test_vet_logic_score_bug_red.py#L4`
 - `flashcore/cli/tests/test_vet_logic_score_bug_red.py#L8-L9`
+
+### Class E (Intent Alignment)
+
+Canonical intent for finding F83 (audit record that raised this finding):
+https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93
+
+Commit 4f3ce12 refined the red test's docstring (Bug 1 → Bug B1) for finding F83.
+The fix-forward commit (31cd5df) converts the test to a correct green assertion matching
+the actual return contract of `_validate_and_normalize_card`.
 
 ---
 

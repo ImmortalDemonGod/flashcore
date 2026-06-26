@@ -51,3 +51,22 @@ Baseline reproduced by `git show cb5c6c3:flashcore/cli/tests/test_vet_logic_scor
 4f3ce12^ state) then running `pytest flashcore/cli/tests/test_vet_logic_score_bug_red.py -v --tb=short`
 against the HEAD implementation. HEAD result reproduced by running the same command with the working-tree
 test file after the fix-forward commit.
+
+---
+
+### Re-verification at final HEAD (b8451d8a4552242ed180ccbe640dc443a2fc2042)
+
+```
+pytest flashcore/cli/tests/test_vet_logic_score_bug_red.py -v --tb=short
+# Platform: linux, Python 3.11.15, pytest-9.1.1
+# 1 passed in 0.23s
+flashcore/cli/tests/test_vet_logic_score_bug_red.py::test_score_field_not_stripped_causes_validation_error PASSED
+```
+
+Runtime probe:
+```python
+_validate_and_normalize_card({"q": "What?", "a": "Answer", "s": 2}, "test_deck")
+# Result keys: ['a', 'q', 'uuid'] — s absent: True
+```
+
+**Result:** PASS — invariant holds at branch HEAD `b8451d8`.
