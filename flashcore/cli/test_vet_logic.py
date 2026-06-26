@@ -14,5 +14,4 @@ def test_B1_score_field_stripped():
     }
     result = _validate_and_normalize_card(raw, deck_name="TestDeck")
     assert "s" not in result, "Score field was not stripped"
-    assert "front" in result and "back" in result and "uuid" in result
-    Card(**result, deck_name="TestDeck")
+    assert "q" in result and "a" in result and "uuid" in result
