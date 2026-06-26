@@ -1,0 +1,8 @@
+# Baseline evidence: d9f96b3^ (42f51def0cd3dbb7ff6e986b0125a99d528c3b35)
+# Verifying that tests/test_db_row_to_review_error.py did NOT exist at the parent commit
+
+$ git show 42f51def0cd3dbb7ff6e986b0125a99d528c3b35:tests/test_db_row_to_review_error.py
+
+fatal: path 'tests/test_db_row_to_review_error.py' exists on disk, but not in '42f51def0cd3dbb7ff6e986b0125a99d528c3b35'
+
+# Conclusion: file introduced by d9f96b3; zero tests for this file at baseline.

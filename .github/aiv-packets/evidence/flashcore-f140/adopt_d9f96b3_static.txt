@@ -1,0 +1,36 @@
+# Static analysis evidence: tests/test_db_row_to_review_error.py at HEAD (31af2be1)
+# Note: current file content is from f418ec6 (import correction), not d9f96b3
+
+$ ruff check tests/test_db_row_to_review_error.py
+
+F401 [*] `flashcore.db.errors.ReviewOperationError` imported but unused
+ --> tests/test_db_row_to_review_error.py:3:51
+  |
+1 | import pytest
+2 | from flashcore.db.db_utils import db_row_to_review
+3 | from flashcore.db.errors import MarshallingError, ReviewOperationError
+  |                                                   ^^^^^^^^^^^^^^^^^^^^
+4 | from flashcore.models import Review
+  |
+help: Remove unused import: `flashcore.db.errors.ReviewOperationError`
+
+F401 [*] `flashcore.models.Review` imported but unused
+ --> tests/test_db_row_to_review_error.py:4:30
+  |
+2 | from flashcore.db.db_utils import db_row_to_review
+3 | from flashcore.db.errors import MarshallingError, ReviewOperationError
+4 | from flashcore.models import Review
+  |                              ^^^^^^
+  |
+help: Remove unused import: `flashcore.models.Review`
+
+Found 2 errors.
+EXIT: 1
+
+# Note: Both F401 warnings are pre-existing at HEAD (introduced by f418ec6, which has its own adopt packet).
+# These are non-blocking style findings and do not affect test execution or correctness.
+
+$ mypy tests/test_db_row_to_review_error.py --ignore-missing-imports
+
+Success: no issues found in 1 source file
+EXIT: 0
