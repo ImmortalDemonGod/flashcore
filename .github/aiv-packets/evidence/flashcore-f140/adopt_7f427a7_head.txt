@@ -1,0 +1,37 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /root/flashcore-flashcore-f140/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /root/flashcore-flashcore-f140
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 27 items
+
+tests/test_db_errors.py::test_get_connection_raises_custom_error_on_duckdb_error PASSED [  3%]
+tests/test_db_errors.py::test_initialize_schema_raises_custom_error_on_duckdb_error PASSED [  7%]
+tests/test_db_errors.py::test_initialize_schema_handles_rollback_error PASSED [ 11%]
+tests/test_db_errors.py::test_upsert_cards_batch_handles_db_error PASSED [ 14%]
+tests/test_db_errors.py::test_get_card_by_uuid_handles_validation_error[memory] PASSED [ 18%]
+tests/test_db_errors.py::test_get_card_by_uuid_handles_validation_error[file] PASSED [ 22%]
+tests/test_db_errors.py::test_get_all_cards_handles_db_error PASSED      [ 25%]
+tests/test_db_errors.py::test_get_due_card_count_handles_db_error PASSED [ 29%]
+tests/test_db_errors.py::test_delete_cards_by_uuids_batch_handles_db_error PASSED [ 33%]
+tests/test_db_errors.py::test_upsert_cards_batch_handles_rollback_error PASSED [ 37%]
+tests/test_db_errors.py::test_get_card_by_uuid_handles_db_error PASSED   [ 40%]
+tests/test_db_errors.py::test_get_due_cards_handles_db_error PASSED      [ 44%]
+tests/test_db_errors.py::test_add_review_and_update_card_handles_db_error PASSED [ 48%]
+tests/test_db_errors.py::test_get_reviews_for_card_handles_db_error PASSED [ 51%]
+tests/test_db_errors.py::test_add_review_and_update_card_handles_missing_return_id PASSED [ 55%]
+tests/test_db_errors.py::test_delete_cards_by_uuids_batch_with_empty_list PASSED [ 59%]
+tests/test_db_errors.py::test_add_review_and_update_card_read_only_mode_raises_error PASSED [ 62%]
+tests/test_db_errors.py::test_add_review_and_update_card_handles_generic_exception PASSED [ 66%]
+tests/test_db_errors.py::test_add_review_and_update_card_reraises_database_error PASSED [ 70%]
+tests/test_db_errors.py::test_delete_cards_by_uuids_batch_in_read_only_mode PASSED [ 74%]
+tests/test_db_errors.py::test_get_all_card_fronts_and_uuids_handles_db_error PASSED [ 77%]
+tests/test_db_errors.py::test_get_all_cards_handles_validation_error[memory] PASSED [ 81%]
+tests/test_db_errors.py::test_get_all_cards_handles_validation_error[file] PASSED [ 85%]
+tests/test_db_errors.py::test_get_due_cards_handles_validation_error[memory] PASSED [ 88%]
+tests/test_db_errors.py::test_get_due_cards_handles_validation_error[file] PASSED [ 92%]
+tests/test_db_errors.py::test_get_card_with_invalid_tag_data_raises_error PASSED [ 96%]
+tests/test_db_errors.py::test_add_review_and_update_card_handles_rollback_error PASSED [100%]
+
+============================== 27 passed in 0.58s ==============================

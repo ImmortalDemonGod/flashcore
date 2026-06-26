@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /root/flashcore-flashcore-f140/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /root/flashcore-flashcore-f140
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 1 item
+
+tests/test_db_errors.py::test_db_row_to_review_invalid_missing_rating_raises_marshalling_error PASSED [100%]
+
+============================== 1 passed in 0.02s ===============================
