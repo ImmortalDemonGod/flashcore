@@ -1,16 +1,14 @@
-# AIV Adoption Packet — flashcore-f140-adopt-b360fdb
+# AIV Verification Packet (v2.2)
 
-**Change ID:** flashcore-f140-adopt-b360fdb  
-**Adopted Commit:** `b360fdb68c1a3cb4edd1f6637b0c8730746c8b15`  
-**Commit Message:** "Add AIV packet for F140"  
-**Author:** openrouter-driver (fix-pipeline) <noreply@openrouter.ai>  
-**Baseline (b360fdb^):** `b94cc30fb916166ff8aef9ed067e8cc36a11f5e4`  
-**Branch HEAD:** `5e6faa7474d8449677c8e9e5405ace643612210f`  
-**Packet generated:** 2026-06-26  
-**Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)  
-**Risk Tier:** R0 (documentation/evidence-only change — no Python logic modified)  
+## Identification
 
----
+| Field | Value |
+|-------|-------|
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
+| **Change ID** | flashcore-f140-adopt-b360fdb |
+| **Commits** | `b360fdb` |
+| **Head SHA** | `5e6faa7474d8449677c8e9e5405ace643612210f` |
+| **Created** | 2026-06-26T02:30:00Z |
 
 ## Context
 
@@ -50,9 +48,9 @@ classification:
 
 ## Claims
 
-1. **C1** — b360fdb introduced no change to any Python source or test file; the functional fix
-   in `flashcore/db/db_utils.py` (the `try/except` wrapper in `db_row_to_review`) is intact
-   at branch HEAD and all 27 tests in `tests/test_db_errors.py` pass before and after the
+1. **C1** — b360fdb introduced no change to any Python source or test file; the error-handling
+   correction in `flashcore/db/db_utils.py` (the `try/except` wrapper in `db_row_to_review`) is
+   intact at branch HEAD and all 27 tests in `tests/test_db_errors.py` pass before and after the
    commit.
 
 2. **C2** — `flashcore-f140-tests.packet.md` at b360fdb correctly references the canonical audit

@@ -40,8 +40,8 @@ Zero Python files were modified. No tests were added, removed, or altered.
 
 ## Claims
 
-1. **C1** — `40d169f` introduced no change to any Python source or test file; the functional fix
-   in `flashcore/db/db_utils.py` (the `try/except` wrapping `Review(**row_dict)` in
+1. **C1** — `40d169f` introduced no change to any Python source or test file; the error-handling
+   correction in `flashcore/db/db_utils.py` (the `try/except` wrapping `Review(**row_dict)` in
    `db_row_to_review`) is intact at branch HEAD and all 27 tests in `tests/test_db_errors.py`
    pass at both baseline and HEAD.
 
