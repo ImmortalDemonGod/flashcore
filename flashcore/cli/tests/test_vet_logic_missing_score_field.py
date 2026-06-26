@@ -14,6 +14,9 @@ def test_validate_and_normalize_card_preserves_score_field_without_error():
     normalized = _validate_and_normalize_card(card_data, deck_name)
     # Should not contain 's'
     assert "s" not in normalized
+    # Should have front and back
+    assert "front" in normalized
+    assert "back" in normalized
     # Attempt to create Card should succeed
     try:
         Card(**normalized, deck_name=deck_name)

@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/cli/tests/test_vet_logic_missing_score_field.py`
-**Commit:** `e560209`
-**Generated:** 2026-06-25T21:10:51Z
+**Commit:** `9c50e27`
+**Previous:** `153e653`
+**Generated:** 2026-06-26T00:23:49Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/cli/tests/test_vet_logic_missing_score_field.py"
-  classification_rationale: "primary-deliverable-dependency"
+  classification_rationale: "R1"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:10:51Z"
+  classified_at: "2026-06-26T00:23:49Z"
 ```
 
 ## Claim(s)
 
-1. _validate_and_normalize_card should drop score field 's' to avoid ValidationError
+1. implements the converged plan for the finding per its acceptance condition
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,19 +33,19 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** bug detection
+- **Requirements Verified:** write-code: implement the converged plan within scope
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`e560209`](https://github.com/ImmortalDemonGod/flashcore/tree/e560209c5e6f5c25a65179f34b4f57baa0328212))
+**Scope Inventory** (SHA: [`9c50e27`](https://github.com/ImmortalDemonGod/flashcore/tree/9c50e276852dccb021429862756646748ddfee1a))
 
-- [`flashcore/cli/tests/test_vet_logic_missing_score_field.py#L1-L21`](https://github.com/ImmortalDemonGod/flashcore/blob/e560209c5e6f5c25a65179f34b4f57baa0328212/flashcore/cli/tests/test_vet_logic_missing_score_field.py#L1-L21)
+- [`flashcore/cli/tests/test_vet_logic_missing_score_field.py#L17-L19`](https://github.com/ImmortalDemonGod/flashcore/blob/9c50e276852dccb021429862756646748ddfee1a/flashcore/cli/tests/test_vet_logic_missing_score_field.py#L17-L19)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_validate_and_normalize_card_preserves_score_field_without_error`** (L1-L21): FAIL -- WARNING: No tests import or call `test_validate_and_normalize_card_preserves_score_field_without_error`
+- **`test_validate_and_normalize_card_preserves_score_field_without_error`** (L17-L19): FAIL -- WARNING: No tests import or call `test_validate_and_normalize_card_preserves_score_field_without_error`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
@@ -57,7 +58,7 @@ classification:
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | _validate_and_normalize_card should drop score field 's' to ... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | implements the converged plan for the finding per its accept... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -73,4 +74,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-test missing score field
+test_vet_logic_missing_score_field.py for the finding
