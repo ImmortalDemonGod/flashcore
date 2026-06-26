@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `tests/test_vet_logic.py`
-**Commit:** `1cd34ac`
-**Generated:** 2026-06-25T21:33:41Z
+**Commit:** `0cd500f`
+**Previous:** `151570d`
+**Generated:** 2026-06-26T00:26:11Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,14 +16,14 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "tests/test_vet_logic.py"
-  classification_rationale: "high"
+  classification_rationale: "R1"
   classified_by: "Claude"
-  classified_at: "2026-06-25T21:33:41Z"
+  classified_at: "2026-06-26T00:26:11Z"
 ```
 
 ## Claim(s)
 
-1. Test expects ValidationError due to s field not removed
+1. implements the converged plan for the finding per its acceptance condition
 2. No existing tests were modified or deleted during this change.
 
 ---
@@ -32,32 +33,34 @@ classification:
 ### Class E (Intent Alignment)
 
 - **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93](https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L93)
-- **Requirements Verified:** testing
+- **Requirements Verified:** write-code: implement the converged plan within scope
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`1cd34ac`](https://github.com/ImmortalDemonGod/flashcore/tree/1cd34acc5a163047cef66fa2002fc58c11195780))
+**Scope Inventory** (SHA: [`0cd500f`](https://github.com/ImmortalDemonGod/flashcore/tree/0cd500ff61d9199eb6c60bf84191551e86d13eb9))
 
-- [`tests/test_vet_logic.py#L1-L16`](https://github.com/ImmortalDemonGod/flashcore/blob/1cd34acc5a163047cef66fa2002fc58c11195780/tests/test_vet_logic.py#L1-L16)
+- [`tests/test_vet_logic.py#L3`](https://github.com/ImmortalDemonGod/flashcore/blob/0cd500ff61d9199eb6c60bf84191551e86d13eb9/tests/test_vet_logic.py#L3)
+- [`tests/test_vet_logic.py#L5-L6`](https://github.com/ImmortalDemonGod/flashcore/blob/0cd500ff61d9199eb6c60bf84191551e86d13eb9/tests/test_vet_logic.py#L5-L6)
+- [`tests/test_vet_logic.py#L12-L19`](https://github.com/ImmortalDemonGod/flashcore/blob/0cd500ff61d9199eb6c60bf84191551e86d13eb9/tests/test_vet_logic.py#L12-L19)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`test_validate_and_normalize_card_does_not_remove_score_field_raises_error`** (L1-L16): FAIL -- WARNING: No tests import or call `test_validate_and_normalize_card_does_not_remove_score_field_raises_error`
+- **`test_validate_and_normalize_card_removes_score_field`** (L3): FAIL -- WARNING: No tests import or call `test_validate_and_normalize_card_removes_score_field`
 
 **Coverage summary:** 0/1 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** All checks passed
+- **ruff:** 24 error(s)
 - **mypy:** Success: no issues found in 1 source file
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Test expects ValidationError due to s field not removed | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
+| 1 | implements the converged plan for the finding per its accept... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
 | 2 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
 **Verdict summary:** 0 verified, 0 unverified, 2 manual review.
@@ -73,4 +76,4 @@ Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/ty
 
 ## Summary
 
-Test B1
+test_vet_logic.py for the finding
