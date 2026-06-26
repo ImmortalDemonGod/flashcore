@@ -62,11 +62,14 @@ def _validate_and_normalize_card(
     if "a" in mapped_card_dict:
         mapped_card_dict["back"] = mapped_card_dict.pop("a")
 
+    
+    # Remove the score field if present (not part of Card model)
+    mapped_card_dict.pop("s", None)
     # 2. Remove empty UUIDs so Pydantic can generate a new one
     if "uuid" in mapped_card_dict and not mapped_card_dict["uuid"]:
         mapped_card_dict.pop("uuid")
 
-    # 2.5. Convert string UUID to UUID object if present
+    # 3. Convert string UUID to UUID object if present
     if "uuid" in mapped_card_dict and isinstance(
         mapped_card_dict["uuid"], str
     ):
@@ -76,22 +79,17 @@ def _validate_and_normalize_card(
             # Invalid UUID format, remove it so Pydantic can generate a new one
             mapped_card_dict.pop("uuid")
 
-    # 3. Validate with the Pydantic model
+    # 4. Validate with the Pydantic model
     card_obj = Card(**mapped_card_dict, deck_name=deck_name)
 
-    # 4. Prepare the dictionary for writing back to YAML
-    card_to_write_raw = raw_card_dict.copy()
-    card_to_write_raw["uuid"] = str(card_obj.uuid)
+    # 5. Prepare the dictionary for writing back to YAML
+    # Start with the original dict, add the new UUID, and remove 's' field
+    card_to_write = raw_card_dict.copy()
+    card_to_write["uuid"] = str(card_obj.uuid)
+    card_to_write.pop("s", None)  # Remove score field to prevent ValidationError
 
-    # 5. Sort keys for consistent output
-    card_to_write_sorted = dict(
-        sorted(
-            {
-                k: str(v) if isinstance(v, uuid.UUID) else v
-                for k, v in card_to_write_raw.items()
-            }.items()
-        )
-    )
+    # 6. Sort keys for consistent output
+    card_to_write_sorted = dict(sorted(card_to_write.items()))
     return card_to_write_sorted
 
 
