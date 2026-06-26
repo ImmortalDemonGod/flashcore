@@ -1,7 +1,7 @@
 # AIV Evidence File (v1.0)
 
 **File:** `tests/test_review_manager.bug-catalog.md`
-**Commit:** `8468ece`
+**Commit:** `babfafdf`
 **Generated:** 2026-06-25T21:35:42Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
@@ -36,9 +36,9 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`8468ece`](https://github.com/ImmortalDemonGod/flashcore/tree/8468eceb3f10d81f5dc093abedb8ac30f4178d8b))
+**Scope Inventory** (SHA: [`babfafdf`](https://github.com/ImmortalDemonGod/flashcore/tree/babfafdf04489082df074958cae9c065c8a8dcc5))
 
-- [`tests/test_review_manager.bug-catalog.md#L1-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/8468eceb3f10d81f5dc093abedb8ac30f4178d8b/tests/test_review_manager.bug-catalog.md#L1-L24)
+- [`tests/test_review_manager.bug-catalog.md#L1-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/babfafdf04489082df074958cae9c065c8a8dcc5/tests/test_review_manager.bug-catalog.md#L1-L24)
 
 ### Class A (Execution Evidence)
 

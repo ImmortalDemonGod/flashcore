@@ -1,7 +1,7 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/review_manager.py.bug-catalog.md`
-**Commit:** `4287777`
+**Commit:** `b2f8ba5`
 **Generated:** 2026-06-26T00:15:29Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
@@ -36,9 +36,9 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`4287777`](https://github.com/ImmortalDemonGod/flashcore/tree/428777798685a90ef53380dfa3f1488f219439eb))
+**Scope Inventory** (SHA: [`b2f8ba5`](https://github.com/ImmortalDemonGod/flashcore/tree/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584))
 
-- [`flashcore/review_manager.py.bug-catalog.md#L1-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/428777798685a90ef53380dfa3f1488f219439eb/flashcore/review_manager.py.bug-catalog.md#L1-L24)
+- [`flashcore/review_manager.py.bug-catalog.md#L1-L24`](https://github.com/ImmortalDemonGod/flashcore/blob/b2f8ba5f10b7b80cabcabb9fc39f3df8a906e584/flashcore/review_manager.py.bug-catalog.md#L1-L24)
 
 ### Class A (Execution Evidence)
 
