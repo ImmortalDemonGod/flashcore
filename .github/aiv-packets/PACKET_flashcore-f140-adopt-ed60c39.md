@@ -1,16 +1,33 @@
-# AIV Adoption Packet — flashcore-f140-adopt-ed60c39
+# AIV Verification Packet (v2.2)
 
-**Change ID:** flashcore-f140-adopt-ed60c39  
-**Adopted Commit:** `ed60c393655ed418480b4729aa29417b4222c321`  
-**Commit Message:** "Add Intent alignment evidence for F140"  
-**Author:** openrouter-driver (fix-pipeline) <noreply@openrouter.ai>  
-**Baseline (ed60c39^):** `b360fdb68c1a3cb4edd1f6637b0c8730746c8b15`  
-**Branch HEAD:** `4b5f957b63544efb6e5d8ed8359308dcb625937b`  
-**Packet generated:** 2026-06-26  
-**Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)  
-**Risk Tier:** R0 (documentation/evidence-only change — no Python logic modified)  
+## Identification
 
----
+| Field | Value |
+|-------|-------|
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
+| **Change ID** | flashcore-f140-adopt-ed60c39 |
+| **Commits** | `ed60c39` |
+| **Head SHA** | `5e6faa7474d8` |
+| **Created** | 2026-06-26T02:30:00Z |
+
+## Classification
+
+```yaml
+classification:
+  risk_tier: R1
+  sod_mode: S0
+  critical_surfaces: []
+  blast_radius: "operator mid-drive adoption"
+  classification_rationale: "R1: adoption of operator out-of-band commit on PR branch"
+  classified_by: "pipeline-repair-script"
+  classified_at: "2026-06-26T02:30:00Z"
+```
+
+## Claims
+
+1. Commit ed60c39 was adopted into the evidence chain without reverting the operator change.
+2. Branch HEAD remains correct after adopting ed60c39 — the commit did not break existing tests.
+3. The adoption aligns with the canonical intent for this PR branch.
 
 ## Context
 

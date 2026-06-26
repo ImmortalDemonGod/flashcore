@@ -1,15 +1,33 @@
-# AIV Packet — flashcore-f140-adopt-f418ec6
+# AIV Verification Packet (v2.2)
 
-**Change type:** Adoption (out-of-band operator commit)
-**Adopted commit:** `f418ec67ff1f8b04c35b899ebb422505d17414e1`
-**Commit message:** `Add red test for missing ValidationError wrapper in db_row_to_review`
-**Author:** openrouter-driver (fix-pipeline) <noreply@openrouter.ai>
-**Date:** 2026-06-25T16:28:33Z
-**Parent (baseline):** `65e5731184cf1aab563c1d293fabca01ebe2ec01`
-**Branch HEAD:** `954deeb607d0104ea01a99abc7059f1f45a4a704`
-**Finding:** F140 — `flashcore/db/db_utils.py:156-158` — db_row_to_review missing MarshallingError wrapper
+## Identification
 
----
+| Field | Value |
+|-------|-------|
+| **Repository** | github.com/ImmortalDemonGod/flashcore |
+| **Change ID** | flashcore-f140-adopt-f418ec6 |
+| **Commits** | `f418ec6` |
+| **Head SHA** | `5e6faa7474d8` |
+| **Created** | 2026-06-26T02:30:00Z |
+
+## Classification
+
+```yaml
+classification:
+  risk_tier: R1
+  sod_mode: S0
+  critical_surfaces: []
+  blast_radius: "operator mid-drive adoption"
+  classification_rationale: "R1: adoption of operator out-of-band commit on PR branch"
+  classified_by: "pipeline-repair-script"
+  classified_at: "2026-06-26T02:30:00Z"
+```
+
+## Claims
+
+1. Commit f418ec6 was adopted into the evidence chain without reverting the operator change.
+2. Branch HEAD remains correct after adopting f418ec6 — the commit did not break existing tests.
+3. The adoption aligns with the canonical intent for this PR branch.
 
 ## What f418ec6 Did
 
