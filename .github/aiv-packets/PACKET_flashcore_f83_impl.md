@@ -6,10 +6,10 @@
 |-------|-------|
 | **Repository** | github.com/ImmortalDemonGod/aiv-protocol |
 | **Change ID** | flashcore-f83-impl |
-| **Commits** | `f0730af` |
-| **Head SHA** | `f0730af` |
-| **Base SHA** | `6c6705b` |
-| **Created** | 2026-06-25T23:55:25Z |
+| **Commits** | `b760aaf` |
+| **Head SHA** | `b760aaf` |
+| **Base SHA** | `1d176b1` |
+| **Created** | 2026-06-26T00:02:36Z |
 
 ## Classification
 
@@ -21,7 +21,7 @@ classification:
   blast_radius: component
   classification_rationale: "TODO: Describe why this tier was chosen"
   classified_by: "Claude"
-  classified_at: "2026-06-25T23:55:25Z"
+  classified_at: "2026-06-26T00:02:36Z"
 ```
 
 ## Claims
@@ -35,7 +35,7 @@ classification:
 
 | # | Evidence File | Commit SHA | Classes |
 |---|---------------|------------|---------|
-| 1 | EVIDENCE_FLASHCORE_CLI__VET_LOGIC.md | `f0730af` | A, B, E |
+| 1 | EVIDENCE_FLASHCORE_CLI__VET_LOGIC.md | `b760aaf` | A, B, E |
 
 
 
@@ -43,7 +43,7 @@ classification:
 
 **Scope Inventory** (from 1 file references across evidence files)
 
-- `flashcore/cli/_vet_logic.py#L1-L29`
+- `flashcore/cli/_vet_logic.py#L1-L11`
 
 ---
 
