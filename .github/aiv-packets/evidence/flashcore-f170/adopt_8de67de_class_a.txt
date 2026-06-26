@@ -1,0 +1,47 @@
+AIV Class A Evidence — adopt-8de67de
+Generated: 2026-06-26
+Adopted commit: 8de67de7809d9862d9e47473823bbb7904363cec
+Baseline (8de67de^): b15bcde51faa961d87a7d177ef00f5360e539213
+HEAD: 438931cb7225f1cf89fbe356c871f7b2aca3cedc
+
+--- Baseline check: file did not exist at 8de67de^ ---
+git show 8de67de^:tests/test_review_manager_integration.py
+→ (no output — file did not exist at baseline)
+
+Note: the baseline commit b15bcde ("Add test for ordering bug B1") itself added an
+earlier version of test_review_manager_integration.py (via a prior operator commit);
+8de67de replaced it with this version, adding mock_scheduler helper and the
+submit_review assertion. Commit 46274bd later refined the test fixture.
+
+--- F170 sort bug absent at HEAD ---
+grep -rn "sorted.*modified_at" flashcore/*.py
+→ exit 1 (no matches)
+
+--- Integration test run (HEAD) ---
+pytest tests/test_review_manager_integration.py -v
+
+platform linux -- Python 3.11.15, pytest-9.1.1
+collected 1 item
+
+tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+
+1 passed in 0.02s
+
+--- All review-manager tests (HEAD) ---
+pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+       tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+
+collected 28 items — 28 passed in 0.38s
+
+F170 GOAL test: tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+
+--- Full suite (HEAD) ---
+pytest tests/ -q --tb=short
+496 passed, 1 skipped in 32.44s
+
+--- Static analysis (HEAD) ---
+mypy flashcore/review_manager.py --ignore-missing-imports
+→ Success: no issues found in 1 source file
+
+ruff check tests/test_review_manager_integration.py
+→ All checks passed!
