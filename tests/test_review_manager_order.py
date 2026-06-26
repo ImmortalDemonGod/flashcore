@@ -20,29 +20,34 @@ def db_with_three_due_cards():
     now = datetime.now(timezone.utc)
     today = now.date()
 
-    # Create three cards all due today, with different added_at times
-    # This ensures they're all returned by get_due_cards
-    # The DB orders by next_due_date ASC NULLS FIRST, added_at ASC
+    # Create three cards all due today, with different added_at times.
+    # The DB orders by next_due_date ASC NULLS FIRST, added_at ASC → [card1, card2, card3].
+    # modified_at is set in REVERSE order so that sorted(…, key=lambda c: c.modified_at)
+    # would yield [card3, card2, card1] — the opposite of DB order.
+    # This makes the test actually fail on the buggy implementation.
     card1 = Card(
         front="Card 1 - Added First",
         back="Back 1",
         deck_name="Test Deck",
         next_due_date=today,
-        added_at=now - timedelta(hours=3),  # added first
+        added_at=now - timedelta(hours=3),   # added first  → DB first
+        modified_at=now - timedelta(minutes=1),  # most recent → bug puts LAST
     )
     card2 = Card(
         front="Card 2 - Added Second",
         back="Back 2",
         deck_name="Test Deck",
         next_due_date=today,
-        added_at=now - timedelta(hours=2),  # added second
+        added_at=now - timedelta(hours=2),   # added second → DB second
+        modified_at=now - timedelta(hours=1),    # middle       → bug puts second
     )
     card3 = Card(
         front="Card 3 - Added Third",
         back="Back 3",
         deck_name="Test Deck",
         next_due_date=today,
-        added_at=now - timedelta(hours=1),  # added third (latest)
+        added_at=now - timedelta(hours=1),   # added third  → DB third
+        modified_at=now - timedelta(hours=2),    # oldest       → bug puts FIRST
     )
 
     db.upsert_cards_batch([card1, card2, card3])
@@ -76,15 +81,6 @@ def test_review_manager_ordering_by_due_date(db_with_three_due_cards):
     # The queue should be ordered by added_at (the secondary sort key in DB)
     # card1 was added first, then card2, then card3
     ordered_uuids = [c.uuid for c in rm.review_queue]
-    expected_order = [
-        db.get_card_by_uuid(card1_uuid).uuid
-        for card1_uuid in [
-            c.uuid
-            for c in db.get_due_cards(
-                "Test Deck", on_date=datetime.now(timezone.utc).date()
-            )
-        ]
-    ]
 
     # Verify the queue matches DB ordering
     db_cards = db.get_due_cards(
