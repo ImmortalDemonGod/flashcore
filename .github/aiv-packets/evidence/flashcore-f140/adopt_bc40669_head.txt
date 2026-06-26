@@ -1,0 +1,29 @@
+EVIDENCE CLASS A — Branch HEAD (b5c5c48c38145a4f62444c3a20030476167721af)
+
+F140 gate tests (dedicated test files at HEAD):
+
+Command run: pytest tests/test_db_row_to_review_error_handling.py tests/test_db_row_to_review_error.py -v --tb=short
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /root/flashcore-flashcore-f140/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /root/flashcore-flashcore-f140
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 2 items
+
+tests/test_db_row_to_review_error_handling.py::test_db_row_to_review_missing_validation_error_wrapper PASSED [ 50%]
+tests/test_db_row_to_review_error.py::test_db_row_to_review_missing_validationerror_wrapper PASSED [100%]
+
+2 passed in 0.02s
+
+F140 review of db_errors test suite at HEAD:
+
+Command run: pytest tests/test_db_errors.py -v --tb=short
+
+collected 27 items
+[all 27 tests PASSED - see full run: 27 passed in 0.56s]
+
+VERDICT: PASS — F140 gate behavior confirmed present and green at HEAD.
+NOTE: The test_db_row_to_review_missing_rating_raises_marshalling_error that was in
+test_db_errors.py at bc40669^ has been superseded by the dedicated test files above.

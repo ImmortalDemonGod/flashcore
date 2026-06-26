@@ -1,0 +1,15 @@
+EVIDENCE CLASS D — Static analysis (HEAD 7c5799c)
+Command: python -m mypy flashcore/db/db_utils.py --ignore-missing-imports
+
+Output (db_utils.py itself has NO type errors):
+  All errors reported are in flashcore/db/database.py (lines 1064, 1107, 1159):
+    error: Module has no attribute "db_row_to_session"  [attr-defined]
+
+These errors are PRE-EXISTING and unrelated to bc40669:
+  - bc40669 only touched: claim_E.md, evidence.md, evidence_E.md, intent-evidence.md, tests/test_db_errors.py
+  - flashcore/db/database.py was NOT modified by bc40669
+
+Command: python -m mypy tests/test_db_errors.py --ignore-missing-imports
+Same pre-existing database.py errors; tests/test_db_errors.py itself is type-clean.
+
+VERDICT: No new static analysis errors introduced by bc40669.

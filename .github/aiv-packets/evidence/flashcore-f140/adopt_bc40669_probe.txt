@@ -1,0 +1,6 @@
+EVIDENCE CLASS A — Direct functional probe (HEAD)
+Command: python -c "from flashcore.db.db_utils import db_row_to_review; from flashcore.exceptions import MarshallingError; row={'id':1,'title':'Test','content':'abc'}; ..."
+
+Output: OK: MarshallingError raised, rating in msg: True
+
+INTERPRETATION: db_row_to_review with a row missing 'rating' raises MarshallingError whose string representation contains the word 'rating'. This satisfies the F140 goal exactly.
