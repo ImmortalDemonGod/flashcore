@@ -1,0 +1,23 @@
+# Functional probe at HEAD — direct API exercise of db_row_to_review
+
+$ python -c "
+from flashcore.db.db_utils import db_row_to_review
+from flashcore.db.errors import MarshallingError
+row = {'id': 1, 'user_id': 2, 'comment': 'test'}  # missing required 'rating' field
+try:
+    db_row_to_review(row)
+    print('ERROR: no exception raised')
+except MarshallingError as e:
+    print(f'MarshallingError raised. rating in msg: {\"rating\" in str(e)}')
+    print(f'msg snippet: {str(e)[:200]}')
+except Exception as e:
+    print(f'Wrong exception: {type(e).__name__}: {e}')
+"
+
+MarshallingError raised. rating in msg: True
+msg snippet: Failed to parse review from DB row: {'id': 1, 'user_id': 2, 'comment': 'test'}. Error: 10 validation errors for Review
+card_uuid
+  Field required [type=missing, input_value={'id': 1, 'user_id': 2, 'co
+
+RESULT: MarshallingError is raised and 'rating' appears in the error message.
+The ValidationError from pydantic is correctly wrapped at db_utils.py:156-165.

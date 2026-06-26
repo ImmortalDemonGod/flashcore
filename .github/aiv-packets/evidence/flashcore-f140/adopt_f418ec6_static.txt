@@ -1,0 +1,21 @@
+# Static analysis at HEAD — tests/test_db_row_to_review_error.py
+
+$ ruff check tests/test_db_row_to_review_error.py
+
+tests/test_db_row_to_review_error.py:3:51: F401 [*] `flashcore.db.errors.ReviewOperationError` imported but unused
+tests/test_db_row_to_review_error.py:4:30: F401 [*] `flashcore.models.Review` imported but unused
+Found 2 errors.
+[*] 2 fixable with the `--fix` option.
+
+EXIT CODE: 1
+
+NOTE: Both F401 errors are unused-import warnings in a test file.
+These are cosmetic lint issues in the operator's test refinement;
+they do not affect correctness, test execution, or the F140 fix.
+The test passes and exercises the correct invariant.
+
+$ mypy tests/test_db_row_to_review_error.py --ignore-missing-imports
+
+Success: no issues found in 1 source file
+
+EXIT CODE: 0

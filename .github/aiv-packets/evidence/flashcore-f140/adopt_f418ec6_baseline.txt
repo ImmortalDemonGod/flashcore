@@ -1,0 +1,29 @@
+# Baseline evidence — f418ec6^ = 65e5731184cf1aab563c1d293fabca01ebe2ec01
+# Test file state at parent commit, checked out and executed
+
+$ git checkout 65e5731 -- tests/test_db_row_to_review_error.py
+$ pytest tests/test_db_row_to_review_error.py -v --tb=long
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: /root/flashcore-flashcore-f140
+configfile: pyproject.toml
+collected 0 items / 1 error
+
+==================================== ERRORS ====================================
+____________ ERROR collecting tests/test_db_row_to_review_error.py _____________
+ImportError while importing test module 'tests/test_db_row_to_review_error.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+  tests/test_db_row_to_review_error.py:3: in <module>
+    from flashcore.errors import MarshallingError
+E   ModuleNotFoundError: No module named 'flashcore.errors'
+
+=========================== short test summary info ============================
+ERROR tests/test_db_row_to_review_error.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+
+EXIT CODE: 2 (collection error — broken import path)
+
+Root cause: baseline test used `flashcore.errors` which does not exist;
+correct module is `flashcore.db.errors`.
