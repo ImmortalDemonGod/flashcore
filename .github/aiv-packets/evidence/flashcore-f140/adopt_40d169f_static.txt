@@ -1,0 +1,10 @@
+## Static analysis — branch HEAD (a81c36ac26049630424c347ca743ce68a7ed905a)
+
+## ruff check flashcore/
+All checks passed!
+
+## python -m mypy flashcore/ --ignore-missing-imports
+Success: no issues found in 29 source files
+
+## Full suite
+495 passed, 1 skipped in 32.11s

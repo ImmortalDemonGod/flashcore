@@ -1,0 +1,6 @@
+## HEAD test run — branch HEAD (a81c36ac26049630424c347ca743ce68a7ed905a)
+## Suite: tests/test_db_errors.py
+## Command: python -m pytest tests/test_db_errors.py -q --tb=short
+
+...........................                                              [100%]
+27 passed in 0.53s
