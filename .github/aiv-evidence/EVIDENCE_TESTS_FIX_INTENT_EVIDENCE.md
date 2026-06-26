@@ -36,9 +36,9 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`9657d7a`](https://github.com/ImmortalDemonGod/flashcore/tree/9657d7af9c58bb1c09a2f6941f377f019ef95bda))
+**Scope Inventory** (SHA: [`9657d7a`](https://github.com/ImmortalDemonGod/flashcore/tree/65e5731184cf1aab563c1d293fabca01ebe2ec01))
 
-- [`tests/fix_intent_evidence.py#L1-L2`](https://github.com/ImmortalDemonGod/flashcore/blob/9657d7af9c58bb1c09a2f6941f377f019ef95bda/tests/fix_intent_evidence.py#L1-L2)
+- [`tests/fix_intent_evidence.py#L1-L2`](https://github.com/ImmortalDemonGod/flashcore/blob/65e5731184cf1aab563c1d293fabca01ebe2ec01/tests/fix_intent_evidence.py#L1-L2)
 
 ### Class A (Execution Evidence)
 

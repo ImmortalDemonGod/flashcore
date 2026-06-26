@@ -36,9 +36,9 @@ classification:
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`afeb5f6`](https://github.com/ImmortalDemonGod/flashcore/tree/afeb5f61ed685fa469b491b130977707ab0234eb))
+**Scope Inventory** (SHA: [`afeb5f6`](https://github.com/ImmortalDemonGod/flashcore/tree/85db89568e735abf3c30f548a7401146dd5a7f5f))
 
-- [`flashcore/db/db_utils.py.bug-catalog.md#L1-L8`](https://github.com/ImmortalDemonGod/flashcore/blob/afeb5f61ed685fa469b491b130977707ab0234eb/flashcore/db/db_utils.py.bug-catalog.md#L1-L8)
+- [`flashcore/db/db_utils.py.bug-catalog.md#L1-L8`](https://github.com/ImmortalDemonGod/flashcore/blob/85db89568e735abf3c30f548a7401146dd5a7f5f/flashcore/db/db_utils.py.bug-catalog.md#L1-L8)
 
 ### Class A (Execution Evidence)
 

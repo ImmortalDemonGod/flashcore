@@ -61,6 +61,7 @@ classification:
 ### Class E (Intent Alignment)
 
 - Intent URL: https://github.com/ImmortalDemonGod/flashcore/blob/fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965/audit/02-static-audit.md#L150
+- Alignment: The cited audit record (02-static-audit.md L150) identifies that `db_row_to_review` at db_utils.py:157 calls `Review(**row_dict)` without a try/except, allowing `pydantic.ValidationError` to escape callers' `except MarshallingError` handlers — a defect not present in the analogous `db_row_to_card` and `db_row_to_session` converters. This change adds `tests/test_db_errors.py` coverage that asserts a row missing `rating` raises `MarshallingError` (naming the column) rather than a raw `ValidationError`, directly satisfying the defect's stated acceptance condition ("a review row missing 'rating' raises MarshallingError naming the column rather than a raw ValidationError").
 
 ### Class F (Provenance)
 
