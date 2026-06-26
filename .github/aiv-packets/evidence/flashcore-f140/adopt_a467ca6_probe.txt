@@ -1,0 +1,23 @@
+# Direct functional probe at HEAD (e11f866)
+$ python -c "
+from flashcore.db.db_utils import db_row_to_review
+from flashcore.exceptions import MarshallingError
+from pydantic import ValidationError
+row = {'id': 1, 'content': 'test', 'user_id': 42}
+try:
+    db_row_to_review(row)
+    print('ERROR: No exception raised!')
+except MarshallingError as e:
+    cause_is_ve = isinstance(e.__cause__, ValidationError)
+    print(f'MarshallingError raised. __cause__ is ValidationError: {cause_is_ve}')
+    print(f'Error message (truncated): {str(e)[:200]}')
+except ValidationError as e:
+    print(f'FAIL: raw ValidationError escaped: {e}')
+except Exception as e:
+    print(f'FAIL: unexpected exception: {type(e).__name__}: {e}')
+"
+
+MarshallingError raised. __cause__ is ValidationError: True
+Error message (truncated): Failed to parse review from DB row: {'id': 1, 'content': 'test', 'user_id': 42}. Error: 10 validation errors for Review
+card_uuid
+  Field required [type=missing, input_value={'id': 1, 'content': 'test

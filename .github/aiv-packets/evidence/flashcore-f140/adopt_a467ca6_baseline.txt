@@ -1,0 +1,8 @@
+# BASELINE (a467ca6^ = ec9e708) — file did not exist at parent commit
+
+$ git show ec9e7086ce534c3cb4bf773ac66a3562dfac3619:tests/test_db_row_to_review_error_handling.py
+fatal: path 'tests/test_db_row_to_review_error_handling.py' exists on disk, but not in 'ec9e7086ce534c3cb4bf773ac66a3562dfac3619'
+
+# The test file was INTRODUCED by a467ca6 — it did not exist at the parent commit.
+# Therefore: at baseline, running the test would result in 0 collected (file missing).
+# This is a pure file-addition commit; no pre-existing test was modified or deleted.

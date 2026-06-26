@@ -1,0 +1,9 @@
+# Static analysis for tests/test_db_row_to_review_error_handling.py at HEAD
+
+$ ruff check tests/test_db_row_to_review_error_handling.py
+All checks passed!
+ruff exit: 0
+
+$ mypy tests/test_db_row_to_review_error_handling.py --ignore-missing-imports
+Success: no issues found in 1 source file
+mypy exit: 0
