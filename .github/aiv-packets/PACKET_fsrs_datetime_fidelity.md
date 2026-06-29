@@ -151,6 +151,26 @@ classification:
 
 ---
 
+### Class F (Provenance)
+
+**The defect was real, observed in production before the fix.**
+
+- **Production symptom (2026-06-29):** on the live deck, 21 `Learning`-state cards all had `next_due_date` pinned to the current calendar date (00:00 = already overdue) and were re-drilled repeatedly within a single session; only `Easy`-rated cards ever advanced to a forward date. Query evidence: `reviews` for 2026-06-29 showed every `Again`/`Hard`/`Good` rating producing `scheduled_days_interval = 0` and `next_due = today`, while `Easy` produced multi-day intervals.
+
+- **Root cause, two parts (both fixed here):**
+  1. `FSRS_Scheduler.compute_next_state` returned `next_due = updated_fsrs_card.due.date()` — truncating py-fsrs's datetime `due` (1m/10m learning steps) to a bare date, collapsing every sub-day step to "due today".
+  2. A fresh `FSRSCard()` was rebuilt each review without restoring `card.step`, and `Card` had no `step` field, so a Learning card restarted at step 0 every review and could only leave Learning via `Easy`.
+
+- **RED -> GREEN regressions** (fail on the pre-fix engine, pass after — `tests/test_scheduler.py`):
+  - `test_learning_step_due_is_future_subday` — asserts a learning step's `next_due` is a future, same-day, sub-day datetime (RED: pre-fix returned `review_ts.date()`).
+  - `test_step_persistence_lets_learning_card_graduate` — asserts repeated `Good` graduates the card once `step` is persisted (RED: pre-fix looped on "due today" forever).
+
+- **End-to-end on a copy of the real DB** (post-migration): a `Learning` card moved from `2026-06-28 00:00` (overdue) -> `now + 0:10:00` (real 10-minute step, `step` 0->1) -> graduated to a 6-day interval on the next `Good`.
+
+- **Upstream confirmation:** py-fsrs 6.3.x — `Card.due` is a `datetime`; `learning_steps = (1m, 10m)`. The minute-level scheduling is correct upstream; the truncation was flashcore-side.
+
+---
+
 ## Verification Methodology
 
 **Zero-Touch Mandate:** Verifier inspects artifacts only.
