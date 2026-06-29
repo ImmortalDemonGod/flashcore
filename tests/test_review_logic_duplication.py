@@ -65,6 +65,7 @@ class TestReviewLogicDuplication:
             review_type="learn",
             elapsed_days=0,
             state=CardState.Learning,
+            step=0,
         )
 
     def test_both_methods_have_identical_core_logic(
