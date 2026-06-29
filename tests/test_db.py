@@ -1006,7 +1006,8 @@ class TestIngestionBugReproduction:
         card_with_history = db.get_card_by_uuid(original_card.uuid)
         assert card_with_history is not None
         assert card_with_history.state == CardState.Review
-        assert card_with_history.next_due_date == date(2023, 6, 8)
+        # next_due_date is now a full timestamp; compare the calendar date.
+        assert card_with_history.next_due_date.date() == date(2023, 6, 8)
         assert card_with_history.stability == 4.2
         assert card_with_history.difficulty == 5.8
         assert card_with_history.last_review_id is not None
@@ -1046,7 +1047,8 @@ class TestIngestionBugReproduction:
         assert (
             card_after_reingest.state == CardState.Review
         ), f"Expected Review state, got {card_after_reingest.state}"
-        assert card_after_reingest.next_due_date == date(
+        # next_due_date is now a full timestamp; compare the calendar date.
+        assert card_after_reingest.next_due_date.date() == date(
             2023, 6, 8
         ), f"Expected due date 2023-06-08, got {card_after_reingest.next_due_date}"
         assert (
