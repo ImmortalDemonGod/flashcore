@@ -38,11 +38,14 @@ logger = logging.getLogger(__name__)
 class SchedulerOutput:
     stab: float
     diff: float
-    next_due: datetime.date
+    next_due: (
+        datetime.datetime
+    )  # full UTC datetime — preserves learning-step spacing
     scheduled_days: int
     review_type: str
     elapsed_days: int
     state: CardState
+    step: Optional[int]  # FSRS learning/relearning step index (None in Review)
 
 
 class BaseScheduler(ABC):
@@ -202,18 +205,17 @@ class FSRS_Scheduler(BaseScheduler):
             fsrs_card.stability = card.stability
             fsrs_card.difficulty = card.difficulty
             fsrs_card.state = FSRSState(card.state.value)
+            # Restore the learning/relearning step so the card progresses through
+            # its steps instead of restarting at step 0 every review. Without this,
+            # a Learning card never advances and can only escape via Easy.
+            if card.step is not None:
+                fsrs_card.step = card.step
             if card.next_due_date:
-                fsrs_card.due = datetime.datetime.combine(
-                    card.next_due_date,
-                    datetime.time(0, 0, 0),
-                    tzinfo=datetime.timezone.utc,
-                )
+                # next_due_date is now a full UTC datetime — feed it to FSRS as-is
+                # (no date->midnight rounding) so sub-day step dues are honored.
+                fsrs_card.due = self._ensure_utc(card.next_due_date)
             if card.last_review_date is not None:
-                fsrs_card.last_review = datetime.datetime.combine(
-                    card.last_review_date,
-                    datetime.time(0, 0, 0),
-                    tzinfo=datetime.timezone.utc,
-                )
+                fsrs_card.last_review = self._ensure_utc(card.last_review_date)
             # else: last_review unset → elapsed_days=0 (correct for New/first-ever review)
 
         # Capture the state before the new review to determine the review type.
@@ -263,11 +265,14 @@ class FSRS_Scheduler(BaseScheduler):
         return SchedulerOutput(
             stab=updated_fsrs_card.stability,
             diff=updated_fsrs_card.difficulty,
-            next_due=updated_fsrs_card.due.date(),
+            # Full UTC datetime — NOT .date(). Truncating here is what collapsed
+            # learning steps (1m/10m) to "due today" and broke spacing.
+            next_due=self._ensure_utc(updated_fsrs_card.due),
             scheduled_days=scheduled_days,
             review_type=self.REVIEW_TYPE_MAP.get(
                 state_before_review.name.lower(), "review"
             ),
             elapsed_days=elapsed_days,
             state=new_card_state,
+            step=updated_fsrs_card.step,
         )

@@ -1,8 +1,9 @@
 # AIV Evidence File (v1.0)
 
 **File:** `flashcore/scheduler.py`
-**Commit:** `e0f6519`
-**Generated:** 2026-06-19T05:27:58Z
+**Commit:** `dfd5d5f`
+**Previous:** `1572e54`
+**Generated:** 2026-06-29T20:41:07Z
 **Protocol:** AIV v2.0 + Addendum 2.7 (Zero-Touch Mandate)
 
 ---
@@ -15,17 +16,16 @@ classification:
   sod_mode: S0
   critical_surfaces: []
   blast_radius: "flashcore/scheduler.py"
-  classification_rationale: "R1: logic change in core scheduler; covered by acceptance tests in subsequent commits"
-  classified_by: "Claude"
-  classified_at: "2026-06-19T05:27:58Z"
+  classification_rationale: "R1 correctness-critical FSRS scheduling path"
+  classified_by: "Miguel Ingram"
+  classified_at: "2026-06-29T20:41:07Z"
 ```
 
 ## Claim(s)
 
-1. Line 212 assignment last_review=due removed; replaced with conditional on card.last_review_date
-2. When last_review_date is None (hub not populated), last_review remains unset; elapsed_days=0 (correct for New/first-ever review)
-3. Scheduler does not read DB directly; last_review_date populated by hub before this call
-4. No existing tests were modified or deleted during this change.
+1. FSRS_Scheduler.compute_next_state returns next_due as a datetime preserving sub-day learning-step spacing
+2. FSRS_Scheduler.compute_next_state restores and emits the FSRS learning step so Learning cards progress across reviews
+3. No existing tests were modified or deleted during this change.
 
 ---
 
@@ -33,31 +33,39 @@ classification:
 
 ### Class E (Intent Alignment)
 
-- **Link:** [https://github.com/ImmortalDemonGod/flashcore/blob/27797f4/.taskmaster/tasks/task_008.md](https://github.com/ImmortalDemonGod/flashcore/blob/27797f4/.taskmaster/tasks/task_008.md)
-- **Requirements Verified:** D1.3: offending assignment gone; ground-truth path only; hub-supplied last_review_date drives elapsed_days
+- **Link:** [https://github.com/ImmortalDemonGod/flashcore/pull/58](https://github.com/ImmortalDemonGod/flashcore/pull/58)
+- **Requirements Verified:** Learning steps must keep sub-day spacing and graduate; the prior .date() truncation broke both
 
 ### Class B (Referential Evidence)
 
-**Scope Inventory** (SHA: [`e0f6519`](https://github.com/ImmortalDemonGod/flashcore/tree/e0f6519fcee02a20f88367ae8e2c2fba59da6357))
+**Scope Inventory** (SHA: [`dfd5d5f`](https://github.com/ImmortalDemonGod/flashcore/tree/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a))
 
-- [`flashcore/scheduler.py#L211-L217`](https://github.com/ImmortalDemonGod/flashcore/blob/e0f6519fcee02a20f88367ae8e2c2fba59da6357/flashcore/scheduler.py#L211-L217)
+- [`flashcore/scheduler.py#L41-L43`](https://github.com/ImmortalDemonGod/flashcore/blob/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a/flashcore/scheduler.py#L41-L43)
+- [`flashcore/scheduler.py#L48`](https://github.com/ImmortalDemonGod/flashcore/blob/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a/flashcore/scheduler.py#L48)
+- [`flashcore/scheduler.py#L208-L212`](https://github.com/ImmortalDemonGod/flashcore/blob/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a/flashcore/scheduler.py#L208-L212)
+- [`flashcore/scheduler.py#L214-L216`](https://github.com/ImmortalDemonGod/flashcore/blob/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a/flashcore/scheduler.py#L214-L216)
+- [`flashcore/scheduler.py#L218`](https://github.com/ImmortalDemonGod/flashcore/blob/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a/flashcore/scheduler.py#L218)
+- [`flashcore/scheduler.py#L268-L270`](https://github.com/ImmortalDemonGod/flashcore/blob/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a/flashcore/scheduler.py#L268-L270)
+- [`flashcore/scheduler.py#L277`](https://github.com/ImmortalDemonGod/flashcore/blob/dfd5d5fe2f621dc005433cc66fffe5d25ba7033a/flashcore/scheduler.py#L277)
 
 ### Class A (Execution Evidence)
 
 **Per-symbol test coverage (AST analysis):**
 
-- **`FSRS_Scheduler`** (L211-L217): PASS -- 13 test(s) call `FSRS_Scheduler` directly
-  - `tests/test_session_analytics_gaps.py::test_review_session_manager_now_creates_session_objects`
-  - `tests/test_session_analytics_gaps.py::test_review_workflows_now_have_session_integration`
-  - `tests/test_session_analytics_gaps.py::test_missing_session_lifecycle_management`
-  - `tests/test_session_analytics_gaps.py::test_missing_session_performance_analytics`
-  - `tests/test_session_analytics_gaps.py::test_missing_real_time_session_tracking`
+- **`SchedulerOutput`** (L41-L43): PASS -- 1 test(s) call `SchedulerOutput` directly
+  - `tests/test_scheduler.py::test_review_processor_process_review_success`
+- **`FSRS_Scheduler`** (L48): PASS -- 13 test(s) call `FSRS_Scheduler` directly
   - `tests/test_review_manager.py::test_e2e_session_flow`
+  - `tests/test_review_logic_duplication.py::test_both_methods_have_identical_core_logic`
+  - `tests/test_review_logic_duplication.py::test_maintenance_hazard_demonstration`
   - `tests/test_scheduler.py::test_mature_card_lapse`
   - `tests/test_scheduler.py::test_config_impact_on_scheduling`
   - `tests/test_rating_system_inconsistency.py::test_review_manager_uses_unified_rating_scale`
   - `tests/test_rating_system_inconsistency.py::test_review_all_logic_uses_unified_rating_scale`
-- **`FSRS_Scheduler.compute_next_state`** (unknown): PASS -- 13 test(s) call `compute_next_state` directly
+  - `tests/test_rating_system_inconsistency.py::test_rating_consistency_after_fix`
+  - `tests/test_session_analytics_gaps.py::test_review_session_manager_now_creates_session_objects`
+  - `tests/test_session_analytics_gaps.py::test_review_workflows_now_have_session_integration`
+- **`FSRS_Scheduler.compute_next_state`** (L208-L212): PASS -- 15 test(s) call `compute_next_state` directly
   - `tests/test_scheduler.py::test_first_review_new_card`
   - `tests/test_scheduler.py::test_invalid_rating_input`
   - `tests/test_scheduler.py::test_rating_impact_on_interval`
@@ -69,33 +77,32 @@ classification:
   - `tests/test_scheduler.py::test_compute_next_state_review_card_fallback_no_now_kw`
   - `tests/test_scheduler.py::test_config_impact_on_scheduling`
 
-**Coverage summary:** 2/2 symbols verified by tests.
+**Coverage summary:** 3/3 symbols verified by tests.
 
 ### Code Quality (Linting & Types)
 
-- **ruff:** 0 error(s)
-- **mypy:** Found 2 errors in 2 files (checked 1 source file)
+- **ruff:** All checks passed
+- **mypy:** Success: no issues found in 1 source file
 
 ## Claim Verification Matrix
 
 | # | Claim | Type | Evidence | Verdict |
 |---|-------|------|----------|---------|
-| 1 | Line 212 assignment last_review=due removed; replaced with c... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 2 | When last_review_date is None (hub not populated), last_revi... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 3 | Scheduler does not read DB directly; last_review_date popula... | unresolved | No automatic binding available | REVIEW MANUAL REVIEW |
-| 4 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
+| 1 | FSRS_Scheduler.compute_next_state returns next_due as a date... | symbol | 28 test(s) call `FSRS_Scheduler.compute_next_state`, `FSRS_Scheduler` | PASS VERIFIED |
+| 2 | FSRS_Scheduler.compute_next_state restores and emits the FSR... | symbol | 28 test(s) call `FSRS_Scheduler.compute_next_state`, `FSRS_Scheduler` | PASS VERIFIED |
+| 3 | No existing tests were modified or deleted during this chang... | structural | Class C not collected | REVIEW MANUAL REVIEW |
 
-**Verdict summary:** 0 verified, 0 unverified, 4 manual review.
+**Verdict summary:** 2 verified, 0 unverified, 1 manual review.
 ---
 
 ## Verification Methodology
 
 **Zero-Touch Mandate:** Verifier inspects artifacts only.
-Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (2/2 symbols verified).
+Evidence collected by `aiv commit` running: git diff (scope inventory), AST symbol-to-test binding (3/3 symbols verified).
 Ruff/mypy results are in Code Quality (not Class A) because they prove syntax/types, not behavior.
 
 ---
 
 ## Summary
 
-Use card.last_review_date for last_review when set; no stability proxy; remove wrong due-date proxy
+Full datetime due + step restore/persist in scheduler

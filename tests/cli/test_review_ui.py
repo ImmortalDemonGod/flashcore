@@ -2,7 +2,7 @@
 Unit tests for the flashcore.cli.review_ui module.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, timezone, timedelta
 from unittest.mock import ANY, MagicMock, patch
 from uuid import uuid4
 
@@ -52,7 +52,7 @@ def test_start_review_flow_with_one_card(mock_manager: MagicMock, capsys):
     # Mock the return value of submit_review to be an updated card
     mock_updated_card = MagicMock(spec=Card)
     # Let's say the card is due in 3 days
-    next_due = date.today() + timedelta(days=3)
+    next_due = datetime.now(timezone.utc) + timedelta(days=3)
     mock_updated_card.next_due_date = next_due
     mock_manager.submit_review.return_value = mock_updated_card
 
@@ -95,7 +95,9 @@ def test_start_review_flow_invalid_rating_input(
 
     # Mock the return value of submit_review to be an updated card
     mock_updated_card = MagicMock(spec=Card)
-    mock_updated_card.next_due_date = date.today() + timedelta(days=1)
+    mock_updated_card.next_due_date = datetime.now(timezone.utc) + timedelta(
+        days=1
+    )
     mock_manager.submit_review.return_value = mock_updated_card
 
     # Act
@@ -336,7 +338,7 @@ def test_start_review_flow_success_emits_well_done(
     mock_manager.get_next_card.side_effect = [card, None]
 
     updated_card = MagicMock()
-    updated_card.next_due_date = date.today() + timedelta(days=1)
+    updated_card.next_due_date = datetime.now(timezone.utc) + timedelta(days=1)
     mock_manager.submit_review.return_value = updated_card
 
     with patch("flashcore.cli.review_ui._display_card", return_value=1000):
@@ -377,7 +379,7 @@ def test_start_review_flow_mixed_outcome_no_well_done(
     mock_manager.skip_card.side_effect = _skip
 
     updated_card = MagicMock()
-    updated_card.next_due_date = date.today() + timedelta(days=1)
+    updated_card.next_due_date = datetime.now(timezone.utc) + timedelta(days=1)
 
     def _submit(card_uuid, rating, resp_ms, eval_ms):
         if card_uuid == card_ok.uuid:

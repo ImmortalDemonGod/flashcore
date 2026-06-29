@@ -101,7 +101,9 @@ class ReviewProcessor:
                 card.uuid
             )
             if isinstance(prior_review, Review):
-                card.last_review_date = prior_review.ts.date()
+                # Full timestamp (not .date()) so the scheduler sees the real
+                # prior-review time and learning-step spacing is honored.
+                card.last_review_date = prior_review.ts
 
             # Step 2: Compute next state using scheduler (O(1) with cached card state)
             scheduler_output: SchedulerOutput = (
@@ -127,12 +129,15 @@ class ReviewProcessor:
                 review_type=scheduler_output.review_type,
             )
 
-            # Step 4: Persist to database and update card state
+            # Step 4: Persist to database and update card state (incl. the FSRS
+            # learning step, so the card advances through its steps next time).
             updated_card = self.db_manager.add_review_and_update_card(
-                review=new_review, new_card_state=scheduler_output.state
+                review=new_review,
+                new_card_state=scheduler_output.state,
+                new_step=scheduler_output.step,
             )
             # Cache last_review_date so same-session re-reviews skip the extra DB lookup
-            updated_card.last_review_date = ts.date()
+            updated_card.last_review_date = ts
 
             logger.debug(
                 f"Review processed successfully for card {card.uuid}. "

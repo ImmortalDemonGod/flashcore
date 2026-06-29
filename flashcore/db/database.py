@@ -142,8 +142,8 @@ class FlashcardDatabase:
         INSERT INTO cards (uuid, deck_name, front, back, tags, added_at, modified_at,
                            last_review_id, next_due_date, state, stability, difficulty,
                            origin_task, media_paths, source_yaml_file, internal_note,
-                           front_length, back_length, has_media, tag_count)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+                           front_length, back_length, has_media, tag_count, step)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
         ON CONFLICT (uuid) DO UPDATE SET
             deck_name = EXCLUDED.deck_name,
             front = EXCLUDED.front,
@@ -172,6 +172,11 @@ class FlashcardDatabase:
             difficulty = CASE
                 WHEN EXCLUDED.difficulty IS NOT NULL THEN EXCLUDED.difficulty
                 ELSE cards.difficulty
+            END,
+            -- Preserve the FSRS learning step on re-ingest (don't reset learning progress)
+            step = CASE
+                WHEN EXCLUDED.step IS NOT NULL THEN EXCLUDED.step
+                ELSE cards.step
             END,
             -- Always update content and metadata fields
             origin_task = EXCLUDED.origin_task,
@@ -392,6 +397,14 @@ class FlashcardDatabase:
             CardOperationError: If the database query fails.
         """
         conn = self.get_connection()
+        # next_due_date is a full timestamp; coerce a bare date to end-of-day so
+        # "due today" counts cards due any time today, not just before midnight.
+        if isinstance(on_date, datetime):
+            cutoff: Any = on_date
+        else:
+            cutoff = datetime.combine(
+                on_date, datetime.max.time(), tzinfo=timezone.utc
+            )
         sql = """
             SELECT COUNT(*)
             FROM cards
@@ -400,7 +413,7 @@ class FlashcardDatabase:
         try:
             # The result of a COUNT query is a single tuple with a single
             # integer
-            count_result = conn.execute(sql, (deck_name, on_date)).fetchone()
+            count_result = conn.execute(sql, (deck_name, cutoff)).fetchone()
             return count_result[0] if count_result else 0
         except duckdb.Error as e:
             logger.error(
@@ -437,11 +450,21 @@ class FlashcardDatabase:
         if limit == 0:
             return []
         conn = self.get_connection()
+        # next_due_date is a full UTC timestamp. A bare `date` from a caller means
+        # "due any time today", so coerce it to end-of-day; a `datetime` (e.g. the
+        # review queue passing now()) is used as an exact cutoff. datetime is a
+        # subclass of date, so check datetime first.
+        if isinstance(on_date, datetime):
+            cutoff: Any = on_date
+        else:
+            cutoff = datetime.combine(
+                on_date, datetime.max.time(), tzinfo=timezone.utc
+            )
         sql = """
         SELECT * FROM cards
         WHERE deck_name = $1 AND (next_due_date <= $2 OR next_due_date IS NULL)
         """
-        params: List[Any] = [deck_name, on_date]
+        params: List[Any] = [deck_name, cutoff]
 
         # Add tag filtering if tags are provided
         if tags:
@@ -507,7 +530,7 @@ class FlashcardDatabase:
             SELECT
                 deck_name,
                 COUNT(*) AS card_count,
-                COUNT(CASE WHEN next_due_date <= CURRENT_DATE OR next_due_date IS NULL THEN 1 END) AS due_count
+                COUNT(CASE WHEN next_due_date < CURRENT_DATE + INTERVAL 1 DAY OR next_due_date IS NULL THEN 1 END) AS due_count
             FROM cards
             GROUP BY deck_name
         ), StateStats AS (
@@ -678,6 +701,7 @@ class FlashcardDatabase:
         review: "Review",
         new_card_state: "CardState",
         new_review_id: int,
+        new_step: Optional[int] = None,
     ) -> None:
         """
         Apply a completed review to its card record by updating the card's last review linkage, next due date, learning state, stability, difficulty, and modification timestamp.
@@ -690,8 +714,8 @@ class FlashcardDatabase:
         """
         sql = """
         UPDATE cards
-        SET last_review_id = $1, next_due_date = $2, state = $3, stability = $4, difficulty = $5, modified_at = $6
-        WHERE uuid = $7;
+        SET last_review_id = $1, next_due_date = $2, state = $3, stability = $4, difficulty = $5, step = $6, modified_at = $7
+        WHERE uuid = $8;
         """
         params = (
             new_review_id,
@@ -699,13 +723,17 @@ class FlashcardDatabase:
             new_card_state.name,
             review.stab_after,
             review.diff,
+            new_step,  # FSRS learning-step index (None in Review state)
             datetime.now(timezone.utc),  # modified_at
             review.card_uuid,
         )
         cursor.execute(sql, params)
 
     def _execute_review_transaction(
-        self, review: "Review", new_card_state: "CardState"
+        self,
+        review: "Review",
+        new_card_state: "CardState",
+        new_step: Optional[int] = None,
     ) -> None:
         """
         Atomically inserts a review and updates the corresponding card in the database.
@@ -715,6 +743,7 @@ class FlashcardDatabase:
         Parameters:
             review (Review): The review to insert and associate with the card.
             new_card_state (CardState): The state to set on the card after applying the review.
+            new_step (Optional[int]): The FSRS learning-step index to persist on the card.
 
         Raises:
             DatabaseError: Propagated when the underlying database layer reports an error.
@@ -726,7 +755,7 @@ class FlashcardDatabase:
                 cursor.begin()
                 new_review_id = self._insert_review_and_get_id(cursor, review)
                 self._update_card_after_review(
-                    cursor, review, new_card_state, new_review_id
+                    cursor, review, new_card_state, new_review_id, new_step
                 )
                 cursor.commit()
         except Exception as e:
@@ -751,7 +780,10 @@ class FlashcardDatabase:
                 ) from e
 
     def add_review_and_update_card(
-        self, review: "Review", new_card_state: "CardState"
+        self,
+        review: "Review",
+        new_card_state: "CardState",
+        new_step: Optional[int] = None,
     ) -> "Card":
         """
         Add a review and update the corresponding card's state and next due date atomically.
@@ -772,7 +804,7 @@ class FlashcardDatabase:
                 "Cannot add review in read-only mode."
             )
 
-        self._execute_review_transaction(review, new_card_state)
+        self._execute_review_transaction(review, new_card_state, new_step)
 
         # Fetch and return the updated card. At this point, the card must
         # exist.

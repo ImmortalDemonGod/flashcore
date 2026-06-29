@@ -135,7 +135,9 @@ class TestReviewAllLogic:
         updated_cards = []
         for card in sample_cards[:2]:
             updated_card = MagicMock()
-            updated_card.next_due_date = date.today() + timedelta(days=1)
+            updated_card.next_due_date = datetime.now(
+                timezone.utc
+            ) + timedelta(days=1)
             updated_cards.append(updated_card)
         mock_submit.side_effect = updated_cards
 
@@ -533,7 +535,9 @@ class TestIntegration:
 
         # Mock successful database update
         updated_card = MagicMock()
-        updated_card.next_due_date = date.today() + timedelta(days=1)
+        updated_card.next_due_date = datetime.now(timezone.utc) + timedelta(
+            days=1
+        )
         mock_db.add_review_and_update_card.return_value = updated_card
 
         # Act

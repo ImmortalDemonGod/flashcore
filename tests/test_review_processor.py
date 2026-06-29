@@ -54,11 +54,12 @@ class TestReviewProcessor:
         return SchedulerOutput(
             stab=2.5,
             diff=5.0,
-            next_due=date.today(),
+            next_due=datetime.now(timezone.utc),
             scheduled_days=1,
             review_type="learn",
             elapsed_days=0,
             state=CardState.Learning,
+            step=0,
         )
 
     def test_process_review_success(
