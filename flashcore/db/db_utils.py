@@ -94,6 +94,7 @@ def card_to_db_params_list(cards: Sequence[Card]) -> List[Tuple]:
                 card.back_length,
                 card.has_media,
                 card.tag_count,
+                card.step,
             )
         )
     return result
