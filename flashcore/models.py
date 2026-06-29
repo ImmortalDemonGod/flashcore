@@ -8,7 +8,7 @@ import uuid
 import re
 from enum import IntEnum
 from uuid import UUID
-from datetime import datetime, date, timezone
+from datetime import datetime, timezone
 from typing import List, Optional, Set
 from pathlib import Path
 
@@ -58,16 +58,21 @@ class Card(BaseModel):
         default=None,
         description="ID of the last review record for this card.",
     )
-    last_review_date: Optional[date] = Field(
+    last_review_date: Optional[datetime] = Field(
         default=None,
         description=(
-            "Date of the prior review (transient; populated by hub"
-            " from DB before scheduler call)."
+            "UTC timestamp of the prior review (transient; populated by hub"
+            " from DB before scheduler call). Full datetime so FSRS"
+            " learning-step spacing survives — see next_due_date."
         ),
     )
-    next_due_date: Optional[date] = Field(
+    next_due_date: Optional[datetime] = Field(
         default=None,
-        description="The next date the card is scheduled for review.",
+        description=(
+            "UTC timestamp the card is next due. A full datetime (not a bare"
+            " date) so FSRS learning/relearning steps (1m/10m) keep their"
+            " sub-day spacing instead of collapsing to 'due today'."
+        ),
     )
     state: CardState = Field(
         default=CardState.New,
@@ -79,6 +84,14 @@ class Card(BaseModel):
     )
     difficulty: Optional[float] = Field(
         default=None, description="The difficulty of the card."
+    )
+    step: Optional[int] = Field(
+        default=None,
+        description=(
+            "FSRS learning/relearning step index (None in Review/New state)."
+            " Persisted so a card progresses through its learning steps"
+            " across reviews instead of restarting at step 0 each time."
+        ),
     )
 
     deck_name: str = Field(
@@ -236,9 +249,13 @@ class Review(BaseModel):
         ...,
         description="New difficulty after review.",
     )
-    next_due: date = Field(
+    next_due: datetime = Field(
         ...,
-        description="Next review date (calculated by FSRS).",
+        description=(
+            "Next review timestamp (calculated by FSRS). A full datetime so"
+            " sub-day learning-step spacing is preserved, not truncated to a"
+            " bare date."
+        ),
     )
     elapsed_days_at_review: int = Field(
         ...,
