@@ -50,7 +50,15 @@ def test_first_review_new_card(
     assert (
         result_hard.scheduled_days == 0
     ), "First 'Hard' review should be a same-day learning step."
-    assert result_hard.next_due == review_ts.date()
+    # Datetime fidelity: next_due is a full UTC datetime strictly AFTER the review
+    # (a real minute-level learning step), not a bare date collapsed to the review
+    # day. The old code returned `review_ts.date()` here — that truncation is the bug.
+    assert isinstance(result_hard.next_due, datetime.datetime)
+    assert result_hard.next_due > review_ts, (
+        "Learning-step next_due must be in the future (sub-day step), "
+        "not collapsed to the review date."
+    )
+    assert result_hard.next_due.date() == review_ts.date()
 
     # Rating: Again (1) - should also enter a learning step.
     rating_again = 1
@@ -117,9 +125,10 @@ def test_rating_impact_on_interval(
         next_due_date=initial_good_result.next_due,
     )
 
-    # The next review happens on the same day, as it's a learning step.
-    review2_ts = datetime.datetime.combine(
-        initial_good_result.next_due, datetime.time(10, 10, 0), tzinfo=UTC
+    # The next review happens later the same day (it's a sub-day learning step).
+    # next_due is now a datetime, so derive the next review time from it directly.
+    review2_ts = initial_good_result.next_due.replace(
+        hour=10, minute=10, second=0, microsecond=0
     )
 
     # 'Again' or 'Hard' should keep the card in the learning phase (0-day interval).
@@ -203,9 +212,7 @@ def test_multiple_reviews_stability_increase(
     )
 
     # Review 2: Reviewed on its due date, rated Easy (4) to graduate
-    review_ts2 = datetime.datetime.combine(
-        next_due1, datetime.time(10, 0, 0), tzinfo=UTC
-    )
+    review_ts2 = next_due1.replace(hour=10, minute=0, second=0, microsecond=0)
     rating2 = 4
     result2 = scheduler.compute_next_state(card, rating2, review_ts2)
 
@@ -231,8 +238,8 @@ def test_multiple_reviews_stability_increase(
 
     # Review 3: Reviewed 1 day after due date, rated Good (2)
     # Note: Review after due date to ensure elapsed_days > 0 for stability increase
-    review_ts3 = datetime.datetime.combine(
-        next_due2, datetime.time(10, 0, 0), tzinfo=UTC
+    review_ts3 = next_due2.replace(
+        hour=10, minute=0, second=0, microsecond=0
     ) + datetime.timedelta(days=1)
     rating3 = 2
     result3 = scheduler.compute_next_state(card, rating3, review_ts3)
@@ -244,9 +251,7 @@ def test_multiple_reviews_stability_increase(
     # With O(1) cached state, stability increases when reviewing after due date
     assert stability3 > stability2
     assert scheduled_days3 > 0  # Should have positive interval
-    assert (
-        next_due3 > review_ts3.date()
-    )  # Next due should be after review date
+    assert next_due3 > review_ts3  # Next due should be after the review time
 
 
 def test_review_lapsed_card(scheduler: FSRS_Scheduler, sample_card_uuid: UUID):
@@ -361,8 +366,8 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
     for _ in range(4):  # 4 more successful reviews
         # Review 1 day after due date to ensure stability increases
         # with O(1) cached state
-        review_ts = datetime.datetime.combine(
-            last_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+        review_ts = last_result.next_due.replace(
+            hour=10, minute=0, second=0, microsecond=0
         ) + datetime.timedelta(days=1)
         last_result = scheduler.compute_next_state(
             card, rating, review_ts
@@ -387,8 +392,8 @@ def test_mature_card_lapse(sample_card_uuid: UUID):
     ), f"Expected mature stability > 5.0, got {mature_stability}"
 
     # Now, the user forgets the card (rates 'Again')
-    lapse_review_ts = datetime.datetime.combine(
-        last_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    lapse_review_ts = last_result.next_due.replace(
+        hour=10, minute=0, second=0, microsecond=0
     )
     lapse_result = scheduler.compute_next_state(
         card, 1, lapse_review_ts
@@ -497,11 +502,12 @@ def test_review_processor_process_review_success(sample_card_uuid: UUID):
     scheduler_output = SchedulerOutput(
         stab=1.0,
         diff=5.0,
-        next_due=ts.date(),
+        next_due=ts,
         scheduled_days=0,
         review_type="learn",
         elapsed_days=0,
         state=CardState.Learning,
+        step=0,
     )
     scheduler.compute_next_state.return_value = scheduler_output
 
@@ -518,9 +524,10 @@ def test_review_processor_process_review_success(sample_card_uuid: UUID):
 
     captured = {}
 
-    def add_review_side_effect(*, review, new_card_state):
+    def add_review_side_effect(*, review, new_card_state, new_step=None):
         captured["review"] = review
         captured["new_card_state"] = new_card_state
+        captured["new_step"] = new_step
         return updated_card
 
     db_manager.add_review_and_update_card.side_effect = add_review_side_effect
@@ -603,8 +610,8 @@ def test_config_impact_on_scheduling():
         difficulty=initial_result.diff,
         next_due_date=initial_result.next_due,
     )
-    review_ts2 = datetime.datetime.combine(
-        initial_result.next_due, datetime.time(10, 0, 0), tzinfo=UTC
+    review_ts2 = initial_result.next_due.replace(
+        hour=10, minute=0, second=0, microsecond=0
     )
 
     # To test retention, card must be in review state. Use Easy (4) to graduate.
@@ -809,4 +816,86 @@ def test_on_time_vs_same_day_review_stability_distinct(
         f"On-time stability ({result_on_time.stab:.4f}) must differ from "
         f"same-day stability ({result_same_day.stab:.4f}). "
         "Different elapsed_days must produce different FSRS stability updates."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Datetime-fidelity regression (2026-06-29 Learning-card bug).
+# next_due was truncated to a bare DATE, so FSRS 1m/10m learning steps collapsed
+# to a 0-day "due today" (a timestamp at midnight = already overdue), and the
+# step counter was never persisted, so a Learning card could only escape via Easy.
+# These two tests fail on the pre-fix engine and pass after it.
+# ---------------------------------------------------------------------------
+
+
+def test_learning_step_due_is_future_subday(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
+    """A learning step must produce a FUTURE, same-day, sub-day datetime due."""
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="t",
+        front="Q",
+        back="A",
+        state=CardState.New,
+    )
+    # Afternoon review: the bug returned next_due == review date (00:00) = the
+    # past, making the card perpetually overdue.
+    review_ts = datetime.datetime(2024, 1, 1, 14, 30, 0, tzinfo=UTC)
+    res = scheduler.compute_next_state(card, 3, review_ts)  # Good -> Learning
+
+    assert res.state == CardState.Learning
+    assert isinstance(res.next_due, datetime.datetime)
+    assert res.next_due > review_ts, (
+        "Learning-step due must be in the FUTURE, not truncated to the review "
+        "date (which lands at 00:00 = already overdue)."
+    )
+    assert res.next_due - review_ts < datetime.timedelta(
+        days=1
+    ), "A learning step is a sub-day interval (1m/10m), so it stays the same day."
+    assert (
+        res.step is not None
+    ), "the learning-step index must be captured to persist"
+
+
+def test_step_persistence_lets_learning_card_graduate(
+    scheduler: FSRS_Scheduler, sample_card_uuid: UUID
+):
+    """
+    Persisting the FSRS step lets repeated Good reviews advance through the
+    learning steps and graduate to a day-level interval. Without persistence the
+    card restarts at step 0 every review and never graduates (the old behavior).
+    """
+    card = Card(
+        uuid=sample_card_uuid,
+        deck_name="t",
+        front="Q",
+        back="A",
+        state=CardState.New,
+    )
+    ts = datetime.datetime(2024, 1, 1, 9, 0, 0, tzinfo=UTC)
+    graduated = False
+    for _ in range(6):
+        res = scheduler.compute_next_state(card, 3, ts)  # Good
+        # Advance time to just past the scheduled (sub-day) due, then carry the
+        # step forward — this is what review_processor now persists to the DB.
+        ts = res.next_due + datetime.timedelta(seconds=1)
+        card = Card(
+            uuid=sample_card_uuid,
+            deck_name="t",
+            front="Q",
+            back="A",
+            state=res.state,
+            stability=res.stab,
+            difficulty=res.diff,
+            next_due_date=res.next_due,
+            step=res.step,  # <-- the fix: carry the learning step across reviews
+        )
+        if res.state == CardState.Review and res.scheduled_days > 0:
+            graduated = True
+            break
+
+    assert graduated, (
+        "With the FSRS step persisted, repeated Good reviews must graduate the "
+        "card to a multi-day interval instead of looping on 'due today' forever."
     )
