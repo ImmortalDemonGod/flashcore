@@ -85,7 +85,7 @@ def review_all_logic(db_path: Path, limit: int = 50):
 
                 if updated_card and updated_card.next_due_date:
                     days_until_due = (
-                        updated_card.next_due_date - date.today()
+                        updated_card.next_due_date.date() - date.today()
                     ).days
                     due_date_str = updated_card.next_due_date.strftime(
                         "%Y-%m-%d"
