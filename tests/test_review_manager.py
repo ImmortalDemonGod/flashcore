@@ -45,10 +45,11 @@ def mock_scheduler() -> MagicMock:
         stab=10.0,
         diff=5.0,
         state=CardState.Review,
-        next_due=date.today() + timedelta(days=10),
+        next_due=datetime.now(timezone.utc) + timedelta(days=10),
         scheduled_days=10,
         review_type="review",
         elapsed_days=1,
+        step=None,
     )
     return scheduler
 
@@ -559,7 +560,7 @@ class TestReviewSessionManagerIntegration:
         # Assert properties of the returned (and updated) Card object
         assert updated_card is not None
         assert updated_card.uuid == card1_uuid
-        assert updated_card.next_due_date > today
+        assert updated_card.next_due_date.date() > today
         assert updated_card.state == CardState.Review
         assert updated_card.last_review_id is not None
 
