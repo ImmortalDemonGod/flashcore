@@ -1,0 +1,74 @@
+## Class A Evidence — adopt-ae6a8ee (flashcore-f170)
+
+### Baseline: ae6a8ee^ (4efc7b2d00d0b91f81c8f2caa75480ca23823694)
+
+flashcore/review_manager.py content at ae6a8ee^:
+  → file contains only the literal string `<replace>` with no terminal newline
+  → wc -l: 0 (no newline-terminated lines)
+  → python3 -c "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+      → SyntaxError: invalid syntax (<unknown>, line 1)
+  → Result: NOT valid Python — unparseable pipeline placeholder
+
+### At ae6a8ee (ae6a8ee99021ad337c602c6f87eb0522d71e1b4f)
+
+flashcore/review_manager.py:
+  → wc -l: 342
+  → python3 -c "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+      → VALID
+  → grep "class ReviewSessionManager": line 22 — class present
+  → grep "ReviewManager": (no output) — alias NOT yet added
+  → grep "sorted.*modified_at": line 110 — F170 sort bug PRESENT
+
+ae6a8ee restored the file from the `<replace>` placeholder to 342 lines of
+valid Python containing ReviewSessionManager. The F170 sort bug was part of the
+restored code; both were subsequently corrected by later commits in the chain.
+
+### At HEAD (496225480830a00a844a2c929849b421e0a65532)
+
+python3 -c "from flashcore.review_manager import ReviewSessionManager, ReviewManager; print(ReviewSessionManager.__name__, ReviewManager.__mro__)"
+→ ReviewSessionManager (<class 'flashcore.review_manager.ReviewManager'>, <class 'flashcore.review_manager.ReviewSessionManager'>, <class 'object'>)
+
+grep -rn "sorted.*modified_at|modified_at.*sort" flashcore/*.py
+→ exit 1 (no matches) — F170 bug absent at HEAD
+
+pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+       tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1
+collected 28 items
+
+tests/test_review_manager.py::TestReviewSessionManagerInit::test_init_successful PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_populates_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_clears_existing_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_returns_card_from_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_empty_queue_returns_none PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_new_card PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_with_history PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_card_not_in_session PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_scheduler_error PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_db_add_error PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_removes_card_from_active_queue PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_removes_card_from_queue PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_is_noop PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_does_not_inflate_reviewed_cards_in_stats PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_does_not_increment_skipped_count PASSED
+tests/test_review_manager.py::TestGetDueCardCount::test_get_due_card_count_calls_db PASSED
+tests/test_review_manager.py::TestReviewSessionManagerIntegration::test_e2e_session_flow PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_initialize_session_with_tags PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_session_analytics_start_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_record_session_analytics_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_with_analytics PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_analytics_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_no_session PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_success PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_failure PASSED
+tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+
+============================== 28 passed in 0.36s ==============================
+
+Full suite at HEAD: 496 passed, 1 skipped in 31.89s
+
+F170 GOAL test (PASSED): tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date

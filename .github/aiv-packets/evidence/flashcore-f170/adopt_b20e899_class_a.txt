@@ -1,0 +1,80 @@
+AIV Class A Evidence — flashcore-f170-adopt-b20e899
+Generated: 2026-06-26
+Adopted commit: b20e89986320fb2ce15c612584dac974b2cea8f7
+Base (b20e899^): 569a4622057d252a00433407d589c5f3f9fc719c
+Head: 746414cb7bb0c6c40b169a1edb6640f337beebe0
+
+=== BASELINE: b20e899^ (569a462) ===
+
+$ git show b20e899^:flashcore/review_manager.py | wc -l
+25
+
+$ git show b20e899^:flashcore/review_manager.py | head -5
+*** Begin Patch
+*** Update File: flashcore/review_manager.py
+@@
+ class ReviewSessionManager:
+@@
+
+$ git show b20e899^:flashcore/review_manager.py | python3 -c \
+    "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+→ SyntaxError: invalid syntax (line 1: *** Begin Patch)
+Result: INVALID — file is unparseable patch markers, not Python
+
+=== AT b20e899 (b20e89986320fb2ce15c612584dac974b2cea8f7) ===
+
+$ git show b20e899:flashcore/review_manager.py | wc -l
+342
+
+$ git show b20e899:flashcore/review_manager.py | python3 -c \
+    "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+→ VALID
+
+$ git show b20e899:flashcore/review_manager.py | grep -n "review_queue ="
+110:        self.review_queue = sorted(due_cards, key=lambda c: c.modified_at)
+
+$ git show b20e899:flashcore/review_manager.py | grep -n "ReviewManager"
+(no output — ReviewManager alias not present at b20e899)
+
+$ git show b20e899:flashcore/review_manager.py | grep -n "class "
+22:class ReviewSessionManager:
+
+=== AT HEAD (746414cb7bb0c6c40b169a1edb6640f337beebe0) ===
+
+$ python3 -c "import sys,ast; data=open('flashcore/review_manager.py').read(); ast.parse(data); print('VALID')"
+→ VALID Python
+
+$ grep -n "review_queue =" flashcore/review_manager.py | head -3
+110:        self.review_queue = due_cards
+
+$ grep -n "ReviewManager" flashcore/review_manager.py
+345:# Compatibility alias: expose ReviewManager as expected by tests
+346:class ReviewManager(ReviewSessionManager):
+
+$ grep -rn "sorted.*modified_at|modified_at.*sort|\*\*\* Begin Patch" flashcore/*.py
+No matches (exit 1)
+
+=== TEST RUN AT HEAD ===
+
+$ source .venv/bin/activate && pytest tests/test_review_manager.py \
+    tests/test_review_manager_order.py \
+    tests/test_review_manager_ordering.py \
+    tests/test_review_manager_integration.py -v 2>&1 | tail -8
+
+tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+28 passed in 0.37s
+
+=== FULL SUITE AT HEAD ===
+
+$ source .venv/bin/activate && pytest tests/ -q --tb=short 2>&1 | tail -3
+496 passed, 1 skipped in 33.17s
+
+=== STATIC ANALYSIS AT HEAD ===
+
+$ mypy flashcore/review_manager.py --ignore-missing-imports
+Success: no issues found in 1 source file
+
+$ flake8 flashcore/review_manager.py --max-line-length=120
+exit 0 (no issues)

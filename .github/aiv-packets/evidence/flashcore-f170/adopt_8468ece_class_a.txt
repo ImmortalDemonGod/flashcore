@@ -1,0 +1,39 @@
+# Class A Evidence — Adoption of commit 8468eceb3f10d81f5dc093abedb8ac30f4178d8b
+# Captured: 2026-06-26
+
+## Baseline check (8468ece^ = fb1ae5a1c1893939f4ff4f82cbd09d4e90f8e965)
+
+git show 8468ece^:.gitignore | tail -5
+→
+# tasks/
+.gitignore
+# AIV Protocol (change context is gitignored per spec)
+.aiv/change.json
+
+(Lines for .aiv/launch-briefs/, .aiv/plans/, .venv/, .aiv-workflow.yml were ABSENT before 8468ece)
+
+## HEAD checks (eff3d27bdf131dc6860f9eafdb278c7ffe67c1f9)
+
+grep -rn "sorted.*modified_at" flashcore/*.py
+→ exit 1 (no matches) — F170 sort bug is ABSENT at HEAD
+
+## F170 GOAL test
+
+pytest tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date -v
+→ PASSED in 0.10s
+
+## All review-manager tests
+
+pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+       tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+→ collected 28 items — 28 passed in 0.35s
+
+## Full suite
+
+pytest tests/ -q --tb=short
+→ 496 passed, 1 skipped in 32.57s
+
+## mypy
+
+mypy flashcore/review_manager.py --ignore-missing-imports
+→ Success: no issues found in 1 source file

@@ -1,0 +1,38 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /root/flashcore-flashcore-f170/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /root/flashcore-flashcore-f170
+configfile: pyproject.toml
+plugins: mock-3.15.1, cov-7.1.0
+collecting ... collected 28 items
+
+tests/test_review_manager.py::TestReviewSessionManagerInit::test_init_successful PASSED [  3%]
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_populates_queue PASSED [  7%]
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_clears_existing_queue PASSED [ 10%]
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_returns_card_from_queue PASSED [ 14%]
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_empty_queue_returns_none PASSED [ 17%]
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_new_card PASSED [ 21%]
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_with_history PASSED [ 25%]
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_card_not_in_session PASSED [ 28%]
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_scheduler_error PASSED [ 32%]
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_db_add_error PASSED [ 35%]
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_removes_card_from_active_queue PASSED [ 39%]
+tests/test_review_manager.py::TestSkipCard::test_skip_card_removes_card_from_queue PASSED [ 42%]
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_is_noop PASSED [ 46%]
+tests/test_review_manager.py::TestSkipCard::test_skip_card_does_not_inflate_reviewed_cards_in_stats PASSED [ 50%]
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_does_not_increment_skipped_count PASSED [ 53%]
+tests/test_review_manager.py::TestGetDueCardCount::test_get_due_card_count_calls_db PASSED [ 57%]
+tests/test_review_manager.py::TestReviewSessionManagerIntegration::test_e2e_session_flow PASSED [ 60%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_initialize_session_with_tags PASSED [ 64%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_session_analytics_start_failure PASSED [ 67%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_record_session_analytics_failure PASSED [ 71%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_with_analytics PASSED [ 75%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_analytics_failure PASSED [ 78%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_no_session PASSED [ 82%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_success PASSED [ 85%]
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_failure PASSED [ 89%]
+tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED [ 92%]
+tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED [ 96%]
+tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED [100%]
+
+============================== 28 passed in 0.40s ==============================

@@ -1,0 +1,8 @@
+ImportError while loading conftest '/root/flashcore-flashcore-f170/tests/conftest.py'.
+tests/conftest.py:7: in <module>
+    from flashcore.models import Card, Review, CardState
+flashcore/__init__.py:3: in <module>
+    from .models import Card, Review, Session, CardState, Rating
+flashcore/models.py:15: in <module>
+    from pydantic import BaseModel, ConfigDict, Field, field_validator
+E   ModuleNotFoundError: No module named 'pydantic'

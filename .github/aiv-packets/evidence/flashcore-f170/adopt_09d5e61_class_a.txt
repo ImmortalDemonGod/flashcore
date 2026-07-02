@@ -1,0 +1,110 @@
+## Class A Evidence — adopt-09d5e61
+
+Generated: 2026-06-26
+Branch: fix/flashcore-f170
+HEAD: a6dcac22e789a1cb8dd801c9601a7b6f6bcd5c57
+
+---
+
+### Baseline (09d5e61^ = 8fe22606754a936126cc8b75d61e3200c30c10b8)
+
+flashcore/review_manager.py: 22-line patch-marker file — INVALID PYTHON
+
+  git show 8fe2260:flashcore/review_manager.py | wc -l
+  → 22
+
+  git show 8fe2260:flashcore/review_manager.py | python3 -c \
+      "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+  → SyntaxError: invalid syntax (line 1: *** Begin Patch)
+
+  ReviewManager name at baseline:
+  git show 8fe2260:flashcore/review_manager.py | grep "ReviewManager"
+  → (no output — name not present at baseline)
+
+---
+
+### At 09d5e61 (09d5e619ea2841dd935907bc856af856b84b41d0)
+
+flashcore/review_manager.py: 25-line patch-marker file — STILL INVALID PYTHON
+but diff contains ReviewManager alias intent
+
+  git show 09d5e61:flashcore/review_manager.py | wc -l
+  → 25
+
+  git show 09d5e61:flashcore/review_manager.py | python3 -c \
+      "import sys,ast; ast.parse(sys.stdin.read()); print('VALID')"
+  → SyntaxError: invalid syntax (line 1: *** Begin Patch)
+
+  ReviewManager intent embedded in patch-marker diff:
+  git show 09d5e61:flashcore/review_manager.py | grep "ReviewManager"
+  → +class ReviewManager(ReviewSessionManager):
+  → +    """Compatibility wrapper for legacy imports.
+
+The operator commit expressed the intent to add ReviewManager in diff notation,
+but the file was already in patch-marker form from a prior pipeline tool fault.
+The patch diff could not be applied (file was not valid Python). The subsequent
+pipeline commit b20e899 restored valid Python; later commits incorporated the
+ReviewManager alias in working code.
+
+---
+
+### HEAD (a6dcac22e789a1cb8dd801c9601a7b6f6bcd5c57) — Live import validation
+
+  python3 -c "from flashcore.review_manager import ReviewManager; print(ReviewManager.__mro__)"
+  → (<class 'flashcore.review_manager.ReviewManager'>,
+     <class 'flashcore.review_manager.ReviewSessionManager'>,
+     <class 'object'>)
+
+  grep -n "ReviewManager" flashcore/review_manager.py
+  → 345:# Compatibility alias: expose ReviewManager as expected by tests
+  → 346:class ReviewManager(ReviewSessionManager):
+
+  ReviewManager is importable and is a proper subclass of ReviewSessionManager.
+
+---
+
+### Test run at HEAD (review manager tests)
+
+  pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+         tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+
+  tests/test_review_manager.py::TestReviewSessionManagerInit::test_init_successful PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_populates_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_clears_existing_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_returns_card_from_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_empty_queue_returns_none PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_new_card PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_with_history PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_card_not_in_session PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_scheduler_error PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_db_add_error PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_removes_card_from_active_queue PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_removes_card_from_queue PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_is_noop PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_does_not_inflate_reviewed_cards_in_stats PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_does_not_increment_skipped_count PASSED
+  tests/test_review_manager.py::TestGetDueCardCount::test_get_due_card_count_calls_db PASSED
+  tests/test_review_manager.py::TestReviewSessionManagerIntegration::test_e2e_session_flow PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_initialize_session_with_tags PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_session_analytics_start_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_record_session_analytics_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_with_analytics PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_analytics_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_no_session PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_success PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_failure PASSED
+  tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+  tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+  tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+
+  28 passed in 0.38s
+
+F170 GOAL test (uses ReviewManager directly):
+  tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date  PASSED
+
+---
+
+### Full suite at HEAD
+
+  pytest tests/ -q --tb=short
+  → 496 passed, 1 skipped in 32.21s

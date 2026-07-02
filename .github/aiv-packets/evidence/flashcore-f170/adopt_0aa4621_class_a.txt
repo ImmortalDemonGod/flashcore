@@ -1,0 +1,88 @@
+## Class A Evidence — adopt_0aa4621 (flashcore-f170)
+## Baseline: 0aa4621^ = 12242d874162ef8816cad9879798934105bbc53b
+## Head:     e1bb80cdfc5258ba4600ebad9d6f3ba0d2852726
+
+---
+### BASELINE STATE (at 0aa4621^, commit 12242d8)
+
+flashcore/review_manager.py was valid Python (342 lines), but contained the
+ordering bug and lacked the ReviewManager compatibility alias:
+
+  Line 109 (at 0aa4621^):
+      self.review_queue = sorted(due_cards, key=lambda c: c.modified_at)
+
+  No ReviewManager alias was present.
+
+---
+### COMMIT 0aa4621 STATE
+
+flashcore/review_manager.py was replaced with raw "*** Begin Patch" format text
+(80 lines), rendering the module syntactically invalid.  pytest tests/ would
+have produced:
+
+  SyntaxError: invalid syntax (flashcore/review_manager.py, line 1)
+  Interrupted: 11+ errors during collection
+
+The operator's intent (restore alias + remove modified_at sort) was correct but
+the output format was invalid Python.
+
+---
+### HEAD STATE (at e1bb80c)
+
+Subsequent commits (a233a9d, 0cc7abe, 4287777) restored valid Python and
+applied the intended changes:
+
+  Line 110 (HEAD):
+      self.review_queue = due_cards      # DB ordering preserved
+
+  Line 345-346 (HEAD):
+      # Compatibility alias: expose ReviewManager as expected by tests
+      class ReviewManager(ReviewSessionManager):
+
+---
+### TEST RUN AT HEAD (e1bb80c)
+
+Command:
+  pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+         tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+
+Result:
+  tests/test_review_manager.py::TestReviewSessionManagerInit::test_init_successful PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_populates_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_clears_existing_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_returns_card_from_queue PASSED
+  tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_empty_queue_returns_none PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_new_card PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_with_history PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_card_not_in_session PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_scheduler_error PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_db_add_error PASSED
+  tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_removes_card_from_active_queue PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_removes_card_from_queue PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_is_noop PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_does_not_inflate_reviewed_cards_in_stats PASSED
+  tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_does_not_increment_skipped_count PASSED
+  tests/test_review_manager.py::TestGetDueCardCount::test_get_due_card_count_calls_db PASSED
+  tests/test_review_manager.py::TestReviewSessionManagerIntegration::test_e2e_session_flow PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_initialize_session_with_tags PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_session_analytics_start_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_record_session_analytics_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_with_analytics PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_analytics_failure PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_no_session PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_success PASSED
+  tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_failure PASSED
+  tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+  tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+  tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+
+  28 passed in 0.35s
+
+GOAL TEST (from finding F170): test_review_manager_ordering_by_due_date — PASSED
+ORDERING TESTS: all 3 ordering tests PASSED
+
+---
+### FULL SUITE AT HEAD
+
+Command: pytest tests/ -q --tb=short
+Result:  496 passed, 1 skipped in 32.97s

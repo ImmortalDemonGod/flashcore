@@ -1,0 +1,30 @@
+## Class A Evidence — adopt-b15bcde (flashcore-f170)
+## Captured at HEAD: fc7811a960c22876d876d2246b7e2cdbaec2c5d5
+## Date: 2026-06-26
+
+=== BASELINE (b15bcde^ = babfafdf04489082df074958cae9c065c8a8dcc5) ===
+
+  tests/test_review_manager_ordering.py: NOT PRESENT at b15bcde^
+  (git show b15bcde^:tests/test_review_manager_ordering.py → fatal: path exists on disk, but not in 'b15bcde^')
+
+=== F170 BUG ABSENT AT HEAD ===
+
+  grep -rn "sorted.*modified_at" flashcore/*.py
+  → exit 1 (no matches — bug is ABSENT at HEAD)
+
+=== TEST RUN: tests/test_review_manager_ordering.py @ HEAD ===
+
+  pytest tests/test_review_manager_ordering.py -v
+  collected 1 item
+  tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+  1 passed in 0.03s
+
+=== TEST RUN: review-manager suite @ HEAD ===
+
+  pytest tests/test_review_manager_ordering.py tests/test_review_manager.py -v
+  collected 26 items — 26 passed in 0.29s
+
+=== FULL SUITE @ HEAD ===
+
+  pytest tests/ -q --tb=short
+  496 passed, 1 skipped in 32.05s

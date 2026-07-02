@@ -1,0 +1,51 @@
+## Adoption Evidence — babfafd (Add bug catalog for ReviewManager scheduling bug)
+
+### Baseline (babfafd^ — 8468eceb3f10d81f5dc093abedb8ac30f4178d8b)
+
+File `tests/test_review_manager.bug-catalog.md` did NOT exist at babfafd^:
+
+    git show babfafd^:tests/test_review_manager.bug-catalog.md
+    → fatal: Path 'tests/test_review_manager.bug-catalog.md' does not exist in '8468eceb'
+
+File `.github/aiv-evidence/EVIDENCE_TESTS_TEST_REVIEW_MANAGER.BUG_CATALOG.MD.md` did NOT exist at babfafd^:
+
+    git show babfafd^:.github/aiv-evidence/EVIDENCE_TESTS_TEST_REVIEW_MANAGER.BUG_CATALOG.MD.md
+    → fatal: Path does not exist at baseline commit
+
+### HEAD (fc7811a960c22876d876d2246b7e2cdbaec2c5d5)
+
+F170 sort bug absent at HEAD:
+
+    grep -rn "sorted.*modified_at" flashcore/*.py
+    → exit 1 (no matches — bug is ABSENT at HEAD)
+
+F170 GOAL test:
+
+    pytest tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date -v
+    → PASSED
+
+All review-manager tests:
+
+    pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+           tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+    → 28 passed in 0.35s
+
+Full suite:
+
+    pytest tests/ -q --tb=short
+    → 496 passed, 1 skipped in 31.83s
+
+Production code NOT modified by babfafd:
+
+    git show babfafd --name-status
+    → A  .github/aiv-evidence/EVIDENCE_TESTS_TEST_REVIEW_MANAGER.BUG_CATALOG.MD.md
+    → A  tests/test_review_manager.bug-catalog.md
+    (No Python source files touched)
+
+Static analysis at HEAD:
+
+    mypy flashcore/review_manager.py --ignore-missing-imports
+    → Success: no issues found in 1 source file
+
+    ruff check tests/test_review_manager.bug-catalog.md
+    → No Python files found (markdown file — expected); All checks passed

@@ -76,7 +76,7 @@ class ReviewSessionManager:
         """
         Initialize a review session: start analytics (if not started), fetch due cards for today, and populate the session queue.
 
-        Starts session analytics if not already active, then fetches due cards for the manager's deck (optionally filtered by `tags`) limited by `limit`, sorts them by `modified_at`, and stores them in `self.review_queue` and `self.current_session_card_uuids`.
+        Starts session analytics if not already active, then fetches due cards for the manager's deck (optionally filtered by `tags`) limited by `limit`, stores them in `self.review_queue` and `self.current_session_card_uuids`.
 
         Parameters:
             limit (int): Maximum number of cards to include in the session.
@@ -107,7 +107,7 @@ class ReviewSessionManager:
         due_cards = self.db.get_due_cards(
             self.deck_name, on_date=today, limit=limit, tags=tags
         )
-        self.review_queue = sorted(due_cards, key=lambda c: c.modified_at)
+        self.review_queue = due_cards
         self.current_session_card_uuids = {
             card.uuid for card in self.review_queue
         }
@@ -340,3 +340,10 @@ class ReviewSessionManager:
         return self.db.get_due_card_count(
             deck_name=self.deck_name, on_date=today
         )
+
+
+# Compatibility alias: expose ReviewManager as expected by tests
+class ReviewManager(ReviewSessionManager):
+    """Alias for backward compatibility with existing imports."""
+
+    pass

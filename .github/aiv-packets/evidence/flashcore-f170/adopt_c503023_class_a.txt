@@ -1,0 +1,51 @@
+AIV Class A Evidence — adopt_c503023
+Generated: 2026-06-26
+Change ID: flashcore-f170-adopt-c503023
+Adopted commit: c50302351d6107840849ce899585b0c323e8d303
+Base (c503023^): 3699ca9d43206fdfdaf5a16e29f0fb2a3146d045
+Head: 7e437e5a2b3b0cd1c5c5913b4db4afec6fd1588d
+
+=== BASELINE (c503023^ = 3699ca9d) ===
+
+$ git show c503023^:tests/test_review_manager_order.py
+→ fatal: path 'tests/test_review_manager_order.py' does not exist in '3699ca9d'
+  (FILE DID NOT EXIST at baseline)
+
+$ python3 -c "from flashcore.database import InMemoryDB"
+→ ModuleNotFoundError: No module named 'flashcore.database'
+  (InMemoryDB never existed in the codebase — c503023 used a non-existent import)
+
+=== AT c503023 (26-line red test) ===
+
+c503023 added tests/test_review_manager_order.py with 26 lines using:
+  - `from flashcore.database import InMemoryDB`  ← module does not exist
+  - `ReviewManager(db=db)` ← wrong constructor signature
+  - `db.cards`, `c.next_due_date` ← InMemoryDB not in codebase
+This was an intentional RED/spec test documenting Bug B1 (ordering bug).
+The test would fail at collection time with ModuleNotFoundError.
+
+=== AT HEAD (7e437e5a) ===
+
+$ pytest tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date -v
+  platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+  collected 1 item
+  tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED [100%]
+  1 passed in 0.10s
+
+$ pytest tests/test_review_manager.py tests/test_review_manager_order.py \
+         tests/test_review_manager_ordering.py tests/test_review_manager_integration.py -v
+  collected 28 items — 28 passed in 0.34s
+
+All three F170 GOAL ordering tests PASSED:
+  - tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date   PASSED
+  - tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order   PASSED
+  - tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order   PASSED
+
+Full suite: 496 passed, 1 skipped in 32.83s
+
+=== NOTE: TEST FILE EVOLUTION ===
+c503023 created tests/test_review_manager_order.py (26 lines, red spec).
+5942a36 rewrote it (98 lines) to use the correct FlashcardDatabase API.
+The 98-line HEAD version of the file PASSES; the F841 flake8 warning at
+line 79 (unused variable `expected_order`) is a pre-existing issue from
+5942a36, not from c503023.

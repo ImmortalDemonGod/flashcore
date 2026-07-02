@@ -1,0 +1,61 @@
+## Class A Evidence — adopt 3699ca9 (bug catalog for ReviewManager sorting bug)
+
+### Baseline (3699ca9^ = a7fbe84e4a8982eee02b0a47da1718a0530af435)
+
+Files added by 3699ca9 did not exist at baseline:
+  git show 3699ca9^:tests/test_review_manager_order.bug-catalog.md
+  → fatal: Path 'tests/test_review_manager_order.bug-catalog.md' does not exist in 'a7fbe84'
+
+  git show 3699ca9^:.github/aiv-evidence/EVIDENCE_TESTS_TEST_REVIEW_MANAGER_ORDER.BUG_CATALOG.MD.md
+  → fatal: Path does not exist in 'a7fbe84'
+
+Both files are markdown documentation (not Python). No behavioral tests target them directly.
+
+### At HEAD (064630607c4eed1ae531f1ff35aab0e0dcb877bd)
+
+Bug B1 catalogued by 3699ca9: "ReviewManager re-sorts due cards by modified_at instead of next_due_date"
+
+grep -rn "sorted.*modified_at" flashcore/*.py
+→ exit 1 (no matches) — the bug documented in the catalog is ABSENT at HEAD
+
+Review-manager tests exercising the documented invariant (28 tests, all PASSED):
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+collected 28 items
+
+tests/test_review_manager.py::TestReviewSessionManagerInit::test_init_successful PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_populates_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_start_session_clears_existing_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_returns_card_from_queue PASSED
+tests/test_review_manager.py::TestStartSessionAndGetNextCard::test_get_next_card_empty_queue_returns_none PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_new_card PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_successful_with_history PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_card_not_in_session PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_scheduler_error PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_db_add_error PASSED
+tests/test_review_manager.py::TestSubmitReviewAndHelpers::test_submit_review_removes_card_from_active_queue PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_removes_card_from_queue PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_is_noop PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_does_not_inflate_reviewed_cards_in_stats PASSED
+tests/test_review_manager.py::TestSkipCard::test_skip_card_unknown_uuid_does_not_increment_skipped_count PASSED
+tests/test_review_manager.py::TestGetDueCardCount::test_get_due_card_count_calls_db PASSED
+tests/test_review_manager.py::TestReviewSessionManagerIntegration::test_e2e_session_flow PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_initialize_session_with_tags PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_session_analytics_start_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_record_session_analytics_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_with_analytics PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_get_session_stats_analytics_failure PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_no_session PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_success PASSED
+tests/test_review_manager.py::TestReviewManagerCoverageGaps::test_end_session_with_insights_failure PASSED
+tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+tests/test_review_manager_ordering.py::test_initialize_session_respects_due_date_order PASSED
+tests/test_review_manager_integration.py::test_review_flow_maintains_due_date_order PASSED
+
+============================== 28 passed in 0.38s ==============================
+
+F170 GOAL test (review_queue[0] is earliest-due card):
+  tests/test_review_manager_order.py::test_review_manager_ordering_by_due_date PASSED
+
+Full suite: 496 passed, 1 skipped (no regressions)
